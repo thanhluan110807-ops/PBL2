@@ -1,0 +1,22 @@
+# Bỏ qua các file thực thi (chạy chương trình)
+*.exe
+*.out
+*.app
+
+# Bỏ qua các file object sinh ra trong quá trình biên dịch
+*.o
+*.obj
+
+# Bỏ qua các file thư viện động/tĩnh
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+
+# Bỏ qua thư mục cấu hình cá nhân của VS Code
+.vscode/
+
+# Bỏ qua các file hệ thống tự sinh ra của Windows/Mac
+.DS_Store
+Thumbs.db

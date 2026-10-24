@@ -5,22 +5,29 @@
 #include <iomanip>  // Để dùng std::fixed và std::setprecision
 #include <stdexcept> //Để sử dụng std::isnan
 
-Patient() 
-        : Person("UNallocated", "Khong xac dinh", 0, "Khong xac dinh"),
-          heartRate(0), systolicBP(0), respiratoryRate(0), spO2(0.0), gcsScore(0),
-          triageLevel(5), waitingTime(0), isAnonymous(false), isReentrant(false) {}
+// STT của bệnh nhân thực bắt đầu từ 1
+int Patient::nextStt = 1;
 
-// 🟢 CÀI ĐẶT HÀM TẠO 1: Bệnh nhân THƯỜNG
-Patient::Patient(const std::string& id, const std::string& fullName, int age, const std::string& gender)
+Patient::Patient()
+    : Person("UNallocated", "Khong xac dinh", 0, "Khong xac dinh"),
+      heartRate(0), systolicBP(0), respiratoryRate(0), spO2(0.0), gcsScore(0),
+      stt(0), triageLevel(5), waitingTime(0),
+      isAnonymous(false), isReentrant(false) {}
+
+// Bệnh nhân thường
+Patient::Patient(const std::string& id, const std::string& fullName,
+                 int age, const std::string& gender)
     : Person(id, fullName, age, gender),
       heartRate(75), systolicBP(120), respiratoryRate(16), spO2(98.0), gcsScore(15),
-      triageLevel(5), waitingTime(0), isAnonymous(false), isReentrant(false) {}
+      stt(nextStt++), triageLevel(5), waitingTime(0),
+      isAnonymous(false), isReentrant(false) {}
 
-// 🔴 CÀI ĐẶT HÀM TẠO 2: Bệnh nhân VÔ DANH CẤP CỨU
+// Bệnh nhân vô danh
 Patient::Patient(const std::string& tempId)
-    : Person(tempId, "Nguoi benh Vo danh", 0, "Khong xac dinh"), // Gọi Person khởi tạo thông tin tạm
+    : Person(tempId, "Nguoi benh Vo danh", 0, "Khong xac dinh"),
       heartRate(75), systolicBP(120), respiratoryRate(16), spO2(98.0), gcsScore(15),
-      triageLevel(5), waitingTime(0), isAnonymous(true), isReentrant(false) {}
+      stt(nextStt++), triageLevel(5), waitingTime(0),
+      isAnonymous(true), isReentrant(false) {}
 
 Patient::~Patient() {}
 
@@ -32,6 +39,34 @@ bool Patient::getAnonymous() const {
     return isAnonymous; 
 }
 
+bool Patient::isAnonymousPatient() const noexcept {
+    return isAnonymous;
+}
+
+bool Patient::isReentrantPatient() const noexcept {
+    return isReentrant;
+}
+
+int Patient::getHeartRate() const noexcept {
+    return heartRate;
+}
+
+int Patient::getSystolicBP() const noexcept {
+    return systolicBP;
+}
+
+int Patient::getRespiratoryRate() const noexcept {
+    return respiratoryRate;
+}
+
+double Patient::getSpO2() const noexcept {
+    return spO2;
+}
+
+int Patient::getGcsScore() const noexcept {
+    return gcsScore;
+}
+
 void Patient::setAnonymous(bool status) { 
     isAnonymous = status; 
 }
@@ -40,15 +75,15 @@ bool Patient::getReentrant() const {
     return isReentrant; 
 }
 
-void Patient::setReentrant(bool status) { 
+void Patient::setReentrant(bool status) noexcept { 
     isReentrant = status; 
 }
 
-int Patient::getTriageLevel() const { 
+int Patient::getTriageLevel() const noexcept { 
     return triageLevel; 
 }
 
-int Patient::getWaitingTime() const { 
+int Patient::getWaitingTime() const noexcept { 
     return waitingTime; 
 }
 
@@ -56,6 +91,10 @@ void Patient::setWaitingTime(int minutes) {
     if (minutes >= 0) { // Thời gian chờ không bao giờ âm [cite: 74, 102]
         waitingTime = minutes;
     }
+}
+
+int Patient::getStt() const noexcept {
+    return stt;
 }
 
 // =========================================================
@@ -243,16 +282,18 @@ void Patient::evaluateTriageLevel() {
  * - Vì vậy ta đảo ngược logic: A < B có nghĩa là "Độ ưu tiên của A thấp hơn B" [A ít khẩn cấp hơn B].
  */
 bool Patient::operator<(const Patient& other) const noexcept {
-    // TRƯỜNG HỢP 1: Hai bệnh nhân có cùng mức độ ưu tiên lâm sàng
-    if (this->triageLevel == other.triageLevel) {
-        // Ai ngồi đợi ít thời gian hơn (waitingTime nhỏ hơn) thì độ ưu tiên sẽ THẤP HƠN (nhỏ hơn)
-        // Hệ thống sẽ ưu tiên người đợi lâu hơn khám trước!
-        return this->waitingTime < other.waitingTime;
+    if (triageLevel != other.triageLevel) {
+        // Cấp triage có số lớn hơn thì ít khẩn cấp hơn
+        return triageLevel > other.triageLevel;
     }
-    
-    // TRƯỜNG HỢP 2: Khác mức độ ưu tiên lâm sàng
-    // Số triageLevel lớn hơn (ví dụ Cấp 4 so với Cấp 1) nghĩa là độ ưu tiên THẤP HƠN (nhỏ hơn)
-    return this->triageLevel > other.triageLevel; 
+
+    if (waitingTime != other.waitingTime) {
+        // Thời gian chờ ngắn hơn thì ít ưu tiên hơn
+        return waitingTime < other.waitingTime;
+    }
+
+    // STT lớn hơn thì ít ưu tiên hơn; STT nhỏ hơn được khám trước
+    return stt > other.stt;
 }
 
 /**
@@ -279,6 +320,7 @@ void Patient::bindPatientData(const std::string& newId,
     this->age = newAge;
     this->gender = newGender;
     this->isAnonymous = false;
+    evaluateTriageLevel();
 }
 
 void Patient::displayInfo() const {
@@ -316,7 +358,8 @@ void Patient::displayInfo() const {
     }
 
     // 5. IN TRẠNG THÁI ĐIỀU PHỐI TRONG HÀNG ĐỢI
-    std::cout << "-> Trạng thái: " << colorStr 
-              << " | Thời gian chờ: " << waitingTime << " phút" 
+    std::cout << "-> STT: " << stt
+              << " | Trạng thái: " << colorStr
+              << " | Thời gian chờ: " << waitingTime << " phút"
               << " | Bệnh nhân khám lại: " << (isReentrant ? "Có" : "Không") << "\n";
 }

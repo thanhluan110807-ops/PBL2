@@ -2,12 +2,36 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include "vector.h"
+#include <stdexcept>
+#include <iomanip>
 
-// 1. GHI DỮ LIỆU TỪ VECTOR RA FILE
+namespace {
+
+void writePatientCsvRow(std::ostream& out, const Patient& p) {
+    out << p.getId() << ","
+        << p.getFullName() << ","
+        << p.getAge() << ","
+        << p.getGender() << ","
+        << (p.isAnonymousPatient() ? 1 : 0) << ","
+        << (p.isReentrantPatient() ? 1 : 0) << ","
+        << p.getHeartRate() << ","
+        << p.getSystolicBP() << ","
+        << p.getRespiratoryRate() << ","
+        << std::fixed << std::setprecision(1) << p.getSpO2() << ","
+        << p.getGcsScore() << ","
+        << p.getWaitingTime() << "\n";
+}
+
+bool looksLikeHeader(const std::string& line) {
+    return line.find("id") != std::string::npos &&
+           line.find("fullName") != std::string::npos;
+}
+
+} // namespace
+
 bool PatientFileManager::savePatientsToFile(const std::string& filePath, const Vector<Patient>& patients) {
     std::ofstream outFile(filePath, std::ios::out | std::ios::trunc);
-    
+
     if (!outFile.is_open()) {
         std::cerr << "❌ [LỖI FILE]: Không thể mở file " << filePath << " để ghi dữ liệu!\n";
         return false;
@@ -16,68 +40,129 @@ bool PatientFileManager::savePatientsToFile(const std::string& filePath, const V
     outFile << "id,fullName,age,gender,isAnonymous,isReentrant,heartRate,systolicBP,respiratoryRate,spO2,gcsScore,waitingTime\n";
 
     for (int i = 0; i < patients.size(); ++i) {
-        outFile << patients[i].getId() << ","
-                << patients[i].getFullName() << ","
-                << patients[i].getAge() << ","
-                << patients[i].getGender() << ","
-                << (patients[i].isAnonymousPatient() ? 1 : 0) << ","
-                << (patients[i].isReentrantPatient() ? 1 : 0) << ","
-                << patients[i].getHeartRate() << ","
-                << patients[i].getSystolicBP() << ","
-                << patients[i].getRespiratoryRate() << ","
-                << patients[i].getSpO2() << ","
-                << patients[i].getGcsScore() << ","
-                << patients[i].getWaitingTime() << "\n";
+        writePatientCsvRow(outFile, patients[i]);
     }
 
-    outFile.close();
+    if (!outFile.good()) {
+        std::cerr << "❌ [LỖI FILE]: Ghi file '" << filePath << "' thất bại!\n";
+        return false;
+    }
+
     std::cout << "✅ [HỆ THỐNG]: Đã lưu thành công " << patients.size() << " hồ sơ vào '" << filePath << "'.\n";
     return true;
 }
 
-// 2. NẠP DỮ LIỆU TỪ FILE VÀO VECTOR (KHÔNG LO TRÀN BỘ ĐỆM)
 int PatientFileManager::loadPatientsFromFile(const std::string& filePath, Vector<Patient>& patientsList) {
     std::ifstream inFile(filePath);
-    
+
     if (!inFile.is_open()) {
         std::cerr << "⚠️ [LỖI FILE]: Không tìm thấy file dữ liệu '" << filePath << "'.\n";
         return 0;
     }
 
-    patientsList.clear(); // Dọn dẹp vector trước khi nạp
+    patientsList.clear();
     std::string line;
-    int count = 0;
+    int loaded = 0;
+    int lineNumber = 0;
 
-    // Bỏ qua dòng Header
-    if (std::getline(inFile, line)) {}
-
-    while (std::getline(inFile, line)) {
-        if (line.empty()) continue;
+    auto tryLoadLine = [&](const std::string& csvLine) {
+        if (csvLine.empty()) {
+            return;
+        }
 
         try {
             std::string id, fullName, gender;
-            int age, heartRate, systolicBP, respiratoryRate, gcsScore, waitingTime;
-            double spO2;
-            bool isAnonymous, isReentrant;
+            int age = 0, heartRate = 0, systolicBP = 0, respiratoryRate = 0, gcsScore = 0, waitingTime = 0;
+            double spO2 = 0.0;
+            bool isAnonymous = false, isReentrant = false;
 
-            parseCSVLine(line, id, fullName, age, gender, isAnonymous, isReentrant, 
+            parseCSVLine(csvLine, id, fullName, age, gender, isAnonymous, isReentrant,
                          heartRate, systolicBP, respiratoryRate, spO2, gcsScore, waitingTime);
 
             Patient p = isAnonymous ? Patient(id) : Patient(id, fullName, age, gender);
+            if (isAnonymous) {
+                p.setFullName(fullName);
+                p.setAge(age);
+                p.setGender(gender);
+            }
             p.updateVitalSigns(heartRate, systolicBP, respiratoryRate, spO2, gcsScore);
             p.setWaitingTime(waitingTime);
             p.setReentrant(isReentrant);
 
-            // 🚀 TỰ ĐỘNG THÊM VÀ TỰ ĐỘNG TĂNG DUNG LƯỢNG MẢNG
-            patientsList.push_back(p); 
-            count++;
-        } 
-        catch (const std::exception& e) {
-            std::cerr << "⚠️ [LỖI DÒNG " << (count + 2) << "]: " << e.what() << " -> Đã bỏ qua.\n";
+            patientsList.push_back(p);
+            ++loaded;
+        } catch (const std::exception& e) {
+            std::cerr << "⚠️ [LỖI DÒNG " << lineNumber << "]: " << e.what() << " -> Đã bỏ qua.\n";
+        }
+    };
+
+    if (std::getline(inFile, line)) {
+        ++lineNumber;
+        if (!looksLikeHeader(line)) {
+            tryLoadLine(line);
         }
     }
 
-    inFile.close();
-    std::cout << "✅ [HỆ THỐNG]: Đã nạp thành công " << count << " hồ sơ bệnh nhân từ file CSV!\n";
-    return count;
+    while (std::getline(inFile, line)) {
+        ++lineNumber;
+        tryLoadLine(line);
+    }
+
+    std::cout << "✅ [HỆ THỐNG]: Đã nạp thành công " << loaded << " hồ sơ bệnh nhân từ file CSV!\n";
+    return loaded;
+}
+
+bool PatientFileManager::appendPatientToFile(const std::string& filePath, const Patient& patient) {
+    bool needHeader = false;
+    {
+        std::ifstream check(filePath);
+        needHeader = !check.good() || check.peek() == std::ifstream::traits_type::eof();
+    }
+
+    std::ofstream outFile(filePath, std::ios::out | std::ios::app);
+    if (!outFile.is_open()) {
+        std::cerr << "❌ [LỖI FILE]: Không thể mở file " << filePath << " để ghi bổ sung!\n";
+        return false;
+    }
+
+    if (needHeader) {
+        outFile << "id,fullName,age,gender,isAnonymous,isReentrant,heartRate,systolicBP,respiratoryRate,spO2,gcsScore,waitingTime\n";
+    }
+    writePatientCsvRow(outFile, patient);
+
+    if (!outFile.good()) {
+        std::cerr << "❌ [LỖI FILE]: Ghi bổ sung vào '" << filePath << "' thất bại!\n";
+        return false;
+    }
+    return true;
+}
+
+void PatientFileManager::parseCSVLine(const std::string& line,
+                                      std::string& id, std::string& fullName, int& age, std::string& gender,
+                                      bool& isAnonymous, bool& isReentrant,
+                                      int& heartRate, int& systolicBP, int& respiratoryRate,
+                                      double& spO2, int& gcsScore, int& waitingTime) {
+    std::stringstream ss(line);
+    std::string fields[12];
+    int n = 0;
+    while (n < 12 && std::getline(ss, fields[n], ',')) {
+        ++n;
+    }
+
+    if (n != 12) {
+        throw std::invalid_argument("Dong CSV khong du 12 truong (hien co " + std::to_string(n) + ")");
+    }
+
+    id = fields[0];
+    fullName = fields[1];
+    age = std::stoi(fields[2]);
+    gender = fields[3];
+    isAnonymous = std::stoi(fields[4]) != 0;
+    isReentrant = std::stoi(fields[5]) != 0;
+    heartRate = std::stoi(fields[6]);
+    systolicBP = std::stoi(fields[7]);
+    respiratoryRate = std::stoi(fields[8]);
+    spO2 = std::stod(fields[9]);
+    gcsScore = std::stoi(fields[10]);
+    waitingTime = std::stoi(fields[11]);
 }

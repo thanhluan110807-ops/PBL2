@@ -13,13 +13,17 @@ private:
     double spO2;          // SpO2 (%) - Lưu dữ liệu thô (Raw Data) từ thiết bị
     int gcsScore;         // Thang điểm hôn mê Glasgow (3 - 15 điểm)
 
+    int stt;                 // Số thứ tự bệnh nhân
+    static int nextStt;      // Bộ đếm dùng chung cho các bệnh nhân
+
     int triageLevel;      // Mức ESI (1: Đỏ, 2: Cam, 3: Vàng, 4: Xanh dương, 5: Xanh lá)
     int waitingTime;      // Thời gian chờ (phút)
     bool isAnonymous;     // Bệnh nhân vô danh cấp cứu khẩn cấp
     bool isReentrant;     // Bệnh nhân quay lại khám
 
 public:
-    Patient() ;
+    Patient();
+    ~Patient() override;
           
      // 🟢 HAM TẠO 1: Dành cho Bệnh nhân THƯỜNG (Có đầy đủ thông tin)
     Patient(const std::string& id, 
@@ -43,8 +47,16 @@ public:
     void setWaitingTime(int mins);
     int getWaitingTime() const noexcept;
     int getTriageLevel() const noexcept;
+    int getHeartRate() const noexcept;
+    int getSystolicBP() const noexcept;
+    int getRespiratoryRate() const noexcept;
+    double getSpO2() const noexcept;
+    int getGcsScore() const noexcept;
     bool isAnonymousPatient() const noexcept;
     bool isReentrantPatient() const noexcept;
+    bool getAnonymous() const;
+    void setAnonymous(bool status);
+    bool getReentrant() const;
     void setReentrant(bool reentrant) noexcept;
 
     // Ghi đè phương thức hiển thị (OOP Inheritance)

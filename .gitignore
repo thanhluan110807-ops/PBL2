@@ -20,3 +20,5 @@
 # Bỏ qua các file hệ thống tự sinh ra của Windows/Mac
 .DS_Store
 Thumbs.db
+# Thư mục build
+build/

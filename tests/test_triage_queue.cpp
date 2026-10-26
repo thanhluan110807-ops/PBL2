@@ -1,9 +1,9 @@
 // test_triage_queue.cpp
 #include <iostream>
 #include <stdexcept>
-#include "Person.h"
-#include "Patient.h"
-#include "PriorityQueue.h"
+#include "model/Person.h"
+#include "model/Patient.h"
+#include "util/PriorityQueue.h"
 
 // Hàm bổ trợ in tiêu đề từng kịch bản test cho sạch đẹp
 void printHeader(const std::string& title) {

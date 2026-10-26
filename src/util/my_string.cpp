@@ -1,4 +1,4 @@
-#include "my_string.h"
+#include "util/my_string.h"
 #include <cstddef>
 
 int my_string_length(const char* s){
@@ -101,6 +101,7 @@ my_string& my_string::operator=(const char* text){
     length = my_string_length(text);
     data = new char[length + 1];
     my_string_copy(data, text);
+    return *this;
 }
 
 int my_string::size() const noexcept{

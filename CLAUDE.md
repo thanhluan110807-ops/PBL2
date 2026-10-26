@@ -14,7 +14,6 @@ Hệ thống giải quyết hai bài toán:
 
 - Code **đơn giản, dễ đọc**, phù hợp trình độ sinh viên năm 2. Không dùng template metaprogramming, không dùng trick phức tạp.
 - Kiến trúc **chuẩn doanh nghiệp**: chia tầng rõ ràng, tách interface và implementation, mỗi class chỉ làm một việc.
-- **Chỉ dùng thư viện chuẩn C++ (STL)**. Không thêm thư viện bên thứ ba (Boost, Qt, v.v.).
 - Ưu tiên rõ ràng hơn tối ưu. Chỉ tối ưu khi thật sự cần.
 - Mỗi thay đổi phải giải thích ngắn gọn bằng tiếng Việt: làm gì và vì sao.
 - Không tự ý đổi cấu trúc thư mục hay đổi tên class đã có mà không hỏi.
@@ -98,13 +97,10 @@ Quy tắc:
 
 - Tên class: `PascalCase` (`TriageService`)
 - Tên hàm, biến: `camelCase` (`calculateFatigue`)
-- Biến thành viên: thêm hậu tố `_` (`name_`)
 - Hằng số: `UPPER_SNAKE_CASE`
 - File: tên trùng tên class (`Patient.h`, `Patient.cpp`)
-- Mỗi header có `#pragma once`
 - Một class một cặp file `.h` / `.cpp`
 - Dùng `const` và tham chiếu `const&` khi truyền đối tượng lớn
-- Ưu tiên `std::vector`, `std::map`, `std::priority_queue`, `std::string`
 - Dùng smart pointer (`std::unique_ptr`, `std::shared_ptr`), **không dùng `new`/`delete` thủ công**
 - Hàm ngắn (tốt nhất dưới ~30 dòng), tên hàm nói rõ việc nó làm
 - Comment bằng tiếng Việt cho phần nghiệp vụ khó hiểu, không comment thừa
@@ -142,16 +138,16 @@ make
 
 ## 11. Cách Claude nên làm việc với dự án này
 
+- Luôn giao tiếp, hỏi đáp và giải thích bằng tiếng Việt.
 - Đọc cấu trúc hiện có trước khi viết code mới, giữ đúng phong cách sẵn có.
 - Khi yêu cầu chưa rõ, hỏi lại thay vì đoán.
 - Làm từng bước nhỏ: viết, build thử, rồi mới sang bước tiếp theo.
 - Giải thích code bằng ngôn ngữ đơn giản, vì sinh viên cần hiểu để bảo vệ đồ án.
 - Không thêm tính năng ngoài phạm vi đề tài.
-- Không dùng thư viện ngoài, không dùng kỹ thuật quá nâng cao.
+- Chỉ dùng các thư viện tự định nghĩa (nếu khó quá thì có thể sử dụng các thư viện có sẵn), không dùng kỹ thuật quá nâng cao.
+
 
 ## 12. Ngoài phạm vi (không làm)
-
-- Giao diện đồ họa, web, hay kết nối mạng
 - Cơ sở dữ liệu thật (SQL)
 - Đa luồng phức tạp
 - Trí tuệ nhân tạo / học máy (phần "thông minh" chỉ là luật và công thức rõ ràng)

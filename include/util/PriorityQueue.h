@@ -42,6 +42,8 @@ public:
     void push(const T& element);
     T pop();
     T peek() const;
+    // Duyệt chỉ đọc mảng Heap (index 0..size-1, không theo thứ tự ưu tiên) - dùng để thống kê
+    const T& at(int index) const;
 };
 
 // ============================================================================
@@ -199,6 +201,14 @@ T PriorityQueue<T>::peek() const {
         throw std::underflow_error("Loi: Hang doi cap cuu hien dang trong rỗng!"); // [cite: 74, 102]
     }
     return heap[0];
+}
+
+template <typename T>
+const T& PriorityQueue<T>::at(int index) const {
+    if (index < 0 || index >= size) {
+        throw std::out_of_range("Chi so phan tu Hang doi khong hop le!");
+    }
+    return heap[index];
 }
 
 #endif // PRIORITY_QUEUE_H

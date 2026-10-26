@@ -2,9 +2,9 @@
 #ifndef QUEUE_PRESSURE_CALCULATOR_H
 #define QUEUE_PRESSURE_CALCULATOR_H
 
-#include "Patient.h"
-#include "PriorityQueue.h"
-#include "Vector.h"
+#include "model/Patient.h"
+#include "util/PriorityQueue.h"
+#include "util/Vector.h"
 #include <string>
 
 /**

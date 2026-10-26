@@ -1,5 +1,5 @@
 // Patient.cpp
-#include "Patient.h"
+#include "model/Patient.h"
 #include <iostream>
 #include <cmath>    // Để dùng hàm std::round
 #include <iomanip>  // Để dùng std::fixed và std::setprecision

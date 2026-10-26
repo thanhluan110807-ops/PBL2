@@ -1,5 +1,5 @@
 // main.cpp
-#include "Patient.h"
+#include "model/Patient.h"
 
 int main() {
     // 1. Tạo bệnh nhân A bình thường nhưng đợi lâu (30 phút)

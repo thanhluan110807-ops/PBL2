@@ -45,6 +45,7 @@ public:
 
     // Getters / Setters tối ưu noexcept
     void setWaitingTime(int mins);
+    int getStt() const noexcept;
     int getWaitingTime() const noexcept;
     int getTriageLevel() const noexcept;
     int getHeartRate() const noexcept;

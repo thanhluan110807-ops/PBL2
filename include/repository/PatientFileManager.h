@@ -1,8 +1,8 @@
 #ifndef PATIENT_FILE_MANAGER_H
 #define PATIENT_FILE_MANAGER_H
 
-#include "Patient.h"
-#include "Vector.h" // Sử dụng Custom Vector tự tạo
+#include "model/Patient.h"
+#include "util/Vector.h" // Sử dụng Custom Vector tự tạo
 #include <string>
 
 class PatientFileManager {

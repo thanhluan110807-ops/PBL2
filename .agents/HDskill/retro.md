@@ -4,4 +4,4 @@ Skill `retro` dùng để nhìn lại một phiên làm việc với coding agen
 
 Các nội dung được xem xét gồm khả năng tìm đúng tệp, kiểm tra tự động và CI, quy chuẩn lập trình, hướng dẫn trong AGENTS.md/CLAUDE.md, hiệu quả sử dụng công cụ và khả năng tiếp cận thông tin. Kết quả là các đề xuất cải thiện được trình bày theo mức độ nghiêm trọng.
 
-Skill được thiết kế để người dùng chủ động gọi khi cần tổng kết một phiên. Nội dung nằm tại `.agents/skills/retro/SKILL.md`. Khi thực thi, skill yêu cầu tham khảo skill `writing-for-agents`; skill phụ thuộc đó chưa được cài trong repository này.
+Skill được thiết kế để người dùng chủ động gọi khi cần tổng kết một phiên. Nội dung nằm tại `.agents/skills/retro/SKILL.md`. Khi thực thi, skill yêu cầu tham khảo skill `writing-for-agents`; skill tham khảo đó đã được cài tại `.agents/skills/writing-for-agents/`.

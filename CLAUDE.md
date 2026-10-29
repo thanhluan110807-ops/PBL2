@@ -14,7 +14,7 @@ Hệ thống giải quyết hai bài toán:
 
 - Code **đơn giản, dễ đọc**, phù hợp trình độ sinh viên năm 2. Không dùng template metaprogramming, không dùng trick phức tạp.
 - Kiến trúc **chuẩn doanh nghiệp**: chia tầng rõ ràng, tách interface và implementation, mỗi class chỉ làm một việc.
-- **Chỉ dùng thư viện chuẩn C++ (STL)**. Không thêm thư viện bên thứ ba (Boost, Qt, v.v.).
+- **Giao diện người dùng chỉ dùng GUI bằng Qt Widgets**, không xây dựng menu hoặc luồng tương tác console. Qt được phép dùng cho tầng giao diện; phần nghiệp vụ và cấu trúc dữ liệu độc lập với Qt. Các thư viện bên thứ ba khác cần được thống nhất trước khi thêm.
 - Ưu tiên rõ ràng hơn tối ưu. Chỉ tối ưu khi thật sự cần.
 - Mỗi thay đổi phải giải thích ngắn gọn bằng tiếng Việt: làm gì và vì sao.
 - Không tự ý đổi cấu trúc thư mục hay đổi tên class đã có mà không hỏi.
@@ -24,6 +24,7 @@ Hệ thống giải quyết hai bài toán:
 - Ngôn ngữ: C++17
 - Compiler: g++ (hoặc clang++), bật `-Wall -Wextra`
 - Build: CMake (tối thiểu 3.10)
+- Giao diện: Qt Widgets (Qt 6 hoặc Qt 5 theo cấu hình build), chương trình GUI là điểm chạy chính
 - Test: viết test đơn giản bằng `assert` hoặc một file `main` test riêng, không dùng framework nặng
 - Lưu trữ dữ liệu: file văn bản/CSV (không dùng database)
 
@@ -38,7 +39,7 @@ project/
 │   ├── model/          # Patient, Doctor, Shift, TriageLevel...
 │   ├── service/        # TriageService, SchedulerService, FatigueService
 │   ├── repository/     # đọc/ghi dữ liệu
-│   ├── ui/             # menu console
+│   ├── ui/             # cửa sổ, hộp thoại và thành phần Qt Widgets
 │   └── util/           # hàm tiện ích (thời gian, chuỗi)
 ├── src/                # file cài đặt (.cpp), cấu trúc giống include/
 ├── data/               # dữ liệu mẫu (CSV)
@@ -49,7 +50,7 @@ project/
 ## 5. Kiến trúc phân tầng
 
 ```
-UI (console menu)
+UI (Qt Widgets: MainWindow, các dialog)
    ↓
 Service (nghiệp vụ: phân loại, xếp lịch, tính mệt mỏi)
    ↓
@@ -60,7 +61,10 @@ Model (các thực thể dữ liệu)
 
 Quy tắc:
 - Tầng trên được gọi tầng dưới, **không gọi ngược lại**.
-- UI **không chứa logic nghiệp vụ**.
+- UI **không chứa logic nghiệp vụ**; nhận thao tác qua nút bấm/biểu mẫu, gọi service và hiển thị kết quả bằng bảng, nhãn hoặc hộp thoại.
+- Model và service cung cấp dữ liệu/kết quả hoặc báo lỗi cho bên gọi; không phụ thuộc widget Qt và không dùng `cout`/`cin` làm giao diện người dùng.
+- Các hàm như `HienThiThongTin()` chỉ để in console được loại bỏ khi chuyển luồng tương ứng sang GUI; cập nhật đồng bộ khai báo, `override` và nơi gọi. Giữ các hàm truy xuất dữ liệu, lưu file và destructor ảo khi cần đa hình.
+- Log chẩn đoán và đầu ra của chương trình kiểm thử được phép giữ riêng; chúng không phải giao diện console của ứng dụng.
 - Model **không biết gì** về UI hay Repository.
 - Dùng interface (lớp trừu tượng) cho Repository để dễ thay đổi nơi lưu trữ.
 
@@ -121,18 +125,22 @@ Quy tắc:
 
 ## 9. Lệnh thường dùng
 
+Các lệnh dưới đây áp dụng trên branch đã tích hợp `CMakeLists.txt` và các target tương ứng. Điểm chạy ứng dụng là `hospital_gui`; `run_tests` là chương trình kiểm thử riêng.
+
 ```bash
-# Build
-mkdir -p build && cd build
-cmake ..
-make
+# Cấu hình và build giao diện (cần Qt Widgets)
+cmake -S . -B build
+cmake --build build --target hospital_gui
 
-# Chạy chương trình
-./build/hospital_app
+# Chạy ứng dụng GUI
+./build/hospital_gui
 
-# Chạy test
+# Build và chạy kiểm thử nghiệp vụ riêng
+cmake --build build --target run_tests
 ./build/run_tests
 ```
+
+Nếu thiếu Qt hoặc target `hospital_gui`, xử lý phụ thuộc/cấu hình build trước; không coi target console là ứng dụng thay thế đã đáp ứng yêu cầu GUI.
 
 ## 10. Quy trình Git
 
@@ -150,11 +158,11 @@ make
 - Làm từng bước nhỏ: viết, build thử, rồi mới sang bước tiếp theo.
 - Giải thích code bằng ngôn ngữ đơn giản, vì sinh viên cần hiểu để bảo vệ đồ án.
 - Không thêm tính năng ngoài phạm vi đề tài.
-- Không dùng thư viện ngoài, không dùng kỹ thuật quá nâng cao.
+- Dùng Qt Widgets cho GUI theo quy định ở mục 2; giữ giải pháp đơn giản, phù hợp trình độ đồ án.
 
 ## 12. Ngoài phạm vi (không làm)
 
-- Giao diện đồ họa, web, hay kết nối mạng
+- Giao diện console tương tác, giao diện web và chức năng kết nối mạng
 - Cơ sở dữ liệu thật (SQL)
 - Đa luồng phức tạp
 - Trí tuệ nhân tạo / học máy (phần "thông minh" chỉ là luật và công thức rõ ràng)

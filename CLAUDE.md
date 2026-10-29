@@ -136,7 +136,10 @@ Quy tắc:
 - Ưu tiên `std::vector`, `std::map`, `std::priority_queue`, `std::string`
 - Dùng smart pointer (`std::unique_ptr`, `std::shared_ptr`), **không dùng `new`/`delete` thủ công**
 - Hàm ngắn (tốt nhất dưới ~30 dòng), tên hàm nói rõ việc nó làm
-- Comment bằng tiếng Việt cho phần nghiệp vụ khó hiểu, không comment thừa
+- Khi viết hoặc sửa code, thêm **comment giải thích dễ hiểu bằng tiếng Việt**, phù hợp với sinh viên năm 2. Giải thích mục đích và lý do xử lý để người đọc hiểu và có thể trình bày khi bảo vệ đồ án.
+- Với lớp và hàm có nghiệp vụ, chú thích ngắn gọn vai trò, đầu vào/kết quả và điều kiện quan trọng khi cần; với thuật toán, giải thích các bước chính như xử lý va chạm bảng băm, vun đống hoặc quay lui.
+- Chú thích rõ các đoạn dễ nhầm: quyền sở hữu con trỏ, cấp phát/thu hồi bộ nhớ, điều kiện biên và ràng buộc nghiệp vụ. Dùng từ ngữ đơn giản, giải thích thuật ngữ khi cần; tránh chỉ diễn đạt lại từng dòng lệnh hiển nhiên.
+- Khi thay đổi logic, cập nhật comment tương ứng để phần giải thích luôn khớp với code.
 
 ## 8. Nguyên tắc OOP cần thể hiện
 

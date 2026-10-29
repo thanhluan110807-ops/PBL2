@@ -151,24 +151,13 @@ Quy tắc:
 - **Trừu tượng**: interface cho Repository, chiến lược xếp lịch
 - Áp dụng SOLID ở mức cơ bản, không lạm dụng design pattern
 
-## 9. Lệnh thường dùng
+## 9. Build và kiểm thử hiện tại
 
-Các lệnh dưới đây áp dụng trên branch đã tích hợp `CMakeLists.txt` và các target tương ứng. Điểm chạy ứng dụng là `hospital_gui`; `run_tests` là chương trình kiểm thử riêng.
+Chạy từ thư mục gốc repository theo [hướng dẫn build/test trong README.md](README.md#build-và-chạy-toàn-bộ-test-hiện-có). README là nơi duy nhất duy trì khối lệnh chạy toàn bộ test hiện tại.
 
-```bash
-# Cấu hình và build giao diện (cần Qt Widgets)
-cmake -S . -B build
-cmake --build build --target hospital_gui
-
-# Chạy ứng dụng GUI
-./build/hospital_gui
-
-# Build và chạy kiểm thử nghiệp vụ riêng
-cmake --build build --target run_tests
-./build/run_tests
-```
-
-Nếu thiếu Qt hoặc target `hospital_gui`, xử lý phụ thuộc/cấu hình build trước; không coi target console là ứng dụng thay thế đã đáp ứng yêu cầu GUI.
+- `dev` hiện có hai chương trình kiểm thử: `tests/model/test_person.cpp` và `tests/util/test_my_stdexcept.cpp`; dùng g++ C++17 với assertions và AddressSanitizer/UndefinedBehaviorSanitizer.
+- Chưa có `CMakeLists.txt` hoặc target GUI/test CMake trên `dev`. Khi bổ sung build hoặc GUI, cập nhật README sau khi đã xác minh các lệnh tương ứng; không dùng lệnh cho target chưa tồn tại để kết luận kiểm tra đạt.
+- Mỗi lần kiểm tra biên dịch lại từ source hiện tại và chạy cả hai chương trình. Chỉ báo đạt khi mã thoát bằng 0 và không có lỗi sanitizer.
 
 ## 10. Quy trình Git
 

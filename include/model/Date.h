@@ -1,6 +1,6 @@
 #pragma once
 #include <ctime>
-#include <stdexcept>
+#include "util/My_stdexcept.h"
 
 // Một ngày lịch; không chứa giờ và không phụ thuộc Qt.
 struct Date {
@@ -34,7 +34,7 @@ struct Date {
         const std::time_t ThoiGian = std::time(nullptr);
         const std::tm* Lich = std::localtime(&ThoiGian);
         if (Lich == nullptr) {
-            throw std::runtime_error("Khong lay duoc ngay hien tai");
+            throw My_stdexcept(My_stdexcept::LoaiLoi::LoiThucThi, "Khong lay duoc ngay hien tai");
         }
         return {Lich->tm_mday, Lich->tm_mon + 1, Lich->tm_year + 1900};
     }

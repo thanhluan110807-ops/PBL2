@@ -4,6 +4,7 @@
 #include <cstddef>     // std::size_t
 #include <string>
 #include "dsa/LinkedList.h"
+#include "util/My_stdexcept.h"
 
 /* ============================================================
  *  HASHTABLE.H - Bảng băm tự viết (Custom DSA)
@@ -198,12 +199,12 @@ public:
     // Lấy giá trị theo khóa; ném ngoại lệ nếu không có
     V& Lay(const K& key) {
         V* p = Timkiem(key);
-        if (p == nullptr) throw std::out_of_range("HashTable::Lay - khong tim thay khoa");
+        if (p == nullptr) throw My_stdexcept(My_stdexcept::LoaiLoi::NgoaiPhamVi, "HashTable::Lay - khong tim thay khoa");
         return *p;
     }
     const V& Lay(const K& key) const {
         const V* p = Timkiem(key);
-        if (p == nullptr) throw std::out_of_range("HashTable::Lay - khong tim thay khoa");
+        if (p == nullptr) throw My_stdexcept(My_stdexcept::LoaiLoi::NgoaiPhamVi, "HashTable::Lay - khong tim thay khoa");
         return *p;
     }
 

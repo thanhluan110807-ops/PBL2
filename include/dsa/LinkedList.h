@@ -2,7 +2,7 @@
 #define LinkedList_h
 
 #include <cstddef>     // nullptr
-#include <stdexcept>   // std::out_of_range (chỉ là lớp ngoại lệ, không phải container STL)
+#include "util/My_stdexcept.h"
 #include <utility>     // std::move
 
 /* ============================================================
@@ -202,31 +202,31 @@ public:
 
     // ---------------- Truy cập ----------------
     T& Dau() {
-        if (head == nullptr) throw std::out_of_range("LinkedList::Dau - danh sach rong");
+        if (head == nullptr) throw My_stdexcept(My_stdexcept::LoaiLoi::NgoaiPhamVi, "LinkedList::Dau - danh sach rong");
         return head->data;
     }
     const T& Dau() const {
-        if (head == nullptr) throw std::out_of_range("LinkedList::Dau - danh sach rong");
+        if (head == nullptr) throw My_stdexcept(My_stdexcept::LoaiLoi::NgoaiPhamVi, "LinkedList::Dau - danh sach rong");
         return head->data;
     }
     T& Cuoi() {
-        if (tail == nullptr) throw std::out_of_range("LinkedList::Cuoi - danh sach rong");
+        if (tail == nullptr) throw My_stdexcept(My_stdexcept::LoaiLoi::NgoaiPhamVi, "LinkedList::Cuoi - danh sach rong");
         return tail->data;
     }
     const T& Cuoi() const {
-        if (tail == nullptr) throw std::out_of_range("LinkedList::Cuoi - danh sach rong");
+        if (tail == nullptr) throw My_stdexcept(My_stdexcept::LoaiLoi::NgoaiPhamVi, "LinkedList::Cuoi - danh sach rong");
         return tail->data;
     }
 
     // Lấy phần tử thứ index (bắt đầu từ 0). O(n)
     T& Lay(int index) {
-        if (index < 0 || index >= size) throw std::out_of_range("LinkedList::Lay - chi so ngoai pham vi");
+        if (index < 0 || index >= size) throw My_stdexcept(My_stdexcept::LoaiLoi::NgoaiPhamVi, "LinkedList::Lay - chi so ngoai pham vi");
         Node* cur = head;
         while (index-- > 0) cur = cur->next;
         return cur->data;
     }
     const T& Lay(int index) const {
-        if (index < 0 || index >= size) throw std::out_of_range("LinkedList::Lay - chi so ngoai pham vi");
+        if (index < 0 || index >= size) throw My_stdexcept(My_stdexcept::LoaiLoi::NgoaiPhamVi, "LinkedList::Lay - chi so ngoai pham vi");
         const Node* cur = head;
         while (index-- > 0) cur = cur->next;
         return cur->data;

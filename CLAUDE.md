@@ -30,22 +30,44 @@ Hệ thống giải quyết hai bài toán:
 
 ## 4. Cấu trúc thư mục
 
+Cấu trúc đích được thống nhất như sau. Việc cập nhật tài liệu không đồng nghĩa các tệp mã nguồn hiện có đã được di chuyển.
+
+```text
+PBL2/
+├── include/
+│   ├── dsa/
+│   │   ├── Vector.h
+│   │   ├── LinkedList.h
+│   │   ├── HashTable.h
+│   │   └── PriorityQueue.h
+│   ├── model/
+│   ├── service/
+│   ├── repository/
+│   └── ui/
+│
+├── src/
+│   ├── model/
+│   ├── service/
+│   ├── repository/
+│   └── ui/
+│
+├── tests/
+│   └── dsa/
+│       ├── test_vector.cpp
+│       ├── test_linked_list.cpp
+│       ├── test_hash_table.cpp
+│       └── test_priority_queue.cpp
+│
+└── docs/
+    └── dsa/
+        └── README.md
 ```
-project/
-├── CMakeLists.txt
-├── CLAUDE.md
-├── README.md
-├── include/            # file header (.h)
-│   ├── model/          # Patient, Doctor, Shift, TriageLevel...
-│   ├── service/        # TriageService, SchedulerService, FatigueService
-│   ├── repository/     # đọc/ghi dữ liệu
-│   ├── ui/             # cửa sổ, hộp thoại và thành phần Qt Widgets
-│   └── util/           # hàm tiện ích (thời gian, chuỗi)
-├── src/                # file cài đặt (.cpp), cấu trúc giống include/
-├── data/               # dữ liệu mẫu (CSV)
-├── tests/              # file test
-└── docs/               # tài liệu, sơ đồ UML
-```
+
+- `include/dsa/`: các cấu trúc dữ liệu dùng chung, độc lập với nghiệp vụ bệnh viện và Qt. Các lớp template thường đặt cả khai báo và cài đặt trong header.
+- `include/model/`, `service/`, `repository/`, `ui/`: header các lớp theo trách nhiệm; phần cài đặt `.cpp` nằm trong nhóm tương ứng dưới `src/`. `ui/` chứa giao diện Qt Widgets.
+- `tests/dsa/`: kiểm thử độc lập từng cấu trúc dữ liệu; `docs/dsa/README.md` giải thích giao diện sử dụng, quan hệ phụ thuộc và độ phức tạp của chúng.
+- Tên tệp và đường dẫn include phải khớp chữ hoa/thường, ví dụ `HashTable.h`, `LinkedList.h`. Khi di chuyển hoặc đổi tên tệp, cập nhật đồng bộ `#include`, cấu hình build và kiểm thử.
+- Cây trên tập trung vào mã nguồn và DSA; tiếp tục giữ các tệp cấu hình/tài liệu gốc, `.agents/` và dữ liệu cần thiết như `data/` theo chức năng của chúng.
 
 ## 5. Kiến trúc phân tầng
 
@@ -109,7 +131,7 @@ Quy tắc:
 - Quy ước áp dụng cho tên mới từ thời điểm này. Khi đổi tên có sẵn, cập nhật đồng bộ khai báo, định nghĩa, nơi sử dụng và kiểm thử; việc đổi tên toàn bộ mã cũ là một thay đổi riêng.
 - File: tên trùng tên class (`Patient.h`, `Patient.cpp`)
 - Mỗi header có `#pragma once`
-- Một class một cặp file `.h` / `.cpp`
+- Class thông thường có cặp file `.h` / `.cpp`; class template có thể đặt cả khai báo và cài đặt trong `.h` như các cấu trúc dữ liệu ở `include/dsa/`.
 - Dùng `const` và tham chiếu `const&` khi truyền đối tượng lớn
 - Ưu tiên `std::vector`, `std::map`, `std::priority_queue`, `std::string`
 - Dùng smart pointer (`std::unique_ptr`, `std::shared_ptr`), **không dùng `new`/`delete` thủ công**

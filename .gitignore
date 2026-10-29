@@ -24,3 +24,7 @@ Thumbs.db
 # Thu muc build CMake cuc bo
 /build/
 /build-*/
+
+# Cache cua cong cu kiem tra Python
+__pycache__/
+*.py[cod]

@@ -34,6 +34,54 @@ target_link_libraries(pbl2_core PUBLIC pbl2_build_options)
 # BUILD_TESTING mặc định ON; OFF cho phép chỉ biên dịch thư viện lõi.
 include(CTest)
 if(BUILD_TESTING)
+    # Python chỉ phục vụ kiểm tra nguồn, không phải dependency của thư viện lõi.
+    find_package(Python3 3.8 REQUIRED COMPONENTS Interpreter)
+    set(CongCuKiemTra "${CMAKE_CURRENT_SOURCE_DIR}/tools/check_project_sources.py")
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CongCuKiemTra}")
+
+    add_custom_target(check_project_sources
+        COMMAND "${Python3_EXECUTABLE}" "${CongCuKiemTra}" --root "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMENT "Kiem tra stdexcept va phu thuoc Qt trong ma du an"
+        VERBATIM)
+
+    # Công cụ dùng cùng quy tắc phạm vi cho quét nguồn và chọn header lõi.
+    execute_process(
+        COMMAND "${Python3_EXECUTABLE}" "${CongCuKiemTra}"
+                --root "${CMAKE_CURRENT_SOURCE_DIR}" --list-core-headers
+        RESULT_VARIABLE MaKetQua
+        OUTPUT_VARIABLE DanhSachHeader
+        ERROR_VARIABLE LoiDanhSachHeader
+        OUTPUT_STRIP_TRAILING_WHITESPACE)
+    if(NOT MaKetQua EQUAL 0)
+        message(FATAL_ERROR "Khong the lay danh sach header loi: ${LoiDanhSachHeader}")
+    endif()
+    string(REPLACE "\n" ";" DanhSachHeader "${DanhSachHeader}")
+    set(CacTargetHeader)
+    file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/header_checks")
+    foreach(Header IN LISTS DanhSachHeader)
+        string(REGEX REPLACE "^include/" "" TenInclude "${Header}")
+        string(MAKE_C_IDENTIFIER "${Header}" TenTepHeader)
+        string(MD5 MaHeader "${Header}")
+        set(TenTarget "pbl2_header_${MaHeader}")
+        set(TepKiemTra "${CMAKE_CURRENT_BINARY_DIR}/header_checks/${TenTepHeader}_${MaHeader}.cpp")
+        file(WRITE "${TepKiemTra}" "#include \"${TenInclude}\"\n")
+        # Mỗi target chỉ có một TU, không include trước header khác hoặc liên kết GUI.
+        add_library(${TenTarget} OBJECT "${TepKiemTra}")
+        target_include_directories(${TenTarget} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+        target_link_libraries(${TenTarget} PRIVATE pbl2_build_options)
+        list(APPEND CacTargetHeader ${TenTarget})
+    endforeach()
+    list(LENGTH DanhSachHeader SoHeader)
+    message(STATUS "Independent core headers: ${SoHeader}")
+    add_custom_target(check_core_headers DEPENDS ${CacTargetHeader})
+
+    add_test(NAME check_project_sources
+        COMMAND "${Python3_EXECUTABLE}" "${CongCuKiemTra}" --root "${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME test_project_checks
+        COMMAND "${Python3_EXECUTABLE}" -m unittest discover
+                -s "${CMAKE_CURRENT_SOURCE_DIR}/tests/checks" -p "test_*.py" -v)
+    set_tests_properties(check_project_sources test_project_checks PROPERTIES TIMEOUT 60)
+
     add_executable(test_person tests/model/test_person.cpp)
     target_link_libraries(test_person PRIVATE pbl2_core)
 

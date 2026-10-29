@@ -34,7 +34,9 @@ jobs:
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DBUILD_TESTING=ON
           -DPBL2_ENABLE_SANITIZERS=${{ matrix.sanitizers }}
-      - name: Build
+      - name: Check project source policy
+        run: cmake --build build --target check_project_sources
+      - name: Build core, tests and standalone headers
         run: cmake --build build --parallel 2
       - name: Test
         run: ctest --test-dir build --output-on-failure --no-tests=error

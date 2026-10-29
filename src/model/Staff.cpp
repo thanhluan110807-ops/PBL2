@@ -1,4 +1,4 @@
-#include "staff.h"
+#include "model/staff.h"
 #include <iostream>
 #include <sstream>
 #include <utility>   // std::move

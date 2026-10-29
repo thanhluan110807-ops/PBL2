@@ -30,7 +30,7 @@ Hệ thống giải quyết hai bài toán:
 
 ## 4. Cấu trúc thư mục
 
-Cấu trúc đích được thống nhất như sau. Việc cập nhật tài liệu không đồng nghĩa các tệp mã nguồn hiện có đã được di chuyển.
+Cấu trúc đích được thống nhất như sau. Các tệp đã có trên `dev` được đặt vào nhóm tương ứng; thư mục chưa có mã được giữ bằng `.gitkeep`. `Vector.h`, `PriorityQueue.h` và các tệp kiểm thử bên dưới là vị trí dự kiến, chưa được tích hợp vào `dev`.
 
 ```text
 PBL2/
@@ -66,7 +66,7 @@ PBL2/
 - `include/dsa/`: các cấu trúc dữ liệu dùng chung, độc lập với nghiệp vụ bệnh viện và Qt. Các lớp template thường đặt cả khai báo và cài đặt trong header.
 - `include/model/`, `service/`, `repository/`, `ui/`: header các lớp theo trách nhiệm; phần cài đặt `.cpp` nằm trong nhóm tương ứng dưới `src/`. `ui/` chứa giao diện Qt Widgets.
 - `tests/dsa/`: kiểm thử độc lập từng cấu trúc dữ liệu; `docs/dsa/README.md` giải thích giao diện sử dụng, quan hệ phụ thuộc và độ phức tạp của chúng.
-- Tên tệp và đường dẫn include phải khớp chữ hoa/thường, ví dụ `HashTable.h`, `LinkedList.h`. Khi di chuyển hoặc đổi tên tệp, cập nhật đồng bộ `#include`, cấu hình build và kiểm thử.
+- Tên tệp và đường dẫn include phải khớp chữ hoa/thường, ví dụ `HashTable.h`, `LinkedList.h`. Đường dẫn include tính từ `include/`, ví dụ `#include "dsa/HashTable.h"`, `#include "model/staff.h"`; cấu hình compiler với thư mục include gốc (`-I include` nếu dùng g++ trực tiếp). Khi di chuyển hoặc đổi tên tệp, cập nhật đồng bộ `#include`, cấu hình build và kiểm thử.
 - Cây trên tập trung vào mã nguồn và DSA; tiếp tục giữ các tệp cấu hình/tài liệu gốc, `.agents/` và dữ liệu cần thiết như `data/` theo chức năng của chúng.
 
 ## 5. Kiến trúc phân tầng

@@ -97,9 +97,12 @@ Quy tắc:
 ## 7. Quy ước code
 
 - Tên class: `PascalCase` (`TriageService`)
-- Tên hàm, biến: `camelCase` (`calculateFatigue`)
-- Biến thành viên: thêm hậu tố `_` (`name_`)
-- Hằng số: `UPPER_SNAKE_CASE`
+- Từ nay, tên biến và hàm do dự án định nghĩa dùng **tiếng Việt không dấu**, viết hoa chữ cái đầu của từng từ theo **PascalCase**. Ví dụ biến: `TenBien`, `HoTen`, `SoGioLamViec`; ví dụ hàm: `TinhDiemMetMoi()`, `XepLichTruc()`, `LayMaNhanVien()`.
+- Áp dụng cho biến cục bộ, tham số, biến thành viên, biến toàn cục, hằng số, hàm tự do và phương thức. Biến thành viên cũng dùng `PascalCase`, không thêm hậu tố `_`; dùng `this->` khi cần phân biệt với tham số cùng tên.
+- Tên cần diễn đạt đầy đủ ý nghĩa nghiệp vụ; hàm dùng động từ như `Lay`, `Dat`, `Tinh`, `KiemTra`, `CapNhat`; biến điều kiện có thể dùng `La`, `Co`, `Da` như `LaCaDem`, `CoTheNhanCa`.
+- Hằng số cũng dùng tiếng Việt không dấu theo `PascalCase`, ví dụ `SoGioToiDaTrongTuan`.
+- Giữ đúng các tên do C++ hoặc giao diện bên ngoài quy định: `main`, toán tử `operator...`, API thư viện và phương thức phải khớp tên để override. Constructor/destructor theo tên class.
+- Quy ước áp dụng cho tên mới từ thời điểm này. Khi đổi tên có sẵn, cập nhật đồng bộ khai báo, định nghĩa, nơi sử dụng và kiểm thử; việc đổi tên toàn bộ mã cũ là một thay đổi riêng.
 - File: tên trùng tên class (`Patient.h`, `Patient.cpp`)
 - Mỗi header có `#pragma once`
 - Một class một cặp file `.h` / `.cpp`

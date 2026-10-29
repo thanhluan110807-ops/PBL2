@@ -15,6 +15,8 @@ Hệ thống giải quyết hai bài toán:
 - Code **đơn giản, dễ đọc**, phù hợp trình độ sinh viên năm 2. Không dùng template metaprogramming, không dùng trick phức tạp.
 - Kiến trúc **chuẩn doanh nghiệp**: chia tầng rõ ràng, tách interface và implementation, mỗi class chỉ làm một việc.
 - **Giao diện người dùng chỉ dùng GUI bằng Qt Widgets**, không xây dựng menu hoặc luồng tương tác console. Qt được phép dùng cho tầng giao diện; phần nghiệp vụ và cấu trúc dữ liệu độc lập với Qt. Các thư viện bên thứ ba khác cần được thống nhất trước khi thêm.
+- **Hạn chế tối đa sử dụng thư viện bên ngoài và tiện ích có sẵn; chỉ dùng khi thực sự cần thiết.** Ưu tiên tự cài đặt cấu trúc dữ liệu và thuật toán bằng C++ đơn giản để hiểu và giải thích được cách hoạt động. Thư viện chuẩn C++ không phải thư viện bên thứ ba, nhưng các container/thuật toán/tiện ích chuẩn cũng cần được cân nhắc theo nguyên tắc này.
+- Trước khi thêm thư viện hoặc tiện ích có sẵn, kiểm tra khả năng tự cài đặt phù hợp quy mô đồ án và nêu rõ lý do cần dùng trong phần giải thích thay đổi. Giữ Qt Widgets cho giao diện; chỉ dùng các thành phần chuẩn phục vụ chuỗi, thời gian, đọc/ghi file hoặc chức năng nền tảng khi có nhu cầu thực tế.
 - Ưu tiên rõ ràng hơn tối ưu. Chỉ tối ưu khi thật sự cần.
 - Mỗi thay đổi phải giải thích ngắn gọn bằng tiếng Việt: làm gì và vì sao.
 - Không tự ý đổi cấu trúc thư mục hay đổi tên class đã có mà không hỏi.
@@ -133,8 +135,9 @@ Quy tắc:
 - Mỗi header có `#pragma once`
 - Class thông thường có cặp file `.h` / `.cpp`; class template có thể đặt cả khai báo và cài đặt trong `.h` như các cấu trúc dữ liệu ở `include/dsa/`.
 - Dùng `const` và tham chiếu `const&` khi truyền đối tượng lớn
-- Ưu tiên `std::vector`, `std::map`, `std::priority_queue`, `std::string`
-- Dùng smart pointer (`std::unique_ptr`, `std::shared_ptr`), **không dùng `new`/`delete` thủ công**
+- Ưu tiên `Vector`, `LinkedList`, `HashTable`, `PriorityQueue` tự viết trong `include/dsa/`; không dùng container STL thay thế các cấu trúc dữ liệu thuộc mục tiêu đồ án.
+- Với thao tác đơn giản, dùng vòng lặp và hàm tự viết thay cho tiện ích như `std::any_of`, `std::all_of`; các tiện ích khác như `std::optional`, smart pointer hoặc `std::move` chỉ dùng khi thực sự cần và giải thích được lợi ích.
+- Khi tự quản lý bộ nhớ trong cấu trúc dữ liệu, quy định rõ quyền sở hữu con trỏ, thu hồi tài nguyên, copy/move và xử lý ngoại lệ; kiểm tra rò rỉ bộ nhớ, con trỏ treo và giải phóng hai lần. Chỉ dùng `new`/`delete` khi cần cho phần cài đặt này; lựa chọn smart pointer ở phần khác cũng phải theo nguyên tắc chỉ dùng khi cần thiết.
 - Hàm ngắn (tốt nhất dưới ~30 dòng), tên hàm nói rõ việc nó làm
 - Khi viết hoặc sửa code, thêm **comment giải thích dễ hiểu bằng tiếng Việt**, phù hợp với sinh viên năm 2. Giải thích mục đích và lý do xử lý để người đọc hiểu và có thể trình bày khi bảo vệ đồ án.
 - Với lớp và hàm có nghiệp vụ, chú thích ngắn gọn vai trò, đầu vào/kết quả và điều kiện quan trọng khi cần; với thuật toán, giải thích các bước chính như xử lý va chạm bảng băm, vun đống hoặc quay lui.

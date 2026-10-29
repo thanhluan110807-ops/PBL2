@@ -1,10 +1,9 @@
 # Kiểm thử Person
 
-Chạy từ thư mục gốc dự án; chưa yêu cầu Qt hoặc CMake:
+Build theo [README gốc](../../README.md#build-và-chạy-toàn-bộ-test-hiện-có), sau đó chạy riêng test đã được CMake đăng ký:
 
 ```bash
-g++ -std=c++17 -Wall -Wextra -Wpedantic -Werror -fsanitize=address,undefined -g -I include src/model/Person.cpp tests/model/test_person.cpp -o /tmp/pbl2-test-person
-/tmp/pbl2-test-person
+ctest --test-dir build -R '^test_person$' --output-on-failure --no-tests=error
 ```
 
 Bộ kiểm thử dùng `assert`, cần giữ assertions được bật (không thêm `-DNDEBUG`). Nó kiểm tra dữ liệu không hợp lệ, ngày sinh chưa biết, tính tuổi quanh sinh nhật, giới hạn tuổi đầu vào, cập nhật thất bại giữ nguyên dữ liệu và destructor ảo.

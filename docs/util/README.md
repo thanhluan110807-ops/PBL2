@@ -36,9 +36,10 @@ Lớp không kế thừa `std::exception`; `catch (const std::exception&)` khôn
 
 ## Kiểm thử
 
-Chạy từ thư mục gốc; không định nghĩa `NDEBUG` để giữ assertions:
+Build theo [README gốc](../../README.md#build-và-chạy-toàn-bộ-test-hiện-có), sau đó chạy riêng test đã được CMake đăng ký:
 
 ```bash
-g++ -std=c++17 -Wall -Wextra -Wpedantic -Werror -fsanitize=address,undefined -g -I include tests/util/test_my_stdexcept.cpp -o /tmp/pbl2-test-errors
-/tmp/pbl2-test-errors
+ctest --test-dir build -R '^test_my_stdexcept$' --output-on-failure --no-tests=error
 ```
+
+Assertions được cấu hình CMake giữ hoạt động trong cả Debug và Release.

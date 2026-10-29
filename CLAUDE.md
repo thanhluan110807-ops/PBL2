@@ -25,7 +25,7 @@ Hệ thống giải quyết hai bài toán:
 
 - Ngôn ngữ: C++17
 - Compiler: g++ (hoặc clang++), bật `-Wall -Wextra`
-- Build: CMake (tối thiểu 3.10)
+- Build: CMake (tối thiểu 3.20)
 - Giao diện: Qt Widgets (Qt 6 hoặc Qt 5 theo cấu hình build), chương trình GUI là điểm chạy chính
 - Test: viết test đơn giản bằng `assert` hoặc một file `main` test riêng, không dùng framework nặng
 - Lưu trữ dữ liệu: file văn bản/CSV (không dùng database)
@@ -153,11 +153,13 @@ Quy tắc:
 
 ## 9. Build và kiểm thử hiện tại
 
-Chạy từ thư mục gốc repository theo [hướng dẫn build/test trong README.md](README.md#build-và-chạy-toàn-bộ-test-hiện-có). README là nơi duy nhất duy trì khối lệnh chạy toàn bộ test hiện tại.
+Chạy từ thư mục gốc repository theo [hướng dẫn build/test trong README.md](README.md#build-và-chạy-toàn-bộ-test-hiện-có). README duy trì các lệnh sử dụng; `CMakeLists.txt` định nghĩa target và đăng ký test.
 
-- `dev` hiện có hai chương trình kiểm thử: `tests/model/test_person.cpp` và `tests/util/test_my_stdexcept.cpp`; dùng g++ C++17 với assertions và AddressSanitizer/UndefinedBehaviorSanitizer.
-- Chưa có `CMakeLists.txt` hoặc target GUI/test CMake trên `dev`. Khi bổ sung build hoặc GUI, cập nhật README sau khi đã xác minh các lệnh tương ứng; không dùng lệnh cho target chưa tồn tại để kết luận kiểm tra đạt.
-- Mỗi lần kiểm tra biên dịch lại từ source hiện tại và chạy cả hai chương trình. Chỉ báo đạt khi mã thoát bằng 0 và không có lỗi sanitizer.
+- `pbl2_core` là thư viện lõi, không chứa GUI hoặc `main`; các test là chương trình độc lập, không cần Qt.
+- `BUILD_TESTING=ON` bật hai test hiện có; chạy toàn bộ qua CTest với `--no-tests=error`. Assertions được giữ hoạt động cả trong Release.
+- `PBL2_ENABLE_SANITIZERS=ON` bật AddressSanitizer/UndefinedBehaviorSanitizer với GCC/Clang có runtime phù hợp; cấu hình thường mặc định OFF.
+- GitHub Actions chạy Debug, Release và Debug có sanitizer cho PR vào `dev` và push lên `dev`. Chỉ báo CI đạt khi có kết quả chạy thực tế.
+- Chưa có target ứng dụng GUI; khi tích hợp Qt, giữ build phần lõi/test độc lập và cập nhật README sau khi xác minh.
 
 ## 10. Quy trình Git
 

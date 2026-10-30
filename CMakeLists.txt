@@ -106,3 +106,9 @@ if(BUILD_TESTING)
         endif()
     endforeach()
 endif()
+
+# Demo Qt tách biệt; cấu hình mặc định của lõi/CI không dò hay liên kết Qt.
+option(PBL2_BUILD_QT_DEMO "Build demo dieu phoi cap cuu bang Qt Widgets" OFF)
+if(PBL2_BUILD_QT_DEMO)
+    add_subdirectory(demo/qt-triage)
+endif()

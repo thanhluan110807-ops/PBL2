@@ -159,7 +159,7 @@ Chạy từ thư mục gốc repository theo [hướng dẫn build/test trong RE
 - `BUILD_TESTING=ON` bật hai test C++ và các kiểm tra nguồn bằng Python; chạy toàn bộ qua CTest với `--no-tests=error`. Header lõi được biên dịch độc lập khi build. Xem README để biết phạm vi và các thư mục bị loại trừ; assertions vẫn hoạt động trong Release.
 - `PBL2_ENABLE_SANITIZERS=ON` bật AddressSanitizer/UndefinedBehaviorSanitizer với GCC/Clang có runtime phù hợp; cấu hình thường mặc định OFF.
 - GitHub Actions chạy Debug, Release và Debug có sanitizer cho PR vào `dev` và push lên `dev`. Chỉ báo CI đạt khi có kết quả chạy thực tế.
-- Chưa có target ứng dụng GUI; khi tích hợp Qt, giữ build phần lõi/test độc lập và cập nhật README sau khi xác minh.
+- Có target demo riêng `pbl2_qt_demo`, bật bằng `PBL2_BUILD_QT_DEMO=ON` (mặc định OFF). Demo native Qt Widgets/QSS và service mô phỏng C++ nằm trong `demo/qt-triage/`; giữ build lõi/test hiện có độc lập Qt. Xem README của demo để build/chạy và biết giới hạn.
 
 ## 10. Quy trình Git
 

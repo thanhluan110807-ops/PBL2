@@ -6,7 +6,7 @@ Dự án C++17 mô phỏng phân loại cấp cứu và xếp lịch trực. Gia
 
 Repository có `Person`, `Date`, `Gender`, ngoại lệ tự viết `My_stdexcept`, `LinkedList`, `HashTable` và hai chương trình kiểm thử. CMake biên dịch thư viện lõi và các test; CTest chạy các test đã đăng ký.
 
-Chưa có chương trình GUI hoặc target `hospital_gui`. Phần lõi và kiểm thử **không cần Qt**. Khi bổ sung GUI, ứng dụng sẽ dùng điểm vào riêng và liên kết phần lõi, không dùng `main` của test. Đầu ra console của test phục vụ kiểm tra, không phải giao diện người dùng.
+Có demo Qt Widgets/C++ riêng với target `pbl2_qt_demo`, bật bằng `PBL2_BUILD_QT_DEMO=ON`; xem [hướng dẫn demo Qt](demo/qt-triage/README.md). Demo dùng dữ liệu mô phỏng trong bộ nhớ và QSS, tách khỏi API lõi. Tùy chọn mặc định OFF, nên build lõi và các kiểm thử hiện có **không cần Qt**. Đầu ra console của test phục vụ kiểm tra, không phải giao diện người dùng.
 
 ## Yêu cầu
 
@@ -78,7 +78,7 @@ Cấu hình này chủ ý không tạo test. Để kiểm tra chất lượng, d
 | `test_project_checks` | Kiểm tra công cụ bằng các tình huống vi phạm, comment/literal và thư mục bị loại trừ |
 | `check_core_headers` (target build) | Biên dịch từng header lõi độc lập; cũng được thực hiện khi build toàn bộ |
 
-Hai test C++ là hai chương trình riêng. CTest hiện đăng ký thêm hai kiểm tra Python, tổng cộng **4 kiểm tra**. Kết quả đạt phải có `100% tests passed, 0 tests failed out of 4`, mã thoát 0 và không có lỗi sanitizer. Đây chưa phải bộ kiểm thử đầy đủ mọi hành vi DSA hoặc kiểm thử GUI; `tests/dsa/` chưa có các bộ test độc lập.
+Hai test C++ là hai chương trình riêng. CTest hiện đăng ký thêm hai kiểm tra Python, tổng cộng **4 kiểm tra** khi không bật demo Qt. `PBL2_BUILD_QT_DEMO=ON` bổ sung `test_demo_state` và `test_demo_widgets`, tổng cộng 6 kiểm tra. Với cấu hình mặc định, kết quả đạt phải có `100% tests passed, 0 tests failed out of 4`, mã thoát 0 và không có lỗi sanitizer. Đây chưa phải bộ kiểm thử đầy đủ mọi hành vi DSA hoặc kiểm thử GUI; `tests/dsa/` chưa có các bộ test độc lập.
 
 Có thể chạy một test từ cấu hình đã build bằng `ctest --test-dir build -R '^test_person$' --output-on-failure --no-tests=error`. Dùng `ctest --test-dir build -V` để xem đầu ra chi tiết.
 

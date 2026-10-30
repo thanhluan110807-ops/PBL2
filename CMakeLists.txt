@@ -95,7 +95,12 @@ if(BUILD_TESTING)
     target_include_directories(test_vector PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
     target_link_libraries(test_vector PRIVATE pbl2_build_options)
 
-    foreach(TenKiemThu IN ITEMS test_person test_my_stdexcept test_vector)
+    # PriorityQueue là template header-only, kiểm thử độc lập với model.
+    add_executable(test_priority_queue tests/dsa/test_priority_queue.cpp)
+    target_include_directories(test_priority_queue PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+    target_link_libraries(test_priority_queue PRIVATE pbl2_build_options)
+
+    foreach(TenKiemThu IN ITEMS test_person test_my_stdexcept test_vector test_priority_queue)
         # Release thường đặt NDEBUG; bỏ macro này để assert vẫn thực sự được chạy.
         if(MSVC)
             target_compile_options(${TenKiemThu} PRIVATE /UNDEBUG)

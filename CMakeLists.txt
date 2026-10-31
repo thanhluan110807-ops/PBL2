@@ -27,7 +27,7 @@ if(PBL2_ENABLE_SANITIZERS)
 endif()
 
 # GUI trong tương lai có thể liên kết phần lõi này, không chứa main hoặc mã hiển thị.
-add_library(pbl2_core STATIC src/model/Person.cpp)
+add_library(pbl2_core STATIC src/model/Person.cpp src/model/Patient.cpp)
 target_include_directories(pbl2_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(pbl2_core PUBLIC pbl2_build_options)
 
@@ -85,6 +85,9 @@ if(BUILD_TESTING)
     add_executable(test_person tests/model/test_person.cpp)
     target_link_libraries(test_person PRIVATE pbl2_core)
 
+    add_executable(test_patient tests/model/test_patient.cpp)
+    target_link_libraries(test_patient PRIVATE pbl2_core)
+
     # Ngoại lệ và DSA là header-only, không cần liên kết với model Person.
     add_executable(test_my_stdexcept tests/util/test_my_stdexcept.cpp)
     target_include_directories(test_my_stdexcept PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -100,7 +103,7 @@ if(BUILD_TESTING)
     target_include_directories(test_priority_queue PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
     target_link_libraries(test_priority_queue PRIVATE pbl2_build_options)
 
-    foreach(TenKiemThu IN ITEMS test_person test_my_stdexcept test_vector test_priority_queue)
+    foreach(TenKiemThu IN ITEMS test_person test_patient test_my_stdexcept test_vector test_priority_queue)
         # Release thường đặt NDEBUG; bỏ macro này để assert vẫn thực sự được chạy.
         if(MSVC)
             target_compile_options(${TenKiemThu} PRIVATE /UNDEBUG)

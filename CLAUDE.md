@@ -133,6 +133,8 @@ Quy tắc:
 - Quy ước áp dụng cho tên mới từ thời điểm này. Khi đổi tên có sẵn, cập nhật đồng bộ khai báo, định nghĩa, nơi sử dụng và kiểm thử; việc đổi tên toàn bộ mã cũ là một thay đổi riêng.
 - File: tên trùng tên class (`Patient.h`, `Patient.cpp`)
 - Mỗi header có `#pragma once`
+- Mỗi file `.h`/`.cpp` phải `#include` trực tiếp các header định nghĩa kiểu hoặc API mà file đó sử dụng; không dựa vào include gián tiếp từ file khác.
+- Không dùng `#include <cstddef>`. Với chỉ số chuỗi dùng `std::string::size_type` từ `<string>`; với giá trị băm dùng kiểu số nguyên không dấu. Riêng chữ ký `operator new`/`operator delete` trong test vẫn dùng `std::size_t` do `<new>` cung cấp trực tiếp theo chuẩn C++.
 - Class thông thường có cặp file `.h` / `.cpp`; class template có thể đặt cả khai báo và cài đặt trong `.h` như các cấu trúc dữ liệu ở `include/dsa/`.
 - Dùng `const` và tham chiếu `const&` khi truyền đối tượng lớn
 - Ưu tiên `Vector`, `LinkedList`, `HashTable`, `PriorityQueue` tự viết trong `include/dsa/`; không dùng container STL thay thế các cấu trúc dữ liệu thuộc mục tiêu đồ án.

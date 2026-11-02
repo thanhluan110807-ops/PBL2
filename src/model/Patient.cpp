@@ -1,13 +1,19 @@
 #include "model/Patient.h"
+
+#include <string>
+
+#include "model/Date.h"
+#include "model/Gender.h"
 #include "util/My_stdexcept.h"
 
-Patient::Patient(const std::string& MaDinhDanh, const std::string& HoTen, Gender GioiTinh)
-    : Person(MaDinhDanh, HoTen, GioiTinh),
+Patient::Patient(const std::string& MaDinhDanh, const std::string& HoTen,
+                 Gender GioiTinh, const std::string& SoCanCuoc)
+    : Person(MaDinhDanh, HoTen, GioiTinh), SoCanCuoc(SoCanCuoc),
       TrangThaiDanhTinh(HoTen.empty() ? IdentityStatus::ChuaXacDinh : IdentityStatus::DaXacDinh) {}
 
 Patient::Patient(const std::string& MaDinhDanh, const std::string& HoTen,
-                 Gender GioiTinh, const Date& NgaySinh)
-    : Person(MaDinhDanh, HoTen, GioiTinh, NgaySinh),
+                 Gender GioiTinh, const Date& NgaySinh, const std::string& SoCanCuoc)
+    : Person(MaDinhDanh, HoTen, GioiTinh, NgaySinh), SoCanCuoc(SoCanCuoc),
       TrangThaiDanhTinh(HoTen.empty() ? IdentityStatus::ChuaXacDinh : IdentityStatus::DaXacDinh) {}
 
 bool Patient::LaBenhNhanVoDanh() const { return TrangThaiDanhTinh == IdentityStatus::ChuaXacDinh; }

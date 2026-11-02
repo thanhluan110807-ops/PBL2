@@ -27,7 +27,9 @@ if(PBL2_ENABLE_SANITIZERS)
 endif()
 
 # GUI trong tương lai có thể liên kết phần lõi này, không chứa main hoặc mã hiển thị.
-add_library(pbl2_core STATIC src/model/Person.cpp src/model/Patient.cpp src/model/Visit.cpp)
+add_library(pbl2_core STATIC
+    src/model/Person.cpp src/model/Patient.cpp src/model/Visit.cpp
+    src/repository/PatientRegistry.cpp)
 target_include_directories(pbl2_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(pbl2_core PUBLIC pbl2_build_options)
 
@@ -91,6 +93,14 @@ if(BUILD_TESTING)
     add_executable(test_visit tests/model/test_visit.cpp)
     target_link_libraries(test_visit PRIVATE pbl2_core)
 
+    # Registry sở hữu Patient/Visit; test riêng quyền sở hữu và quy tắc tiếp nhận.
+    add_executable(test_patient_registry tests/repository/test_patient_registry.cpp)
+    target_link_libraries(test_patient_registry PRIVATE pbl2_core)
+
+    # Tách binary vì test này thay new/delete để thử lỗi cấp phát và rehash.
+    add_executable(test_patient_registry_allocation tests/repository/test_patient_registry_allocation.cpp)
+    target_link_libraries(test_patient_registry_allocation PRIVATE pbl2_core)
+
     # Ngoại lệ và DSA là header-only, không cần liên kết với model Person.
     add_executable(test_my_stdexcept tests/util/test_my_stdexcept.cpp)
     target_include_directories(test_my_stdexcept PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -106,7 +116,9 @@ if(BUILD_TESTING)
     target_include_directories(test_priority_queue PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
     target_link_libraries(test_priority_queue PRIVATE pbl2_build_options)
 
-    foreach(TenKiemThu IN ITEMS test_person test_patient test_visit test_my_stdexcept test_vector test_priority_queue)
+    foreach(TenKiemThu IN ITEMS test_person test_patient test_visit
+            test_patient_registry test_patient_registry_allocation
+            test_my_stdexcept test_vector test_priority_queue)
         # Release thường đặt NDEBUG; bỏ macro này để assert vẫn thực sự được chạy.
         if(MSVC)
             target_compile_options(${TenKiemThu} PRIVATE /UNDEBUG)

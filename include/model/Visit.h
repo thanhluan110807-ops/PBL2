@@ -69,6 +69,10 @@ class Visit {
 public:
     Visit(const std::string& MaLanKham, const std::string& MaBenhNhan,
           std::time_t ThoiDiemTiepNhan, const std::string& TrieuChungChinh);
+    // Có thể chép lịch sử để xem, nhưng không được move lấy mất dữ liệu
+    // của một Visit đang được Registry giữ và cho thành phần khác mượn.
+    Visit(const Visit&) = default;
+    Visit(Visit&&) = delete;
     const std::string& LayMaLanKham() const { return MaLanKham; }
     const std::string& LayMaBenhNhan() const { return MaBenhNhan; }
     const std::string& LayTrieuChungChinh() const { return TrieuChungChinh; }

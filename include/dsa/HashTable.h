@@ -1,7 +1,6 @@
 #ifndef HashTable_h
 #define HashTable_h
 
-#include <cstddef>     // std::size_t
 #include <string>
 #include "dsa/LinkedList.h"
 #include "util/My_stdexcept.h"
@@ -32,21 +31,22 @@ struct Bamhash<std::string> {
     // djb2: h = h * 33 + c, bắt đầu từ 5381.
     // Sau đó thêm bước "trộn bit" (avalanche) để các khóa chỉ khác nhau ở ký tự cuối
     // (vd EMG_..._001, EMG_..._002) vẫn rải đều khắp các bucket.
-    std::size_t operator()(const std::string& s) const {
+    // Giá trị băm dùng số nguyên không dấu, không cần header bổ sung.
+    unsigned long long operator()(const std::string& s) const {
         unsigned long long h = 5381;
         for (unsigned char c : s) h = h * 33 + c;
         h ^= h >> 33;
         h *= 0xff51afd7ed558ccdULL;
         h ^= h >> 33;
-        return static_cast<std::size_t>(h);
+        return h;
     }
 };
 
 template <>
 struct Bamhash<int> {
     // Băm nhân (Knuth) giúp các số liên tiếp không dồn vào các ô sát nhau
-    std::size_t operator()(int k) const {
-        return static_cast<std::size_t>(static_cast<unsigned int>(k)) * 2654435761u;
+    unsigned long long operator()(int k) const {
+        return static_cast<unsigned long long>(static_cast<unsigned int>(k)) * 2654435761u;
     }
 };
 
@@ -70,7 +70,7 @@ private:
     static double Nguongtai() { return 0.75; }
 
     int Chisovoi(const K& key, int cap) const {
-        return static_cast<int>(hasher(key) % static_cast<std::size_t>(cap));
+        return static_cast<int>(hasher(key) % static_cast<unsigned long long>(cap));
     }
     int Chiso(const K& key) const { return Chisovoi(key, capacity); }
 

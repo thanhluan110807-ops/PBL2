@@ -1,7 +1,7 @@
 #ifndef LinkedList_h
 #define LinkedList_h
 
-#include <cstddef>     // nullptr
+// nullptr là từ khóa C++, không cần include thư viện.
 #include "util/My_stdexcept.h"
 #include <utility>     // std::move
 

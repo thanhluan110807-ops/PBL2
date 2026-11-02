@@ -1,5 +1,9 @@
 #pragma once
 
+#include <string>
+
+#include "model/Date.h"
+#include "model/Gender.h"
 #include "model/Person.h"
 
 enum class BloodGroup { A, B, AB, O, ChuaXacDinh };
@@ -17,10 +21,12 @@ private:
     bool DaCoTuoiUocLuong = false;
 
 public:
+    // CCCD tùy chọn, độc lập với việc đã biết ngày sinh hay chưa.
     explicit Patient(const std::string& MaDinhDanh, const std::string& HoTen = "",
-                     Gender GioiTinh = Gender::ChuaXacDinh);
+                     Gender GioiTinh = Gender::ChuaXacDinh,
+                     const std::string& SoCanCuoc = "");
     Patient(const std::string& MaDinhDanh, const std::string& HoTen,
-            Gender GioiTinh, const Date& NgaySinh);
+            Gender GioiTinh, const Date& NgaySinh, const std::string& SoCanCuoc = "");
 
     bool LaBenhNhanVoDanh() const;
     IdentityStatus LayTrangThaiDanhTinh() const;

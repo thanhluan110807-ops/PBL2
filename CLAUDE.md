@@ -165,6 +165,7 @@ Chạy từ thư mục gốc repository theo [hướng dẫn build/test trong RE
 
 ## 10. Quy trình Git
 
+- Theo quyết định mới nhất: làm việc trên `work`; khi hoàn tất và kiểm tra phù hợp, đưa vào `dev` qua merge theo yêu cầu, sau khi đối chiếu nhánh đích.
 - Branch chính: `main` (luôn chạy được)
 - Branch tính năng: `feature/<ten-tinh-nang>` (ví dụ `feature/triage-queue`)
 - Branch sửa lỗi: `fix/<mo-ta>`

@@ -1,6 +1,7 @@
 # Hướng dẫn bắt đầu cho Codex
 
 - Đọc [CLAUDE.md](CLAUDE.md), kiểm tra Git và bảo toàn mọi thay đổi hiện có trước khi làm việc.
-- Đọc [bản bàn giao gần nhất](docs/handoffs/2026-11-03-chuyen-chat.md), rồi chọn tài liệu và code liên quan theo tác vụ; trạng thái Git và tiến độ trong bàn giao là ảnh chụp, cần kiểm tra lại.
-- Khi lập kế hoạch hoặc sửa UML, đọc lộ trình, kiến trúc mục tiêu và quy trình được dẫn trong CLAUDE.md; phân biệt quyết định đã chốt, đề xuất, bản thử và code thực tế.
+- Đọc [bản bàn giao](docs/ban-giao/HANDOFF.md) và tài liệu, code liên quan trước khi làm việc; trạng thái trong bàn giao là ảnh chụp, cần kiểm tra lại.
+- Trước khi tư vấn bước tiếp theo, đối chiếu kiến trúc mục tiêu, lộ trình, phụ thuộc và code; khi làm UML, phân biệt mục tiêu với hiện trạng. Các tài liệu retro có thể chỉ tồn tại cục bộ, xem bàn giao.
+- Bảo toàn công việc của người khác; chỉ commit/push theo yêu cầu. Khi dùng skill trong repository, báo tên và mục đích.
 - Ưu tiên chỉ dẫn mới nhất của người dùng khi có mâu thuẫn; không suy đoán những quyết định nghiệp vụ còn thiếu.

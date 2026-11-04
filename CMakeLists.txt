@@ -29,7 +29,7 @@ endif()
 # GUI trong tương lai có thể liên kết phần lõi này, không chứa main hoặc mã hiển thị.
 add_library(pbl2_core STATIC
     src/model/Person.cpp src/model/Patient.cpp src/model/Visit.cpp
-    src/repository/PatientRegistry.cpp)
+    src/repository/PatientRegistry.cpp src/service/TriageService.cpp)
 target_include_directories(pbl2_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(pbl2_core PUBLIC pbl2_build_options)
 
@@ -93,6 +93,12 @@ if(BUILD_TESTING)
     add_executable(test_visit tests/model/test_visit.cpp)
     target_link_libraries(test_visit PRIVATE pbl2_core)
 
+    add_executable(test_triage_service tests/service/test_triage_service.cpp)
+    target_link_libraries(test_triage_service PRIVATE pbl2_core)
+
+    add_executable(test_triage_allocation tests/service/test_triage_allocation.cpp)
+    target_link_libraries(test_triage_allocation PRIVATE pbl2_core)
+
     # Registry sở hữu Patient/Visit; test riêng quyền sở hữu và quy tắc tiếp nhận.
     add_executable(test_patient_registry tests/repository/test_patient_registry.cpp)
     target_link_libraries(test_patient_registry PRIVATE pbl2_core)
@@ -116,7 +122,7 @@ if(BUILD_TESTING)
     target_include_directories(test_priority_queue PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
     target_link_libraries(test_priority_queue PRIVATE pbl2_build_options)
 
-    foreach(TenKiemThu IN ITEMS test_person test_patient test_visit
+    foreach(TenKiemThu IN ITEMS test_person test_patient test_visit test_triage_service test_triage_allocation
             test_patient_registry test_patient_registry_allocation
             test_my_stdexcept test_vector test_priority_queue)
         # Release thường đặt NDEBUG; bỏ macro này để assert vẫn thực sự được chạy.

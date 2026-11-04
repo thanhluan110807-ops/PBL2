@@ -2,9 +2,9 @@
 
 Dự án C++17 mô phỏng phân loại cấp cứu và xếp lịch trực. Giao diện người dùng theo định hướng Qt Widgets; quy ước lập trình nằm trong [CLAUDE.md](CLAUDE.md).
 
-## Phạm vi hiện tại trên dev
+## Phạm vi hiện tại
 
-Repository có `Person`, `Date`, `Gender`, ngoại lệ tự viết `My_stdexcept`, `LinkedList`, `HashTable` và hai chương trình kiểm thử. CMake biên dịch thư viện lõi và các test; CTest chạy các test đã đăng ký.
+Nhánh này có các model `Person`, `Patient`, `Visit`, `PatientRegistry`, `TriageService`, ngoại lệ tự viết và các cấu trúc dữ liệu dùng chung. CMake biên dịch thư viện lõi và các test; CTest chạy các test đã đăng ký.
 
 Có demo Qt Widgets/C++ riêng với target `pbl2_qt_demo`, bật bằng `PBL2_BUILD_QT_DEMO=ON`; xem [hướng dẫn demo Qt](demo/qt-triage/README.md). Demo dùng dữ liệu mô phỏng trong bộ nhớ và QSS, tách khỏi API lõi. Tùy chọn mặc định OFF, nên build lõi và các kiểm thử hiện có **không cần Qt**. Đầu ra console của test phục vụ kiểm tra, không phải giao diện người dùng.
 
@@ -71,14 +71,18 @@ Cấu hình này chủ ý không tạo test. Để kiểm tra chất lượng, d
 
 | Target / tên CTest | Nội dung |
 | --- | --- |
-| `pbl2_core` | Thư viện tĩnh chứa `src/model/Person.cpp`, công khai thư mục header `include/` |
+| `pbl2_core` | Thư viện tĩnh chứa các model, PatientRegistry và TriageService, công khai thư mục header `include/` |
 | `test_person` | Dữ liệu đầu vào, ngày sinh chưa biết, tính tuổi quanh sinh nhật, cập nhật, mã định danh và destructor ảo |
 | `test_my_stdexcept` | Vòng đời/sao chép thông báo, giới hạn bộ đệm, bắt lỗi; tích hợp lỗi vượt phạm vi của LinkedList/HashTable |
+| `test_patient`, `test_visit` | Hồ sơ bệnh nhân, đánh giá và trạng thái lần khám |
+| `test_patient_registry`, `test_patient_registry_allocation` | Quy tắc hồ sơ/lần khám, quyền sở hữu và lỗi cấp phát |
+| `test_triage_service`, `test_triage_allocation` | Điều phối hàng chờ, chuyển trạng thái và xử lý lỗi cấp phát |
+| `test_vector`, `test_priority_queue` | Kiểm thử độc lập mảng động và hàng đợi ưu tiên |
 | `check_project_sources` | Kiểm tra include trực tiếp `stdexcept` và dấu hiệu Qt trong mã lõi |
 | `test_project_checks` | Kiểm tra công cụ bằng các tình huống vi phạm, comment/literal và thư mục bị loại trừ |
 | `check_core_headers` (target build) | Biên dịch từng header lõi độc lập; cũng được thực hiện khi build toàn bộ |
 
-Hai test C++ là hai chương trình riêng. CTest hiện đăng ký thêm hai kiểm tra Python, tổng cộng **4 kiểm tra** khi không bật demo Qt. `PBL2_BUILD_QT_DEMO=ON` bổ sung `test_demo_state` và `test_demo_widgets`, tổng cộng 6 kiểm tra. Với cấu hình mặc định, kết quả đạt phải có `100% tests passed, 0 tests failed out of 4`, mã thoát 0 và không có lỗi sanitizer. Đây chưa phải bộ kiểm thử đầy đủ mọi hành vi DSA hoặc kiểm thử GUI; `tests/dsa/` chưa có các bộ test độc lập.
+CTest đăng ký mười kiểm tra C++ và hai kiểm tra Python, tổng cộng **12 kiểm tra** khi không bật demo Qt. `PBL2_BUILD_QT_DEMO=ON` bổ sung `test_demo_state` và `test_demo_widgets`. Kết quả đạt cần mã thoát 0, toàn bộ kiểm tra thành công và không có lỗi sanitizer khi bật sanitizer.
 
 Có thể chạy một test từ cấu hình đã build bằng `ctest --test-dir build -R '^test_person$' --output-on-failure --no-tests=error`. Dùng `ctest --test-dir build -V` để xem đầu ra chi tiết.
 
@@ -95,7 +99,7 @@ ctest --test-dir build -R '^(check_project_sources|test_project_checks)$' --outp
 
 - **Include stdexcept:** báo lỗi khi có chỉ thị include trực tiếp `<stdexcept>` hoặc `"stdexcept"` trong mã C/C++ dưới `include/`, `src/`, `tests/`. Dùng ngoại lệ dự án `My_stdexcept`.
 - **Qt trong lõi:** kiểm tra các nhóm `model/`, `dsa/`, `service/`, `repository/`, `util/` dưới ba gốc trên. Nhận biết include Qt dạng `QtCore/...`, `QObject`, `qobject.h`…, các kiểu `Q...`, namespace `Qt`, macro `Q_...`/`QT_...` và từ khóa signals/slots/emit. GUI ở `include/ui/`, `src/ui/`, `tests/ui/` được dùng Qt, nhưng vẫn thuộc quy định không include trực tiếp stdexcept.
-- **Header độc lập:** chọn `.h`, `.hh`, `.hpp`, `.hxx` thuộc năm nhóm lõi dưới `include/`. Mỗi header được include một mình trong một tệp `.cpp` sinh tại thư mục build và biên dịch thành object riêng, không dùng header được include trước để che dependency thiếu. Hiện có **6 header lõi**. Các mảnh cài đặt `.tpp`/`.inl`/`.ipp` vẫn được kiểm tra quy ước, không coi là header độc lập.
+- **Header độc lập:** chọn `.h`, `.hh`, `.hpp`, `.hxx` thuộc năm nhóm lõi dưới `include/`. Mỗi header được include một mình trong một tệp `.cpp` sinh tại thư mục build và biên dịch thành object riêng, không dùng header được include trước để che dependency thiếu. Các mảnh cài đặt `.tpp`/`.inl`/`.ipp` vẫn được kiểm tra quy ước, không coi là header độc lập.
 
 Cùng một công cụ [check_project_sources.py](tools/check_project_sources.py) xác định phạm vi nguồn và danh sách header cho CMake. Nó bỏ qua thư mục `third_party`, `third-party`, `thirdparty`, `vendor`, `external`, `build`, `_deps`, `CMakeFiles`, `.git` và tên bắt đầu bằng `build-`/`cmake-build-` (không phân biệt hoa/thường). Không đi theo symlink, không quét thư viện hệ thống, không truy tìm nội dung include bên ngoài. Các file ngoài ba gốc mã nguồn trên không được quét.
 
@@ -125,6 +129,7 @@ Tác vụ cloud đã được cách ly; chỉ tạo Git worktree nếu người 
 
 ## Tài liệu liên quan
 
+- [Điều phối phân loại và hàng chờ](docs/service/README.md)
 - [Kiểm thử và giao diện Person](tests/model/README.md)
 - [Ngoại lệ My_stdexcept](docs/util/README.md)
 - [Cấu trúc dữ liệu dùng chung](docs/dsa/README.md)

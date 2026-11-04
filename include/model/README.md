@@ -15,4 +15,4 @@ Các file thuộc phạm vi phần B đã triển khai:
 | `ShiftAssignment.h` | Quản lý mã, vai trò và trạng thái một phân công. |
 | `DoctorParticipation.h` | Ghi bác sĩ thực sự tham gia khám, thời điểm và vai trò. |
 
-Các lớp dùng chung như `Person`, `Patient`, `Visit` là điểm phối hợp; bảng này không gán toàn bộ thư mục cho thành viên B. Xem [bản đồ phần B](../../docs/member-b/BAN-DO-FILE-PHAN-B.md).
+Các lớp dùng chung như `Person`, `Patient`, `Visit` là điểm phối hợp; bảng này không gán toàn bộ thư mục cho thành viên B. Xem [bản đồ phần B](../../docs/PHAN-B.md).

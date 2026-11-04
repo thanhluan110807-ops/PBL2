@@ -15,7 +15,7 @@ Giữ nguyên tên class và cấu trúc dự án; chú thích đầu file ghi *
 | `tests/model/test_staff*.cpp` | Kiểm tra mô hình nhân viên và đối chiếu UML |
 | `tests/dsa/test_admin_containers.cpp` | Kiểm tra DSA phục vụ nhân sự |
 | `demo/qt-triage/tests/test_admin_widgets.cpp` | Kiểm tra thao tác nhân sự/lịch/file qua Qt |
-| `docs/member-b/` | Hướng dẫn học, đối chiếu UML và giới hạn triển khai |
+| `docs/PHAN-B.md` | Hướng dẫn học, đối chiếu UML và giới hạn triển khai |
 
 ## Riêng phần file theo UML
 
@@ -39,6 +39,6 @@ Nếu đọc thẳng vào registry đang dùng, lỗi ở dòng cuối có thể
 
 Lỗi parse được ghi số dòng vật lý (header là dòng 1) và đường dẫn file. Lỗi liên kết PC trong file lịch ghi dòng PC gốc dù kiểm tra sau khi đọc hết file. Lỗi kiểm tra toàn snapshot có thể báo vị trí cuối file. File trắng giữa các bản ghi được bỏ qua; dòng khác trắng sau END bị từ chối. Lưu ra file tạm cùng thư mục rồi thay thế sau khi ghi/đóng thành công để bảo toàn file cũ khi ghi lỗi.
 
-Mỗi file cần đúng loại header; không dùng file lịch để mở bằng nút nhân viên. Định dạng hiện chưa hỗ trợ CSV/Excel và không bỏ qua bản ghi lỗi. Tệp dùng UTF-8; ca dùng thời điểm Unix, giờ Việt Nam UTC+7. Xem thêm [hướng dẫn UML](HOAN-THIEN-CAC-LOP-TRONG-ANH-UML.md).
+Mỗi file cần đúng loại header; không dùng file lịch để mở bằng nút nhân viên. Định dạng hiện chưa hỗ trợ CSV/Excel và không bỏ qua bản ghi lỗi. Tệp dùng UTF-8; ca dùng thời điểm Unix, giờ Việt Nam UTC+7. Các module tương ứng hai lớp StaffFileManager và ScheduleFileManager trong UML.
 
 Kiểm thử Linux sau bổ sung: **17/17** khi bật Qt; **14/14** core với ASan/UBSan. Chưa kiểm thử Windows.

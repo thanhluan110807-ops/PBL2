@@ -13,4 +13,4 @@ Các file thuộc phạm vi phần B đã triển khai:
 | `ScheduleFileManager.h` | Đọc/ghi file ca trực và phân công, giữ lịch sử trạng thái. |
 | `AdminFileManager.h` | Đọc/ghi snapshot chung nhân sự, lịch và dự phòng cho GUI. |
 
-Các lớp dùng chung như `Person`, `Patient`, `Visit` là điểm phối hợp; bảng này không gán toàn bộ thư mục cho thành viên B. Xem [bản đồ phần B](../../docs/member-b/BAN-DO-FILE-PHAN-B.md).
+Các lớp dùng chung như `Person`, `Patient`, `Visit` là điểm phối hợp; bảng này không gán toàn bộ thư mục cho thành viên B. Xem [bản đồ phần B](../../docs/PHAN-B.md).

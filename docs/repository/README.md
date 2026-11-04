@@ -239,6 +239,45 @@ Code thử đang có trong workspace được ghi nhận riêng ở mục “Tra
 theo tên và ngày (bản thử phần lõi)”. Bảo toàn code thử, không tự hoàn tác hoặc
 coi đó là bản đã được chốt. Chưa commit hoặc push khi cập nhật đề xuất này.
 
+## Đề xuất tự sinh mã Patient và Visit trong tương lai
+
+Cập nhật ngày 04/11/2026. **Theo yêu cầu người dùng: chỉ ghi nhận vào đề xuất
+tương lai, chưa triển khai.** Chỉ thực hiện khi người dùng yêu cầu/duyệt riêng;
+không coi việc ghi nhận này là phê duyệt thay đổi code hoặc API.
+
+Hướng đề xuất phù hợp với cơ chế đọc/ghi và tự lưu hiện tại:
+
+- Registry cấp hai dãy mã độc lập: `BN001`, `BN002`... cho Patient và `LK001`,
+  `LK002`... cho Visit. Tối thiểu ba chữ số; sau `BN999` là `BN1000`. Định dạng
+  này là đề xuất, cần xác nhận khi triển khai.
+- Sau khi nạp dữ liệu, xác định số lớn nhất trong các mã đúng dạng của từng
+  dãy để tiếp tục cấp số. Không dùng số lượng hồ sơ cộng một; kiểm tra trùng
+  bằng bảng mã trước khi thêm. Giữ nguyên các mã cũ có định dạng khác.
+- Registry chịu trách nhiệm cấp mã khi tạo đối tượng. TriageService dùng luồng
+  tạo Visit tự động; GUI bỏ các ô nhập mã, hiển thị mã thực tế sau tiếp nhận.
+  Giữ API nhận mã có sẵn cho đọc CSV, khôi phục và kiểm thử. Chưa chốt chữ ký
+  hàm hoặc lớp/struct đầu vào mới.
+- Patient đã có giữ mã cũ, chỉ cấp mã Visit mới. Mở/hủy hộp thoại hoặc nhập
+  sai không tạo đối tượng và không tăng bộ đếm. Quy tắc mỗi Patient tối đa một
+  Visit mở tiếp tục được giữ.
+- Không cấp lại mã của Visit đã kết thúc/hủy vì lịch sử vẫn được lưu. Sau khi
+  tạo thành công, dùng cơ chế tự lưu hiện tại để ghi cả hồ sơ và mã đã cấp;
+  ghi lỗi phải giữ RAM, chặn thay đổi tiếp và tự thử lại như hiện tại.
+- Trước mắt đề xuất khôi phục bộ đếm từ toàn bộ Patient/Visit đã lưu, chưa thêm
+  file bộ đếm riêng. Cần kiểm tra giới hạn số, tràn bộ đếm và báo lỗi thay vì
+  quay vòng gây trùng mã.
+
+Giới hạn cần chốt trước khi triển khai: cách trên bảo đảm mã duy nhất trong
+bộ dữ liệu đang dùng. Nếu phục hồi bản dự phòng cũ hoặc tự xóa bản ghi khỏi
+CSV, mã từng cấp sau bản đó có thể được dùng lại. Nếu yêu cầu không tái sử dụng
+mã kể cả trong các trường hợp này, cần thiết kế bộ đếm độc lập không được lùi;
+đây cũng chỉ là phương án tương lai, chưa được duyệt.
+
+Kiểm chứng khi triển khai: hai dãy độc lập, nạp lại rồi cấp tiếp, dữ liệu thiếu
+số, mã cũ khác định dạng, nhập sai/hủy thao tác, Patient cũ/Visit đang mở, Visit
+đóng/hủy, lỗi ghi và tràn số. Không bổ sung kiểm thử hoặc chức năng sinh mã ở
+lượt cập nhật tài liệu này.
+
 ## Lỗi và kiểm tra
 
 Bắt `const My_stdexcept&`: mã/CCCD trùng là `DoiSoKhongHopLe`, Patient bắt buộc

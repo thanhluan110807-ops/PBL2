@@ -147,3 +147,9 @@ Người dùng đã yêu cầu commit/push lên work; kiểm tra Git để xác 
 Qt5 Debug21/21 và ASan/UBSan21/21
 với detect_leaks=0; SIGKILL/failure tests đạt. Qt6.11.2 mới kiểm tra biên dịch,
 chưa runtime Qt6/Windows native hoặc mất điện vật lý. Chưa tự sinh mã.
+
+Ngày 04/11/2026, người dùng yêu cầu đưa cải tiến tự sinh mã Patient/Visit vào
+[mục đề xuất tương lai](../repository/README.md#đề-xuất-tự-sinh-mã-patient-và-visit-trong-tương-lai).
+Chỉ ghi nhận đề xuất, **chưa triển khai và không tự triển khai nếu chưa được
+yêu cầu/duyệt riêng**. Hướng đề xuất là Registry cấp hai dãy BN/LK, tiếp tục
+từ dữ liệu đã lưu; quy tắc không tái sử dụng mã khi phục hồi bản cũ còn cần chốt.

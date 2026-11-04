@@ -2,6 +2,7 @@
 #include <QString>
 #include <QWidget>
 #include "ui/DemoWindow.h"
+#include "ui/DemoStyle.h"
 #include "repository/PatientRegistry.h"
 #include "service/TriageService.h"
 #include "service/VisitSearchService.h"
@@ -11,6 +12,7 @@
 #include <QApplication>
 #include <QComboBox>
 #include <QDateTime>
+#include <QTimeZone>
 #include <QListWidget>
 #include <QDialog>
 #include <QLabel>
@@ -34,6 +36,9 @@ void Bam(QWidget* H, const char* Ma) { Tim<QPushButton>(H, Ma)->click(); }
 
 int main(int SoThamSo, char** ThamSo) {
     QApplication UngDung(SoThamSo, ThamSo);
+    // Kết quả UTC+7 không phụ thuộc múi giờ máy; kiểm tra cả mốc đổi ngày.
+    assert(DemoUi::ThoiDiem(0) == "01/01/1970 07:00");
+    assert(DemoUi::ThoiDiem(17 * 3600) == "02/01/1970 00:00");
     PatientRegistry R;
     TriageService T(R);
     VisitSearchService S(R);
@@ -126,7 +131,7 @@ int main(int SoThamSo, char** ThamSo) {
     W.MoHoSo("BN1"); assert(R.TimBenhNhan("BN1") == Cu);
     assert(Cu->LayHoTen() == "Nguyễn An mới" && R.TimLanKham("LK1")->SoDanhGia() == 1);
     Bam(&W, "nav3"); Nhap(&W, "timChung", "an mới");
-    const QString Ngay = QDateTime::fromSecsSinceEpoch(R.TimLanKham("LK1")->LayThoiDiemTiepNhan(), Qt::UTC)
+    const QString Ngay = QDateTime::fromSecsSinceEpoch(R.TimLanKham("LK1")->LayThoiDiemTiepNhan(), QTimeZone(0))
         .addSecs(7*3600).toString("dd/MM/yyyy");
     Nhap(&W, "ngayLoc", Ngay); assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 1);
     Nhap(&W, "ngayLoc", "31/02/2026"); assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 0);

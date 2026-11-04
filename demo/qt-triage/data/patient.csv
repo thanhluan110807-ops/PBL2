@@ -1,0 +1,32 @@
+MaBenhNhan,HoTen,GioiTinh,NgaySinh,SoCanCuoc,NhomMau,ThongTinDiUng,TienSuBenh,TuoiUocLuong
+BN001,Nguyễn An,Nam,1996-01-01,000000000001,O,Penicillin,,
+BN002,Trần Bình,Nu,1985-06-20,000000000002,A,,Hen phế quản,
+BN003,,ChuaXacDinh,,,ChuaXacDinh,,,40
+BN004,Nguyễn An,Nam,1980-03-15,000000000004,B,,Tăng huyết áp,
+BN005,Nguyễn Thị An,Nu,2002-07-12,000000000005,AB,,,
+BN006,Trần Bình,Nam,1960-02-10,000000000006,O,,Đái tháo đường,
+BN007,Lê Minh,Khac,1999-12-25,000000000007,A,,,
+BN008,Đặng Thùy Linh,Nu,,,B,Hải sản,,22
+BN009,Phạm Quốc Huy,Nam,,000000000009,AB,,,
+BN010,,ChuaXacDinh,,,ChuaXacDinh,,,
+BN011,Bé Mai,Nu,,,O,,,0
+BN012,Bé Nam,Nam,,,A,,,1
+BN013,Bé Lan,Nu,,,B,,,5
+BN014,Bé Dũng,Nam,,,AB,,,6
+BN015,Ngô Bảo Anh,Nu,,,O,,,12
+BN016,Ngô Bảo Minh,Nam,,,A,,,13
+BN017,Đỗ Văn Thành,Nam,,000000000017,B,,Tăng huyết áp,64
+BN018,Đỗ Thị Thành,Nu,,000000000018,AB,,Tăng huyết áp,65
+BN019,Hồ sơ biên tuổi,ChuaXacDinh,,,ChuaXacDinh,,,150
+BN020,,ChuaXacDinh,,,ChuaXacDinh,,,0
+BN021,Đỗ Ngọc Ánh,Nu,2000-02-29,000000000021,O,,,
+BN022,Vũ Đức Long,Nam,2004-10-05,000000000022,A,Latex,,
+BN023,Trịnh Khánh Vy,Nu,1995-08-09,000000000023,B,"Penicillin, aspirin","Hen, viêm mũi dị ứng",
+BN024,"Hồ ""Minh"" Quân",Nam,1988-04-20,000000000024,AB,,"Đã ghi nhận ""dị ứng thuốc"" trong hồ sơ cũ",
+BN025,Lý Bảo Châu,Nu,1975-11-30,000000000025,O,,"Tăng huyết áp
+Đái tháo đường type 2",
+BN026,Nguyễn Văn Hòa,Nam,1990-01-15,000000000026,A,,,
+BN027,NGUYỄN VĂN HÒA,Nam,1991-02-16,000000000027,B,,,
+BN028,Nguyễn Văn Hoà,Nam,1992-03-17,000000000028,ChuaXacDinh,,,
+BN029,Trần Thị Hương,Nu,1940-05-02,000000000029,AB,Thuốc cản quang,Suy tim mạn,
+BN030,Bé Khánh,Nam,2026-09-01,,ChuaXacDinh,,,

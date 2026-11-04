@@ -44,6 +44,12 @@ CTest đã đặt `QT_QPA_PLATFORM=offscreen` cho các test widget.
 7. Hồ sơ: xem dữ liệu y tế và các Visit liên kết; bổ sung danh tính bằng tên,
    giới tính, ngày sinh, CCCD qua Registry, giữ nguyên mã và lịch sử.
 
+## Bộ dữ liệu kiểm tra mở rộng
+
+Dùng [patient.csv](data/patient.csv) gồm 30 hồ sơ hư cấu và làm theo
+[kịch bản kiểm tra](data/README.md) để thử tra cứu, 5 mức triage, luân phiên
+hai hàng, cận lâm sàng, bổ sung danh tính và các tình huống bị từ chối.
+
 ## Giới hạn hiện tại
 
 - Chỉ đọc CSV Patient; chưa ghi file, chưa nạp Visit/hàng chờ. Thay đổi mất

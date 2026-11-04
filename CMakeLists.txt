@@ -30,6 +30,7 @@ endif()
 add_library(pbl2_core STATIC
     src/model/Person.cpp src/model/Patient.cpp src/model/Visit.cpp
     src/repository/PatientRegistry.cpp src/repository/PatientFileManager.cpp
+    src/repository/VisitFileManager.cpp src/repository/SessionFileManager.cpp src/util/CsvFile.cpp
     src/service/TriageService.cpp
     src/service/VisitSearchService.cpp)
 target_include_directories(pbl2_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -115,6 +116,15 @@ if(BUILD_TESTING)
     add_executable(test_patient_file_manager tests/repository/test_patient_file_manager.cpp)
     target_link_libraries(test_patient_file_manager PRIVATE pbl2_core)
 
+    add_executable(test_visit_file_manager tests/repository/test_visit_file_manager.cpp)
+    target_link_libraries(test_visit_file_manager PRIVATE pbl2_core)
+    add_executable(test_visit_restore tests/repository/test_visit_restore.cpp)
+    target_link_libraries(test_visit_restore PRIVATE pbl2_core)
+    add_executable(test_autosave_file_manager tests/repository/test_autosave_file_manager.cpp)
+    target_link_libraries(test_autosave_file_manager PRIVATE pbl2_core)
+    add_executable(test_session_file_manager tests/repository/test_session_file_manager.cpp)
+    target_link_libraries(test_session_file_manager PRIVATE pbl2_core)
+
     # Ngoại lệ và DSA là header-only, không cần liên kết với model Person.
     add_executable(test_my_stdexcept tests/util/test_my_stdexcept.cpp)
     target_include_directories(test_my_stdexcept PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
@@ -132,7 +142,7 @@ if(BUILD_TESTING)
 
     foreach(TenKiemThu IN ITEMS test_person test_patient test_visit test_triage_service test_triage_allocation
             test_visit_search_service
-            test_patient_registry test_patient_registry_allocation test_patient_file_manager
+            test_patient_registry test_patient_registry_allocation test_patient_file_manager test_visit_file_manager test_visit_restore test_session_file_manager test_autosave_file_manager
             test_my_stdexcept test_vector test_priority_queue)
         # Release thường đặt NDEBUG; bỏ macro này để assert vẫn thực sự được chạy.
         if(MSVC)

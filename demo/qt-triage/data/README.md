@@ -94,6 +94,7 @@ File chính chỉ chứa dữ liệu hợp lệ để nạp trọn bộ. Muốn 
 ra file riêng rồi sửa một ngày sinh, mã/CCCD trùng hoặc bỏ một cột. Bộ đọc
 phải báo lỗi và không trả Registry nạp dở. Không sửa trực tiếp file mẫu gốc.
 
-Thay đổi trong demo mất khi thoát; mở lại cùng file để lặp kịch bản. Bộ dữ liệu
-này chưa kiểm tra xếp lịch trực, tính áp lực hàng đợi hoặc ghi/khôi phục Visit,
-vì các chức năng đó chưa được nối vào demo hiện tại.
+Patient, Visit và hàng chờ tự lưu trực tiếp vào bộ file đã chọn sau thao tác;
+có bản dự phòng cạnh Patient. Khi thử nên sao chép file mẫu sang thư mục riêng.
+Muốn lặp từ đầu, chạy với `--chon-du-lieu`, chọn bản sao mới của mẫu và Visit mới. Bộ dữ liệu này
+chưa kiểm tra xếp lịch trực hoặc tính áp lực hàng đợi.

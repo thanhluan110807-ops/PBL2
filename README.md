@@ -4,9 +4,9 @@ Dự án C++17 mô phỏng phân loại cấp cứu và xếp lịch trực. Gia
 
 ## Phạm vi hiện tại
 
-Nhánh này có các model `Person`, `Patient`, `Visit`, `PatientRegistry`, `TriageService`, `VisitSearchService`, bộ đọc CSV `PatientFileManager`, ngoại lệ tự viết và các cấu trúc dữ liệu dùng chung. `VisitSearchService` tra cứu các lần khám theo thông tin bệnh nhân trên dữ liệu trong Registry; xem [thiết kế và giới hạn](docs/superpowers/specs/2026-11-04-visit-search-patient-design.md). `PatientFileManager` chỉ đọc hồ sơ Patient từ CSV vào một Registry mới; xem [hướng dẫn file Patient](docs/repository/README.md#đọc-hồ-sơ-patient-từ-csv). CMake biên dịch thư viện lõi và các test; CTest chạy các test đã đăng ký.
+Nhánh này có các model `Person`, `Patient`, `Visit`, `PatientRegistry`, `TriageService`, `VisitSearchService`, bộ đọc/ghi CSV `PatientFileManager`, `VisitFileManager`, `SessionFileManager`, ngoại lệ tự viết và các cấu trúc dữ liệu dùng chung. `VisitSearchService` tra cứu các lần khám theo thông tin bệnh nhân trên dữ liệu trong Registry; xem [thiết kế và giới hạn](docs/superpowers/specs/2026-11-04-visit-search-patient-design.md). `PatientFileManager` đọc/ghi hồ sơ Patient; `VisitFileManager` đọc/ghi Visit và trạng thái hàng chờ; `SessionFileManager` điều phối một cặp file; xem [hướng dẫn file Patient](docs/repository/README.md#đọc-hồ-sơ-patient-từ-csv). CMake biên dịch thư viện lõi và các test; CTest chạy các test đã đăng ký.
 
-Có demo Qt Widgets/C++ riêng với target `pbl2_qt_demo`, bật bằng `PBL2_BUILD_QT_DEMO=ON`; xem [hướng dẫn demo Qt](demo/qt-triage/README.md). Demo dùng QSS và nối trực tiếp Registry/TriageService/VisitSearchService; đọc CSV Patient khi khởi động, chưa lưu thay đổi khi thoát. Tùy chọn mặc định OFF, nên build lõi và các kiểm thử hiện có **không cần Qt**. Đầu ra console của test phục vụ kiểm tra, không phải giao diện người dùng.
+Có demo Qt Widgets/C++ riêng với target `pbl2_qt_demo`, bật bằng `PBL2_BUILD_QT_DEMO=ON`; xem [hướng dẫn demo Qt](demo/qt-triage/README.md). Demo dùng QSS và nối trực tiếp Registry/TriageService/VisitSearchService; nạp Patient/Visit khi khởi động, tự cập nhật bộ file đã chọn sau mỗi thay đổi, có dự phòng và khôi phục khi ghi gián đoạn. Tùy chọn mặc định OFF, nên build lõi và các kiểm thử hiện có **không cần Qt**. Đầu ra console của test phục vụ kiểm tra, không phải giao diện người dùng.
 
 ## Yêu cầu
 
@@ -76,7 +76,8 @@ Cấu hình này chủ ý không tạo test. Để kiểm tra chất lượng, d
 | `test_my_stdexcept` | Vòng đời/sao chép thông báo, giới hạn bộ đệm, bắt lỗi; tích hợp lỗi vượt phạm vi của LinkedList/HashTable |
 | `test_patient`, `test_visit` | Hồ sơ bệnh nhân, đánh giá và trạng thái lần khám |
 | `test_patient_registry`, `test_patient_registry_allocation` | Quy tắc hồ sơ/lần khám, quyền sở hữu và lỗi cấp phát |
-| `test_patient_file_manager` | Đọc hồ sơ Patient từ CSV, kiểm tra dữ liệu và file lỗi |
+| `test_patient_file_manager` | Đọc/ghi hồ sơ Patient, round-trip CSV và lỗi I/O |
+| `test_visit_file_manager`, `test_visit_restore`, `test_session_file_manager`, `test_autosave_file_manager` | Lịch sử Visit, khôi phục hàng chờ, dữ liệu sai và cặp file lưu phiên |
 | `test_triage_service`, `test_triage_allocation` | Điều phối hàng chờ, chuyển trạng thái và xử lý lỗi cấp phát |
 | `test_visit_search_service` | Tra cứu lần khám theo bệnh nhân qua service, lọc kết hợp và lỗi ngày không hợp lệ |
 | `test_vector`, `test_priority_queue` | Kiểm thử độc lập mảng động và hàng đợi ưu tiên |
@@ -84,7 +85,7 @@ Cấu hình này chủ ý không tạo test. Để kiểm tra chất lượng, d
 | `test_project_checks` | Kiểm tra công cụ bằng các tình huống vi phạm, comment/literal và thư mục bị loại trừ |
 | `check_core_headers` (target build) | Biên dịch từng header lõi độc lập; cũng được thực hiện khi build toàn bộ |
 
-CTest đăng ký mười hai kiểm tra C++ và hai kiểm tra Python, tổng cộng **14 kiểm tra** khi không bật demo Qt. `PBL2_BUILD_QT_DEMO=ON` bổ sung `test_demo_widgets` và `test_demo_startup`. Kết quả đạt cần mã thoát 0, toàn bộ kiểm tra thành công và không có lỗi sanitizer khi bật sanitizer.
+CTest đăng ký mười sáu kiểm tra C++ và hai kiểm tra Python, tổng cộng **18 kiểm tra** khi không bật demo Qt. `PBL2_BUILD_QT_DEMO=ON` bổ sung `test_demo_widgets`, `test_demo_startup` và `test_demo_persistence`. Kết quả đạt cần mã thoát 0, toàn bộ kiểm tra thành công và không có lỗi sanitizer khi bật sanitizer.
 
 Có thể chạy một test từ cấu hình đã build bằng `ctest --test-dir build -R '^test_person$' --output-on-failure --no-tests=error`. Dùng `ctest --test-dir build -V` để xem đầu ra chi tiết.
 

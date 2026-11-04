@@ -28,3 +28,6 @@ Thumbs.db
 # Cache cua cong cu kiem tra Python
 __pycache__/
 *.py[cod]
+
+# Ban du phong va journal tu sinh khi demo tu dong cap nhat CSV
+*.csv.pbl2/

@@ -23,6 +23,18 @@ struct SoSanhChoKham {
     }
 };
 
+// Bản lưu chỉ giữ mã, không lưu địa chỉ RAM; dùng để dựng lại hai heap khi mở file.
+struct MucChoLuu {
+    std::string MaLanKham;
+    std::time_t ThoiDiemVaoHang = 0;
+    unsigned long long ThuTu = 0;
+};
+struct TrangThaiHangCho {
+    Vector<MucChoLuu> CacMuc;
+    unsigned long long ThuTu = 0;
+    bool UuTienQuayLai = true;
+};
+
 // Registry phải sống lâu hơn service. Mọi chuyển trạng thái phải qua service.
 class TriageService {
     using HangCho = PriorityQueue<MucChoKham, SoSanhChoKham>;
@@ -50,5 +62,8 @@ public:
     void QuayLai(const std::string& MaLanKham, const std::string& KetQua, std::time_t ThoiDiem);
     void KetThuc(const std::string& MaLanKham);
     void Huy(const std::string& MaLanKham);
+    TrangThaiHangCho LayTrangThaiHangCho() const;
+    // Chỉ công bố heap mới sau khi kiểm tra đủ mọi Visit đang chờ.
+    void KhoiPhucHangCho(const TrangThaiHangCho& BanLuu);
     int SoDangCho() const { return HangLanDau.KichThuoc() + HangQuayLai.KichThuoc(); }
 };

@@ -131,3 +131,19 @@ Các thay đổi cục bộ có trước commit bàn giao, giữ nguyên và kh�
 Các thay đổi cũ trong CLAUDE.md và README.md vẫn chưa commit theo phạm vi yêu cầu; chỉ phần bổ sung mới thuộc lượt này được tách để commit nếu kiểm tra an toàn. Các file gốc `HashTable.h`, `Linkedlist.h`,
 `Staff.cpp`, `staff.h` là phần của thành viên khác: bảo toàn, chỉ đọc khi cần.
 Không tự hoàn tác thay đổi, commit hoặc push nếu không được yêu cầu mới.
+
+
+## Bổ sung 04/11/2026: tự động lưu Patient/Visit
+
+Theo chỉ dẫn mới nhất, cập nhật trực tiếp bộ Patient/Visit người dùng chọn,
+có backup. Không có nút lưu riêng: tự ghi đồng bộ sau thao tác, giữ RAM/tạm
+chặn chỉnh sửa/tự thử lại nếu ghi lỗi; không đóng khi còn chưa ghi được.
+SessionFileManager dùng rawbackup, snapshot, pending journal và committed
+marker để hoàn tất cặp file khi bị dừng giữa hai lần ghi. Cấu hình chỉ nhớ
+đường dẫn; lần sau tự nạp lại bộ. Khóa một tiến trình bằng QLockFile.
+Xem [hướng dẫn](../repository/visit-files.md) và
+[thiết kế](../superpowers/specs/2026-11-04-patient-visit-persistence-design.md).
+Người dùng đã yêu cầu commit/push lên work; kiểm tra Git để xác định commit thực tế.
+Qt5 Debug21/21 và ASan/UBSan21/21
+với detect_leaks=0; SIGKILL/failure tests đạt. Qt6.11.2 mới kiểm tra biên dịch,
+chưa runtime Qt6/Windows native hoặc mất điện vật lý. Chưa tự sinh mã.

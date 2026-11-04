@@ -2,8 +2,8 @@
 
 `PatientRegistry` sở hữu hồ sơ Patient và Visit trong bộ nhớ. Patient đại diện
 một người bệnh có mã dùng xuyên suốt; Visit đại diện một lần khám có mã riêng.
-Registry không tự đọc/ghi file; `PatientFileManager` hiện chỉ đọc Patient CSV.
-Chưa lưu file Visit, chưa tự sinh mã hoặc gộp hồ sơ. Các mã do bên gọi cung cấp.
+Registry không tự đọc/ghi file; `PatientFileManager` đọc/ghi Patient CSV. `VisitFileManager` đọc/ghi Visit
+và hàng chờ; [hướng dẫn lưu phiên](visit-files.md). Chưa tự sinh mã hoặc gộp hồ sơ. Các mã do bên gọi cung cấp.
 
 ## Đọc hồ sơ Patient từ CSV
 
@@ -36,8 +36,8 @@ File thiếu, tiêu đề hoặc dữ liệu sai, mã/CCCD trùng đều báo l�
 số dòng bắt đầu bản ghi. Nếu lỗi giữa file, Registry tạm được hủy và không có
 Registry mới được trả ra. Bộ đọc tự `delete` Registry tạm khi gặp lỗi giữa file.
 Chỉ thay dữ liệu đang dùng lúc khởi động, trước khi
-tạo service mượn Registry. Chưa có hàm ghi CSV, đọc Visit hoặc khôi phục hàng
-chờ, nên bộ đọc này chưa phục hồi toàn bộ phiên làm việc.
+tạo service mượn Registry. `LuuBenhNhan(Registry, DuongDan)` ghi cùng lược đồ v1.
+Để lưu/nạp cả Visit và hàng chờ, dùng `SessionFileManager` như [hướng dẫn](visit-files.md).
 
 ## Tiếp nhận đúng hồ sơ
 

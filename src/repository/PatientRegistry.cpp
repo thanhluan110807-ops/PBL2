@@ -220,6 +220,39 @@ Visit* PatientRegistry::ThemLanKham(const std::string& MaLanKham, const std::str
     return Moi;
 }
 
+void PatientRegistry::KhoiPhucLanKham(const Vector<BanChupLanKham>& DanhSach) {
+    if (SoLanKham() != 0)
+        throw My_stdexcept(My_stdexcept::LoaiLoi::TrangThaiKhongHopLe,
+                          "Chi khoi phuc vao Registry chua co lan kham");
+    HashTable<std::string, Visit*> Tam;
+    try {
+        for (int I = 0; I < DanhSach.KichThuoc(); ++I) {
+            const BanChupLanKham& BanChup = DanhSach[I];
+            LayBenhNhanBatBuoc(BanChup.MaBenhNhan);
+            if (Tam.Cokhoa(BanChup.MaLanKham))
+                throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe, "Ma lan kham bi trung");
+            bool CoLanMo = false;
+            Tam.Duyet([&](const std::string&, const Visit* LanKham) {
+                if (LanKham->LayMaBenhNhan() == BanChup.MaBenhNhan &&
+                    LanKham->LayTrangThai() != VisitStatus::DaKetThuc &&
+                    LanKham->LayTrangThai() != VisitStatus::DaHuy) CoLanMo = true;
+            });
+            if (CoLanMo && BanChup.TrangThai != VisitStatus::DaKetThuc &&
+                BanChup.TrangThai != VisitStatus::DaHuy)
+                throw My_stdexcept(My_stdexcept::LoaiLoi::TrangThaiKhongHopLe,
+                                  "Benh nhan co nhieu lan kham dang mo");
+            Visit* Moi = Visit::TuBanChup(BanChup);
+            try { Tam.Them(BanChup.MaLanKham, Moi); }
+            catch (...) { delete Moi; throw; }
+        }
+    } catch (...) {
+        // Bảng băm không xóa đối tượng đích: thu hồi mọi Visit chưa công bố.
+        Tam.Duyet([](const std::string&, Visit* LanKham) { delete LanKham; });
+        throw;
+    }
+    DanhSachLanKham.Hoandoi(Tam); // Không cấp phát; Patient và các địa chỉ cũ giữ nguyên.
+}
+
 Visit* PatientRegistry::TimLanKham(const std::string& MaLanKham) {
     Visit** DiaChi = DanhSachLanKham.Timkiem(MaLanKham);
     return DiaChi == nullptr ? nullptr : *DiaChi;

@@ -5,6 +5,8 @@
 #include <string>
 #include <QMainWindow>
 class QResizeEvent;
+class QCloseEvent;
+class QTimer;
 class QBoxLayout;
 class QVBoxLayout;
 class QHBoxLayout;
@@ -49,6 +51,12 @@ class DemoWindow : public QMainWindow {
     QLabel *HuongDan;
     int Trang = 0, Luong = 0, LocKpi = -1;
     bool Hep = false;
+    bool DaThayDoi = false;
+    std::string TepPatientTuDong, TepVisitTuDong;
+    QTimer *ThuLaiLuu = nullptr;
+    QLabel *TinhTrangLuu = nullptr;
+    bool ThuLuuTuDong();
+    bool CoTheThayDoi();
     QBoxLayout *HangDauTrang = nullptr, *HangBoLoc = nullptr;
     void TaoGiaoDien();
     void TaoThanhBen(QHBoxLayout *Khung);
@@ -59,11 +67,14 @@ class DemoWindow : public QMainWindow {
 
   protected:
     void resizeEvent(QResizeEvent *SuKien) override;
+    void closeEvent(QCloseEvent *SuKien) override;
 
   public:
     DemoWindow(PatientRegistry &Registry, TriageService &DichVu,
-               VisitSearchService &TraCuu, QWidget *Cha = nullptr);
+               VisitSearchService &TraCuu, const std::string &TepPatient, const std::string &TepVisit, QWidget *Cha = nullptr);
     void LamMoi();
+    // Gọi ngay sau thay đổi; chỉ trả true sau khi bản lưu đã được đồng bộ.
+    bool DanhDauThayDoi();
     void MoTiepNhan();
     void MoDanhGia(const std::string &MaLanKham);
     void MoChiTiet(const std::string &MaLanKham);

@@ -55,6 +55,79 @@ int TinhMuc(const VitalSigns& S, int Tuoi) {
     }
     return S.LaySpo2() < 97 ? 4 : 5;
 }
+
+bool CoMaBacSi(const Vector<std::string>& DanhSach, const std::string& MaBacSi) {
+    for (int I = 0; I < DanhSach.KichThuoc(); ++I)
+        if (DanhSach[I] == MaBacSi) return true;
+    return false;
+}
+
+void KiemTraLichSuDanhGia(const BanChupLanKham& BanChup) {
+    std::time_t ThoiDiemTruoc = BanChup.ThoiDiemTiepNhan;
+    for (int I = 0; I < BanChup.DanhGia.KichThuoc(); ++I) {
+        const TriageAssessment& DanhGia = BanChup.DanhGia[I];
+        // Ô mặc định của Vector không phải đánh giá thật và không được nạp.
+        if (DanhGia.LayMaDieuDuong().empty() || DanhGia.LayMuc() < 1 ||
+            DanhGia.LayMuc() > 5 || DanhGia.LayThoiDiemDanhGia() < ThoiDiemTruoc)
+            BaoLoi("Lich su danh gia khong hop le");
+        // Tuổi và nguồn tuổi thuộc thời điểm đánh giá, không tính lại từ Patient.
+        ThoiDiemTruoc = DanhGia.LayThoiDiemDanhGia();
+    }
+}
+
+void KiemTraLichSuBacSi(const BanChupLanKham& BanChup) {
+    for (int I = 0; I < BanChup.BacSiPhanCong.KichThuoc(); ++I) {
+        if (BanChup.BacSiPhanCong[I].empty()) BaoLoi("Ma bac si phan cong bi rong");
+        for (int J = 0; J < I; ++J)
+            if (BanChup.BacSiPhanCong[I] == BanChup.BacSiPhanCong[J])
+                BaoLoi("Ma bac si phan cong bi trung");
+    }
+    // Bác sĩ tham gia có thể lặp: mỗi phần tử là một lượt khám thực tế.
+    for (int I = 0; I < BanChup.BacSiThamGia.KichThuoc(); ++I)
+        if (BanChup.BacSiThamGia[I].empty()) BaoLoi("Ma bac si tham gia bi rong");
+    if (!BanChup.BacSiThamGia.Rong() && BanChup.DanhGia.Rong())
+        BaoLoi("Bac si tham gia truoc khi co danh gia");
+}
+
+void KiemTraLichSuCanLamSang(const BanChupLanKham& BanChup) {
+    for (int I = 0; I < BanChup.CanLamSang.KichThuoc(); ++I) {
+        const BanGhiCanLamSang& BanGhi = BanChup.CanLamSang[I];
+        if (BanGhi.LayChiDinh().empty() || BanGhi.LayMaBacSiChiDinh().empty() ||
+            !CoMaBacSi(BanChup.BacSiThamGia, BanGhi.LayMaBacSiChiDinh()) ||
+            BanGhi.DaCoKetQua() != !BanGhi.LayKetQua().empty())
+            BaoLoi("Lich su can lam sang khong hop le");
+        // Muốn có chỉ định tiếp theo thì chỉ định trước đã phải có kết quả.
+        if (!BanGhi.DaCoKetQua() && I + 1 < BanChup.CanLamSang.KichThuoc())
+            BaoLoi("Chi dinh truoc chua co ket qua");
+    }
+}
+
+void KiemTraTrangThaiBanChup(const BanChupLanKham& BanChup) {
+    const bool DaKham = !BanChup.DanhGia.Rong() && !BanChup.BacSiThamGia.Rong();
+    const bool CoCls = !BanChup.CanLamSang.Rong();
+    const bool CoKetQuaCuoi = CoCls &&
+        BanChup.CanLamSang[BanChup.CanLamSang.KichThuoc() - 1].DaCoKetQua();
+    switch (BanChup.TrangThai) {
+    case VisitStatus::ChoKhamLanDau:
+        if (!BanChup.BacSiThamGia.Rong() || CoCls) SaiTrangThai();
+        break;
+    case VisitStatus::DangKham:
+    case VisitStatus::DaKetThuc:
+        if (!DaKham || (CoCls && !CoKetQuaCuoi)) SaiTrangThai();
+        break;
+    case VisitStatus::ChoCanLamSang:
+        // Có thể đã ghi kết quả nhưng chưa thực hiện DanhDauQuayLai.
+        if (!DaKham || !CoCls) SaiTrangThai();
+        break;
+    case VisitStatus::ChoKhamQuayLai:
+        if (!DaKham || !CoKetQuaCuoi) SaiTrangThai();
+        break;
+    case VisitStatus::DaHuy:
+        break; // Có thể hủy trước đánh giá, khi khám hoặc khi đang chờ CLS.
+    default:
+        SaiTrangThai();
+    }
+}
 }
 
 VitalSigns::VitalSigns(int Tim, int Ap, int Tho, double Oxy, int Gcs)
@@ -70,6 +143,13 @@ TriageAssessment::TriageAssessment(const VitalSigns& SinhHieu, int Tuoi, bool Tu
     if (Tuoi < 0 || Tuoi > 150 || MaDieuDuong.empty()) BaoLoi("Du lieu danh gia khong hop le");
     Muc = TinhMuc(SinhHieu, Tuoi);
 }
+BanGhiCanLamSang::BanGhiCanLamSang(const std::string& ChiDinh,
+                                   const std::string& MaBacSiChiDinh,
+                                   bool CoKetQua, const std::string& KetQua)
+    : ChiDinh(ChiDinh), KetQua(KetQua), MaBacSiChiDinh(MaBacSiChiDinh), CoKetQua(CoKetQua) {
+    if (ChiDinh.empty() || MaBacSiChiDinh.empty() || CoKetQua != !KetQua.empty())
+        BaoLoi("Ban ghi can lam sang khong hop le");
+}
 void BanGhiCanLamSang::GhiKetQua(const std::string& KetQua) {
     if (CoKetQua) SaiTrangThai();
     if (KetQua.empty()) BaoLoi("Ket qua khong duoc rong");
@@ -81,6 +161,40 @@ Visit::Visit(const std::string& MaLanKham, const std::string& MaBenhNhan,
     : MaLanKham(MaLanKham), MaBenhNhan(MaBenhNhan), TrieuChungChinh(TrieuChungChinh),
       ThoiDiemTiepNhan(ThoiDiemTiepNhan), TrangThaiLanKham(VisitStatus::ChoKhamLanDau) {
     if (MaLanKham.empty() || MaBenhNhan.empty()) BaoLoi("Ma lan kham va ma benh nhan la bat buoc");
+}
+BanChupLanKham Visit::LayBanChup() const {
+    BanChupLanKham BanChup;
+    BanChup.MaLanKham = MaLanKham;
+    BanChup.MaBenhNhan = MaBenhNhan;
+    BanChup.TrieuChungChinh = TrieuChungChinh;
+    BanChup.ThoiDiemTiepNhan = ThoiDiemTiepNhan;
+    BanChup.TrangThai = TrangThaiLanKham;
+    BanChup.DanhGia = LichSuDanhGia;
+    BanChup.CanLamSang = LichSuCanLamSang;
+    BanChup.BacSiPhanCong = DanhSachBacSiDuocPhanCong;
+    BanChup.BacSiThamGia = LichSuBacSiThamGiaKham;
+    return BanChup;
+}
+
+Visit* Visit::TuBanChup(const BanChupLanKham& BanChup) {
+    KiemTraLichSuDanhGia(BanChup);
+    KiemTraLichSuBacSi(BanChup);
+    KiemTraLichSuCanLamSang(BanChup);
+    KiemTraTrangThaiBanChup(BanChup);
+    Visit* Moi = new Visit(BanChup.MaLanKham, BanChup.MaBenhNhan,
+                           BanChup.ThoiDiemTiepNhan, BanChup.TrieuChungChinh);
+    try {
+        // Chép trực tiếp để giữ tuổi, nguồn tuổi và thứ tự lịch sử nguyên gốc.
+        Moi->LichSuDanhGia = BanChup.DanhGia;
+        Moi->LichSuCanLamSang = BanChup.CanLamSang;
+        Moi->DanhSachBacSiDuocPhanCong = BanChup.BacSiPhanCong;
+        Moi->LichSuBacSiThamGiaKham = BanChup.BacSiThamGia;
+        Moi->TrangThaiLanKham = BanChup.TrangThai;
+    } catch (...) {
+        delete Moi;
+        throw;
+    }
+    return Moi;
 }
 void Visit::KiemTraDangMo() const {
     if (TrangThaiLanKham == VisitStatus::DaKetThuc || TrangThaiLanKham == VisitStatus::DaHuy) SaiTrangThai();

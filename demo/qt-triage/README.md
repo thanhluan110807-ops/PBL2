@@ -1,7 +1,7 @@
 # An Tâm — giao diện Qt nối code lõi
 
 Demo Qt Widgets/QSS dùng trực tiếp `PatientRegistry`, `TriageService`,
-`VisitSearchService` và `PatientFileManager`. Nghiệp vụ và DSA vẫn độc lập Qt.
+`VisitSearchService`, `PatientFileManager`, `VisitFileManager` và `SessionFileManager`. Nghiệp vụ và DSA vẫn độc lập Qt.
 
 ## Build và chạy
 
@@ -23,7 +23,7 @@ CTest đã đặt `QT_QPA_PLATFORM=offscreen` cho các test widget.
 
 1. Khởi động: chọn CSV hoặc bấm **Bắt đầu rỗng**. Có file hư cấu
    [patients.csv](data/patients.csv) đúng lược đồ v1. CSV lỗi sẽ báo lỗi và giữ
-   hộp thoại để chọn lại; đóng hộp thoại thì thoát. Không nạp CSV giữa phiên.
+   hộp thoại để chọn lại; đóng hộp thoại thì thoát. Có thể chọn thêm Visit CSV để khôi phục lần khám/hàng chờ. Nếu chưa có Visit, tạo visit.csv cạnh Patient. Lần sau tự mở lại bộ đã chọn. Không nạp lại CSV giữa phiên.
 2. Tiếp nhận: nhập mã Patient và mã Visit riêng, hoặc tìm tên/CCCD/mã rồi chọn
    hồ sơ cũ. Hồ sơ cùng tên không tự gộp. Mã hoặc CCCD trùng bị từ chối; mỗi
    Patient chỉ có một Visit đang mở. Patient mới có thể chưa rõ tên/tuổi.
@@ -52,8 +52,11 @@ hai hàng, cận lâm sàng, bổ sung danh tính và các tình huống bị t�
 
 ## Giới hạn hiện tại
 
-- Chỉ đọc CSV Patient; chưa ghi file, chưa nạp Visit/hàng chờ. Thay đổi mất
-  khi thoát và không sửa CSV nguồn. Chương trình hiển thị rõ giới hạn này.
+- Tự ghi vào đúng file Patient/Visit đã chọn sau mỗi thay đổi. Không cần nút
+  lưu riêng. Có bản gốc và các bản dự phòng trong `<patient-path>.pbl2/`.
+- Mở lại tự dùng bộ file gần nhất; nếu bị dừng giữa hai lần ghi, tự hoàn tất
+  từ bản chụp đầy đủ. Ghi lỗi giữ RAM, tạm chặn thay đổi, tự thử lại mỗi3giây;
+  không đóng cửa sổ khi chưa ghi được. [Chi tiết](../../docs/repository/visit-files.md).
 - Chưa nối danh sách nhân viên; mã bác sĩ/điều dưỡng do người dùng nhập.
 - Chưa tính áp lực hàng đợi hoặc xếp lịch trực; mục lịch trực đang vô hiệu hóa.
 - Bỏ mức phân loại thủ công, cảnh báo chờ quá giờ, đồng hồ mô phỏng, mẫu 3:1.
@@ -69,7 +72,7 @@ hai hàng, cận lâm sàng, bổ sung danh tính và các tình huống bị t�
 
 - `ui/DemoWindow.h/.cpp`: bố cục, thống kê, bảng/thẻ, lọc và gọi tiếp.
 - `ui/DemoDialogs.cpp`: tiếp nhận, đánh giá, chi tiết, danh tính, cận lâm sàng.
-- `ui/DemoStartup.h/.cpp`: chọn CSV/Registry rỗng trước khi tạo service.
+- `ui/DemoStartup.h/.cpp`: chọn Patient/Visit CSV hoặc Registry rỗng trước khi tạo service.
 - `ui/DemoStyle.h/.cpp`: QSS, icon, nhãn trạng thái và thời gian.
 - `main.cpp`: sở hữu Registry bằng con trỏ, tạo service/cửa sổ sau Registry
   và hủy chúng trước khi delete Registry.
@@ -79,3 +82,16 @@ hai hàng, cận lâm sàng, bổ sung danh tính và các tình huống bị t�
 
 Bộ dev Qt cục bộ dùng trong workspace không thuộc repository. Hướng dẫn build
 trên áp dụng với Qt development kit đã cài của người chạy.
+
+- `tests/test_demo_persistence.cpp`: tự ghi sau thao tác GUI, đọc lại, ghi lỗi, tự thử lại và chặn đóng khi chưa ghi được.
+
+Muốn chọn bộ dữ liệu khác lúc khởi động, chạy:
+
+```bash
+./build-qt-demo/demo/qt-triage/pbl2_qt_demo --chon-du-lieu
+```
+
+Khi bắt đầu rỗng, chọn nơi đặt hai file một lần. Chương trình cập nhật trực tiếp
+hai file đó về sau; các file mẫu đã chọn cũng sẽ được cập nhật, bản gốc được
+sao lưu trước. Muốn giữ file mẫu trong Git sạch, sao chép mẫu ra thư mục thử rồi
+chọn bản sao. Không sửa CSV bên ngoài khi ứng dụng đang chạy.

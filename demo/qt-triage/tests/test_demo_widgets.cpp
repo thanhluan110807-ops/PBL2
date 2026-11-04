@@ -10,6 +10,7 @@
 #include "model/Visit.h"
 #include "model/Gender.h"
 #include <QApplication>
+#include <QTemporaryDir>
 #include <QComboBox>
 #include <QDateTime>
 #include <QTimeZone>
@@ -42,7 +43,8 @@ int main(int SoThamSo, char** ThamSo) {
     PatientRegistry R;
     TriageService T(R);
     VisitSearchService S(R);
-    DemoWindow W(R, T, S);
+    QTemporaryDir KhoDuLieu; assert(KhoDuLieu.isValid());
+    DemoWindow W(R, T, S, (KhoDuLieu.path()+"/patient.csv").toStdString(), (KhoDuLieu.path()+"/visit.csv").toStdString());
     W.show(); UngDung.processEvents();
     assert(!W.findChild<QPushButton*>("baMot"));
     assert(!W.findChild<QPushButton*>("tienGio"));

@@ -67,6 +67,8 @@ public:
     // Từ chối mã trùng, Patient không tồn tại hoặc Patient còn Visit chưa đóng.
     Visit* ThemLanKham(const std::string& MaLanKham, const std::string& MaBenhNhan,
                       std::time_t ThoiDiemTiepNhan, const std::string& TrieuChungChinh);
+    // Chỉ nạp vào Registry chưa có Visit; lỗi không thay đổi Registry và Patient.
+    void KhoiPhucLanKham(const Vector<BanChupLanKham>& DanhSach);
     Visit* TimLanKham(const std::string& MaLanKham);
     const Visit* TimLanKham(const std::string& MaLanKham) const;
     // Chỉ mượn Visit, không xóa đối tượng khi Vector bị hủy; không cam kết thứ tự.

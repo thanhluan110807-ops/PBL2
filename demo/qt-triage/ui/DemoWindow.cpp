@@ -16,6 +16,10 @@
 #include <ctime>
 #include <string>
 #include <QDate>
+#include <QCloseEvent>
+#include <QFileInfo>
+#include <exception>
+#include "repository/SessionFileManager.h"
 #include <QTimer>
 #include <QLabel>
 #include <QPushButton>
@@ -38,14 +42,22 @@
 using namespace DemoUi;
 
 DemoWindow::DemoWindow(PatientRegistry &Registry, TriageService &DichVu,
-                       VisitSearchService &TraCuu, QWidget *Cha)
-    : QMainWindow(Cha), Registry(Registry), DichVu(DichVu), TraCuu(TraCuu) {
-    setWindowTitle("An Tâm · Điều phối cấp cứu · Demo Qt");
+                       VisitSearchService &TraCuu, const std::string &TepPatient, const std::string &TepVisit, QWidget *Cha)
+    : QMainWindow(Cha), Registry(Registry), DichVu(DichVu), TraCuu(TraCuu), TepPatientTuDong(TepPatient), TepVisitTuDong(TepVisit) {
+    setWindowTitle("An Tâm · Điều phối cấp cứu[*]");
     setWindowIcon(BieuTuong("pulse", QColor("#7050F2")));
     setStyleSheet(Qss());
     resize(1440, 980);
     setMinimumSize(480, 600);
     TaoGiaoDien();
+    ThuLaiLuu = new QTimer(this);
+    ThuLaiLuu->setObjectName("thuLuuTuDong"); ThuLaiLuu->setInterval(3000);
+    connect(ThuLaiLuu, &QTimer::timeout, this, [this] { if (DaThayDoi) ThuLuuTuDong(); });
+    ThuLaiLuu->start();
+    if (!QFileInfo::exists(Chu(TepPatientTuDong)) || !QFileInfo::exists(Chu(TepVisitTuDong)))
+        DanhDauThayDoi(); // Bộ mới cần tạo file ban đầu; mở bộ đã lưu không ghi lại khi chưa sửa.
+    else TinhTrangLuu->setText("Đã nạp bộ dữ liệu. Tự lưu sau mỗi thay đổi.\nPatient: " + Chu(TepPatientTuDong) +
+        "\nVisit: " + Chu(TepVisitTuDong));
     LamMoi();
 }
 void DemoWindow::TaoThanhBen(QHBoxLayout *Khung) {
@@ -208,7 +220,7 @@ void DemoWindow::TaoNoiDung(QVBoxLayout *Khung) {
         });
     }
     Khung->addLayout(LuoiSoLieu);
-    auto *LuuY = Nhan("Dữ liệu chỉ ở trong phiên này. Chưa lưu thay đổi khi thoát; CSV gốc không bị sửa.", "muted");
+    auto *LuuY = Nhan("Dữ liệu được tự động lưu sau mỗi thay đổi. Trạng thái lưu hiển thị ở cuối trang.", "muted");
     LuuY->setWordWrap(true);
     Khung->addWidget(LuuY);
     auto *Panel = new QFrame;
@@ -337,6 +349,9 @@ void DemoWindow::TaoNoiDung(QVBoxLayout *Khung) {
     DongHo = Nhan("Thời điểm hiển thị theo UTC+7 · Chưa liên kết danh sách nhân viên.", "muted");
     DongHo->setWordWrap(true);
     Khung->addWidget(DongHo);
+    TinhTrangLuu = Nhan("Đang chuẩn bị dữ liệu tự lưu…", "muted");
+    TinhTrangLuu->setObjectName("tinhTrangLuu"); TinhTrangLuu->setWordWrap(true);
+    Khung->addWidget(TinhTrangLuu);
 }
 
 void DemoWindow::ChuyenTrang(int ChiSo) {
@@ -521,11 +536,45 @@ void DemoWindow::resizeEvent(QResizeEvent *SuKien) {
     }
 }
 void DemoWindow::GoiTiep() {
+    if (!CoTheThayDoi()) return;
     try {
         const Visit &V = DichVu.GoiTiep(MaBacSi->text().trimmed().toStdString());
+        const bool DaLuu = DanhDauThayDoi();
         LamMoi();
+        if (!DaLuu) return;
         statusBar()->showMessage("Đã gọi " + Chu(V.LayMaLanKham()) + " → Đang khám", 10000);
     } catch (const My_stdexcept &Loi) {
         statusBar()->showMessage(QString::fromUtf8(Loi.LayThongBao()), 10000);
     }
+}
+
+bool DemoWindow::DanhDauThayDoi() {
+    DaThayDoi = true; setWindowModified(true);
+    return ThuLuuTuDong();
+}
+bool DemoWindow::ThuLuuTuDong() {
+    try {
+        SessionFileManager().LuuVaoBoFile(Registry,DichVu,TepPatientTuDong,TepVisitTuDong);
+        DaThayDoi = false; setWindowModified(false);
+        TinhTrangLuu->setText("Đã tự động lưu dữ liệu. Có thể đóng chương trình.\nNơi lưu: " + Chu(TepPatientTuDong) + "\n" + Chu(TepVisitTuDong) + "\nDự phòng: " + Chu(TepPatientTuDong) + ".pbl2");
+        statusBar()->showMessage("Đã tự động lưu Patient, Visit và hàng chờ.",7000);
+        return true;
+    } catch (const My_stdexcept &E) {
+        TinhTrangLuu->setText("CHƯA LƯU ĐƯỢC: " + QString::fromUtf8(E.LayThongBao()) +
+            "\nDữ liệu mới vẫn ở RAM. Tạm dừng thay đổi; chương trình tự thử lại mỗi 3 giây.");
+    } catch (const std::exception &) {
+        TinhTrangLuu->setText("CHƯA LƯU ĐƯỢC: thiếu tài nguyên hoặc lỗi hệ thống. Tạm dừng thay đổi và tự thử lại.");
+    }
+    statusBar()->showMessage("Chưa ghi được dữ liệu xuống đĩa. Đang tự thử lại.");
+    return false;
+}
+bool DemoWindow::CoTheThayDoi() {
+    if (!DaThayDoi) return true;
+    statusBar()->showMessage("Tạm dừng thao tác: dữ liệu trước chưa lưu được. Chương trình đang tự thử lại.",10000);
+    return false;
+}
+void DemoWindow::closeEvent(QCloseEvent *SuKien) {
+    // Thử lưu ngay nếu lần trước gặp lỗi; không yêu cầu người dùng bấm Lưu.
+    if (!DaThayDoi || ThuLuuTuDong()) SuKien->accept();
+    else SuKien->ignore();
 }

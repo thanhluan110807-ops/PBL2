@@ -1,6 +1,9 @@
 #include "repository/PatientFileManager.h"
 
 #include <fstream>
+#include <filesystem>
+#include <iomanip>
+#include <sstream>
 #include <string>
 
 #include "dsa/Vector.h"
@@ -9,10 +12,9 @@
 #include "model/Patient.h"
 #include "repository/PatientRegistry.h"
 #include "util/My_stdexcept.h"
+#include "util/CsvFile.h"
 
 namespace {
-enum class TrangThaiCsv { DauTruong, TruongThuong, TrongNgoac, SauNgoac };
-
 struct BanGhiBenhNhan {
     std::string Ma, HoTen, SoCanCuoc, DiUng, TienSu;
     Gender GioiTinh = Gender::ChuaXacDinh;
@@ -26,75 +28,6 @@ struct BanGhiBenhNhan {
 void BaoLoiDong(int Dong, const char* NoiDung) {
     const std::string ThongBao = "Dong " + std::to_string(Dong) + ": " + NoiDung;
     throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe, ThongBao.c_str());
-}
-
-// Đọc một bản ghi, không phải một dòng vật lý: trường trong ngoặc có thể xuống dòng.
-bool DocBanGhi(std::ifstream& Tep, Vector<std::string>& CacTruong,
-               int& DongHienTai, int& DongBatDau) {
-    CacTruong = Vector<std::string>();
-    DongBatDau = DongHienTai;
-    std::string Truong;
-    TrangThaiCsv TrangThai = TrangThaiCsv::DauTruong;
-    bool DaDocKyTu = false;
-    while (true) {
-        const int MaKyTu = Tep.get();
-        if (MaKyTu == std::char_traits<char>::eof()) {
-            if (Tep.bad())
-                throw My_stdexcept(My_stdexcept::LoaiLoi::LoiThucThi, "Loi khi doc file benh nhan");
-            if (TrangThai == TrangThaiCsv::TrongNgoac) BaoLoiDong(DongBatDau, "Thieu dau ngoac kep dong");
-            if (!DaDocKyTu) return false;
-            CacTruong.ThemCuoi(Truong);
-            return true;
-        }
-        DaDocKyTu = true;
-        const char KyTu = static_cast<char>(MaKyTu);
-        if (KyTu == '\r' || KyTu == '\n') {
-            std::string XuongDong(1, KyTu);
-            if (KyTu == '\r' && Tep.peek() == '\n') {
-                Tep.get();
-                XuongDong += '\n';
-            }
-            ++DongHienTai;
-            if (TrangThai == TrangThaiCsv::TrongNgoac) {
-                Truong += XuongDong;
-                continue;
-            }
-            CacTruong.ThemCuoi(Truong);
-            return true;
-        }
-        if (TrangThai == TrangThaiCsv::DauTruong) {
-            if (KyTu == ',') CacTruong.ThemCuoi(Truong);
-            else if (KyTu == '"') TrangThai = TrangThaiCsv::TrongNgoac;
-            else { Truong += KyTu; TrangThai = TrangThaiCsv::TruongThuong; }
-        } else if (TrangThai == TrangThaiCsv::TruongThuong) {
-            if (KyTu == ',') { CacTruong.ThemCuoi(Truong); Truong.clear(); TrangThai = TrangThaiCsv::DauTruong; }
-            else if (KyTu == '"') BaoLoiDong(DongBatDau, "Dau ngoac kep sai vi tri");
-            else Truong += KyTu;
-        } else if (TrangThai == TrangThaiCsv::TrongNgoac) {
-            if (KyTu == '"') TrangThai = TrangThaiCsv::SauNgoac;
-            else Truong += KyTu;
-        } else {
-            if (KyTu == '"') { Truong += '"'; TrangThai = TrangThaiCsv::TrongNgoac; }
-            else if (KyTu == ',') { CacTruong.ThemCuoi(Truong); Truong.clear(); TrangThai = TrangThaiCsv::DauTruong; }
-            else BaoLoiDong(DongBatDau, "Ky tu sau dau ngoac kep dong khong hop le");
-        }
-    }
-}
-
-void BoQuaBom(std::ifstream& Tep) {
-    char DauTep[3];
-    Tep.read(DauTep, 3);
-    if (Tep.bad())
-        throw My_stdexcept(My_stdexcept::LoaiLoi::LoiThucThi, "Loi khi doc file benh nhan");
-    const bool CoBom = Tep.gcount() == 3 &&
-        DauTep[0] == static_cast<char>(0xEF) &&
-        DauTep[1] == static_cast<char>(0xBB) &&
-        DauTep[2] == static_cast<char>(0xBF);
-    if (!CoBom) {
-        // Không phải BOM thì đọc lại cả ba byte vì chúng thuộc tiêu đề CSV.
-        Tep.clear();
-        Tep.seekg(0);
-    }
 }
 
 void KiemTraTieuDe(const Vector<std::string>& CacTruong, int Dong) {
@@ -178,22 +111,81 @@ void ThemBenhNhan(PatientRegistry& SoBo, const BanGhiBenhNhan& BanGhi) {
     if (BanGhi.CoTuoiUocLuong) HoSo.DatTuoiUocLuong(BanGhi.TuoiUocLuong);
     SoBo.ThemBenhNhan(HoSo);
 }
+
+std::string GhiGioiTinh(Gender GioiTinh) {
+    switch (GioiTinh) {
+        case Gender::Nam: return "Nam";
+        case Gender::Nu: return "Nu";
+        case Gender::Khac: return "Khac";
+        case Gender::ChuaXacDinh: return "ChuaXacDinh";
+    }
+    throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe, "Gioi tinh khong hop le");
+}
+
+std::string GhiNhomMau(BloodGroup NhomMau) {
+    switch (NhomMau) {
+        case BloodGroup::A: return "A";
+        case BloodGroup::B: return "B";
+        case BloodGroup::AB: return "AB";
+        case BloodGroup::O: return "O";
+        case BloodGroup::ChuaXacDinh: return "ChuaXacDinh";
+    }
+    throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe, "Nhom mau khong hop le");
+}
+
+std::string GhiNgay(const Patient& BenhNhan) {
+    if (!BenhNhan.CoNgaySinh()) return "";
+    const Date Ngay = BenhNhan.LayNgaySinh();
+    // Đệm đủ YYYY-MM-DD, kể cả năm nhỏ hơn 1000, để parser đọc lại đúng lược đồ v1.
+    std::ostringstream Tep;
+    Tep << std::setfill('0') << std::setw(4) << Ngay.Nam << '-'
+        << std::setw(2) << Ngay.Thang << '-' << std::setw(2) << Ngay.Ngay;
+    return Tep.str();
+}
+
+Vector<std::string> TaoTruongBenhNhan(const Patient& BenhNhan) {
+    Vector<std::string> CacTruong;
+    CacTruong.ThemCuoi(BenhNhan.LayMaDinhDanh());
+    CacTruong.ThemCuoi(BenhNhan.LayHoTen());
+    CacTruong.ThemCuoi(GhiGioiTinh(BenhNhan.LayGioiTinh()));
+    CacTruong.ThemCuoi(GhiNgay(BenhNhan));
+    CacTruong.ThemCuoi(BenhNhan.LaySoCanCuoc());
+    CacTruong.ThemCuoi(GhiNhomMau(BenhNhan.LayNhomMau()));
+    CacTruong.ThemCuoi(BenhNhan.LayThongTinDiUng());
+    CacTruong.ThemCuoi(BenhNhan.LayTienSuBenh());
+    CacTruong.ThemCuoi(BenhNhan.CoTuoiUocLuong() ?
+                       std::to_string(BenhNhan.LayTuoiUocLuong()) : "");
+    return CacTruong;
+}
+
+void SapXepTheoMa(Vector<const Patient*>& DanhSach) {
+    // Sắp xếp chèn đơn giản giúp bản lưu ổn định dù bảng băm đổi thứ tự duyệt.
+    for (int I = 1; I < DanhSach.KichThuoc(); ++I) {
+        const Patient* BenhNhan = DanhSach[I];
+        int J = I;
+        while (J > 0 && DanhSach[J - 1]->LayMaDinhDanh() > BenhNhan->LayMaDinhDanh()) {
+            DanhSach[J] = DanhSach[J - 1];
+            --J;
+        }
+        DanhSach[J] = BenhNhan;
+    }
+}
 } // namespace
 
 PatientRegistry* PatientFileManager::DocBenhNhan(const std::string& DuongDan) const {
-    std::ifstream Tep(DuongDan, std::ios::binary);
+    std::ifstream Tep(std::filesystem::u8path(DuongDan), std::ios::binary);
     if (!Tep.is_open())
         throw My_stdexcept(My_stdexcept::LoaiLoi::LoiThucThi, "Khong mo duoc file benh nhan");
-    BoQuaBom(Tep); // BOM thuộc file, không thuộc ô đầu tiên của bản ghi CSV.
+    CsvFile::BoQuaBom(Tep); // BOM thuộc file, không thuộc ô đầu tiên của bản ghi CSV.
     int DongHienTai = 1, DongBatDau = 1;
     Vector<std::string> CacTruong;
-    if (!DocBanGhi(Tep, CacTruong, DongHienTai, DongBatDau))
+    if (!CsvFile::DocBanGhi(Tep, CacTruong, DongHienTai, DongBatDau))
         BaoLoiDong(1, "Thieu tieu de CSV");
     KiemTraTieuDe(CacTruong, DongBatDau);
 
     PatientRegistry* SoBo = new PatientRegistry();
     try {
-        while (DocBanGhi(Tep, CacTruong, DongHienTai, DongBatDau)) {
+        while (CsvFile::DocBanGhi(Tep, CacTruong, DongHienTai, DongBatDau)) {
             try {
                 const BanGhiBenhNhan BanGhi = ChuyenBanGhi(CacTruong);
                 ThemBenhNhan(*SoBo, BanGhi);
@@ -207,4 +199,16 @@ PatientRegistry* PatientFileManager::DocBenhNhan(const std::string& DuongDan) co
         throw;
     }
     return SoBo;
+}
+
+void PatientFileManager::LuuBenhNhan(const PatientRegistry& SoBo,
+                                    const std::string& DuongDan) const {
+    std::ostringstream Tep;
+    Tep << "MaBenhNhan,HoTen,GioiTinh,NgaySinh,SoCanCuoc,NhomMau,ThongTinDiUng,"
+           "TienSuBenh,TuoiUocLuong\n";
+    Vector<const Patient*> DanhSach = SoBo.LayDanhSachBenhNhan();
+    SapXepTheoMa(DanhSach);
+    for (int I = 0; I < DanhSach.KichThuoc(); ++I)
+        CsvFile::GhiBanGhi(Tep, TaoTruongBenhNhan(*DanhSach[I]));
+    CsvFile::GhiFileAnToan(DuongDan, Tep.str());
 }

@@ -160,3 +160,44 @@ void TriageService::Huy(const std::string& Ma) {
     if (ViTriDau >= 0) HangLanDau.XoaTai(ViTriDau);
     if (ViTriLai >= 0) HangQuayLai.XoaTai(ViTriLai);
 }
+
+TrangThaiHangCho TriageService::LayTrangThaiHangCho() const {
+    KiemTraHang();
+    TrangThaiHangCho KetQua;
+    KetQua.ThuTu = ThuTu; KetQua.UuTienQuayLai = UuTienQuayLai;
+    const HangCho* CacHang[] = {&HangLanDau, &HangQuayLai};
+    for (const HangCho* Hang : CacHang)
+        for (int I = 0; I < Hang->KichThuoc(); ++I) {
+            const auto& M = Hang->LayTai(I);
+            KetQua.CacMuc.ThemCuoi({M.LanKham->LayMaLanKham(), M.ThoiDiemVaoHang, M.ThuTu});
+        }
+    return KetQua;
+}
+
+void TriageService::KhoiPhucHangCho(const TrangThaiHangCho& BanLuu) {
+    HangCho Dau, Lai;
+    for (int I = 0; I < BanLuu.CacMuc.KichThuoc(); ++I) {
+        const auto& M = BanLuu.CacMuc[I];
+        Visit& V = TimLanKham(M.MaLanKham);
+        if (!V.SoDanhGia() || M.ThoiDiemVaoHang < V.LayThoiDiemTiepNhan() ||
+            M.ThoiDiemVaoHang < V.LayDanhGiaTai(0).LayThoiDiemDanhGia() ||
+            M.ThuTu == 0 || M.ThuTu > BanLuu.ThuTu) SaiTrangThai();
+        for (int J = 0; J < I; ++J)
+            if (BanLuu.CacMuc[J].MaLanKham == M.MaLanKham || BanLuu.CacMuc[J].ThuTu == M.ThuTu)
+                SaiTrangThai();
+        MucChoKham Muc{&V,V.LayDanhGiaGanNhat().LayMuc(),M.ThoiDiemVaoHang,M.ThuTu};
+        if (V.LayTrangThai() == VisitStatus::ChoKhamLanDau) Dau.Them(Muc);
+        else if (V.LayTrangThai() == VisitStatus::ChoKhamQuayLai) Lai.Them(Muc);
+        else SaiTrangThai();
+    }
+    const auto TatCa = Registry.TraCuuLanKham();
+    for (int I = 0; I < TatCa.KichThuoc(); ++I) {
+        const Visit* V = TatCa[I].LanKham;
+        const bool DangCho = V->SoDanhGia() &&
+            (V->LayTrangThai() == VisitStatus::ChoKhamLanDau || V->LayTrangThai() == VisitStatus::ChoKhamQuayLai);
+        if (DangCho && TimTrongHang(Dau,V) < 0 && TimTrongHang(Lai,V) < 0) SaiTrangThai();
+    }
+    // Hai phép hoán đổi không cấp phát: thất bại trước đây không làm mất heap cũ.
+    HangLanDau.HoanDoi(Dau); HangQuayLai.HoanDoi(Lai);
+    ThuTu = BanLuu.ThuTu; UuTienQuayLai = BanLuu.UuTienQuayLai;
+}

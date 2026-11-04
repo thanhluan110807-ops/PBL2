@@ -49,10 +49,23 @@ public:
     BanGhiCanLamSang() = default;
     BanGhiCanLamSang(const std::string& ChiDinh, const std::string& MaBacSiChiDinh)
         : ChiDinh(ChiDinh), MaBacSiChiDinh(MaBacSiChiDinh) {}
+    // Dựng bản ghi từ file, kiểm tra chỉ định và cờ kết quả khớp nội dung.
+    BanGhiCanLamSang(const std::string& ChiDinh, const std::string& MaBacSiChiDinh,
+                    bool CoKetQua, const std::string& KetQua);
     const std::string& LayChiDinh() const { return ChiDinh; }
     const std::string& LayKetQua() const { return KetQua; }
     const std::string& LayMaBacSiChiDinh() const { return MaBacSiChiDinh; }
     bool DaCoKetQua() const { return CoKetQua; }
+};
+
+// Dữ liệu sao chép độc lập dùng để lưu/khôi phục, không giữ con trỏ Patient.
+struct BanChupLanKham {
+    std::string MaLanKham, MaBenhNhan, TrieuChungChinh;
+    std::time_t ThoiDiemTiepNhan = 0;
+    VisitStatus TrangThai = VisitStatus::ChoKhamLanDau;
+    Vector<TriageAssessment> DanhGia;
+    Vector<BanGhiCanLamSang> CanLamSang;
+    Vector<std::string> BacSiPhanCong, BacSiThamGia;
 };
 
 class Visit {
@@ -73,6 +86,9 @@ public:
     // của một Visit đang được Registry giữ và cho thành phần khác mượn.
     Visit(const Visit&) = default;
     Visit(Visit&&) = delete;
+    BanChupLanKham LayBanChup() const;
+    // Trả đối tượng mới do bên gọi sở hữu; chỉ công bố khi toàn bộ lịch sử hợp lệ.
+    static Visit* TuBanChup(const BanChupLanKham& BanChup);
     const std::string& LayMaLanKham() const { return MaLanKham; }
     const std::string& LayMaBenhNhan() const { return MaBenhNhan; }
     const std::string& LayTrieuChungChinh() const { return TrieuChungChinh; }

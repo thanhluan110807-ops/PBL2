@@ -158,10 +158,10 @@ Quy tắc:
 Chạy từ thư mục gốc repository theo [hướng dẫn build/test trong README.md](README.md#build-và-chạy-toàn-bộ-test-hiện-có). README duy trì các lệnh sử dụng; `CMakeLists.txt` định nghĩa target và đăng ký test.
 
 - `pbl2_core` là thư viện lõi, không chứa GUI hoặc `main`; các test là chương trình độc lập, không cần Qt.
-- `BUILD_TESTING=ON` bật hai test C++ và các kiểm tra nguồn bằng Python; chạy toàn bộ qua CTest với `--no-tests=error`. Header lõi được biên dịch độc lập khi build. Xem README để biết phạm vi và các thư mục bị loại trừ; assertions vẫn hoạt động trong Release.
+- `BUILD_TESTING=ON` bật các test C++ và các kiểm tra nguồn bằng Python; chạy toàn bộ qua CTest với `--no-tests=error`. Header lõi được biên dịch độc lập khi build. Xem README để biết phạm vi và các thư mục bị loại trừ; assertions vẫn hoạt động trong Release.
 - `PBL2_ENABLE_SANITIZERS=ON` bật AddressSanitizer/UndefinedBehaviorSanitizer với GCC/Clang có runtime phù hợp; cấu hình thường mặc định OFF.
 - GitHub Actions chạy Debug, Release và Debug có sanitizer cho PR vào `dev` và push lên `dev`. Chỉ báo CI đạt khi có kết quả chạy thực tế.
-- Có target demo riêng `pbl2_qt_demo`, bật bằng `PBL2_BUILD_QT_DEMO=ON` (mặc định OFF). Demo native Qt Widgets/QSS nằm trong `demo/qt-triage/`, nối Registry/TriageService/VisitSearchService thật và đọc CSV Patient lúc khởi động; giữ build lõi/test hiện có độc lập Qt. Code mô phỏng cũ được giữ làm lịch sử, không thuộc target demo hiện tại. Xem README của demo để build/chạy và biết giới hạn.
+- Có target demo riêng `pbl2_qt_demo`, bật bằng `PBL2_BUILD_QT_DEMO=ON` (mặc định OFF). Demo native Qt Widgets/QSS nằm trong `demo/qt-triage/`, nối Registry/TriageService/VisitSearchService thật và đọc/ghi Patient/Visit, khôi phục hàng chờ; tự ghi vào bộ file đã chọn sau thay đổi, có backup/journal để khôi phục ghi gián đoạn; giữ build lõi/test hiện có độc lập Qt. Code mô phỏng cũ được giữ làm lịch sử, không thuộc target demo hiện tại. Xem README của demo để build/chạy và biết giới hạn.
 
 ## 10. Quy trình Git
 

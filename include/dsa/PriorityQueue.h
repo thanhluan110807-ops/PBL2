@@ -94,4 +94,9 @@ public:
 
     void XoaDinh() { XoaTai(0); }
     void XoaHet() { DuLieu.XoaHet(); }
+    // Không cấp phát khi công bố heap đã dựng xong; comparator theo hợp đồng không ném lỗi.
+    void HoanDoi(PriorityQueue& Khac) noexcept {
+        DuLieu.HoanDoi(Khac.DuLieu);
+        SoSanh Tam = BoSoSanh; BoSoSanh = Khac.BoSoSanh; Khac.BoSoSanh = Tam;
+    }
 };

@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Quản lý chuyên khoa, nội trú và khả năng làm trưởng ca.
 #include "model/BacSi.h"
 #include "util/My_stdexcept.h"
 #include <utility>

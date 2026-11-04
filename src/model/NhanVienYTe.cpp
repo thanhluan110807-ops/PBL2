@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Lớp trừu tượng chứa thông tin và trạng thái nhân viên y tế.
 #include "model/NhanVienYTe.h"
 #include "util/My_stdexcept.h"
 #include <cmath>

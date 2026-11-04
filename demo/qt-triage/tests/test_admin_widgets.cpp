@@ -1,6 +1,7 @@
 #include "ui/AdminPanel.h"
 #include "model/DieuDuong.h"
 #include "model/BacSi.h"
+#include "repository/StaffFileManager.h"
 #include <QDateTime>
 #include "service/SchedulerService.h"
 #include <QApplication>
@@ -130,5 +131,24 @@ int main(int argc, char** argv) {
     AdminPanel MoLai(nullptr,TepCa);
     assert(MoLai.LayDuLieu().Lich.PhanCong[0].LayTrangThai()==AssignmentStatus::DangTruc);
     MoLai.close();
+
+    // Nạp nhân viên riêng phải cập nhật GUI, giữ lịch và từ chối file thiếu mã.
+    const QString TepNV=Tmp.path()+"/nhan-vien.pbl2";
+    assert(MoLai.LuuNhanSu(TepNV));
+    const auto* DiaChiCu=MoLai.LayDuLieu().NhanSu->Tim("B");
+    StaffRegistry Trong;
+    StaffFileManager::LuuNhanVien(TepNV.toStdString(),Trong);
+    assert(!MoLai.NapNhanSu(TepNV));
+    assert(MoLai.LayDuLieu().NhanSu->Tim("B")==DiaChiCu);
+    StaffRegistry Moi;
+    Moi.Them(BacSi("B","Ten moi",CapBac::BacSiChinh,5,"Cap cuu"));
+    StaffFileManager::LuuNhanVien(TepNV.toStdString(),Moi);
+    assert(MoLai.NapNhanSu(TepNV));
+    assert(MoLai.LayDuLieu().NhanSu->Tim("B")->LayHoTen()=="Ten moi");
+    assert(MoLai.findChild<QTableWidget*>("staffTable")->item(0,1)->text()=="Ten moi");
+    assert(MoLai.LayDuLieu().Lich.PhanCong[0].LayTrangThai()==AssignmentStatus::DangTruc);
+    assert(MoLai.findChild<QPushButton*>("staffImport"));
+    assert(MoLai.findChild<QPushButton*>("staffExport"));
+    assert(MoLai.LuuTep(TepCa)); MoLai.close();
 
 }

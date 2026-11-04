@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Tính điểm mệt mỏi mô phỏng và giờ đã xếp.
 #include "service/FatigueService.h"
 #include "model/BacSi.h"
 #include "model/DieuDuong.h"

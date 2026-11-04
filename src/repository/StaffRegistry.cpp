@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Quản lý nhân viên trong RAM, tra cứu theo mã và tên bác sĩ.
 #include "repository/StaffRegistry.h"
 #include "model/BacSi.h"
 #include "util/My_stdexcept.h"

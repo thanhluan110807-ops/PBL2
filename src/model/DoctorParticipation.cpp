@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Ghi bác sĩ thực sự tham gia khám, thời điểm và vai trò.
 #include "model/DoctorParticipation.h"
 #include "util/My_stdexcept.h"
 DoctorParticipation::DoctorParticipation(const std::string& M, std::time_t T, DoctorRole V, const std::string& Thay)

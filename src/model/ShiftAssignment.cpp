@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Quản lý mã, vai trò và trạng thái một phân công.
 #include "model/ShiftAssignment.h"
 #include "util/My_stdexcept.h"
 namespace {

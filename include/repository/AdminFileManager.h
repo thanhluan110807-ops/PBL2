@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Đọc/ghi snapshot chung nhân sự, lịch và dự phòng cho GUI.
 #pragma once
 #include "repository/StaffRegistry.h"
 #include "model/Shift.h"

@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Lập lịch dự kiến, tăng cường và tìm người thay bằng các ràng buộc.
 #pragma once
 #include "service/FatigueService.h"
 #include "repository/StaffRegistry.h"

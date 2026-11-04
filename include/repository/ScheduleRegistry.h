@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Quản lý ca và phân công trong RAM, kiểm tra liên kết và trạng thái.
 #pragma once
 #include "model/Shift.h"
 #include "dsa/HashTable.h"

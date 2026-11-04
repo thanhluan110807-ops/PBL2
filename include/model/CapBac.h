@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Định nghĩa cấp bậc và loại nhân viên.
 #pragma once
 #include <string>
 

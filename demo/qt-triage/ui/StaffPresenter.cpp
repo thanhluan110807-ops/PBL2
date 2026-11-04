@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Định dạng thông tin nhân viên để hiển thị trên Qt.
 #include "ui/StaffPresenter.h"
 #include "model/BacSi.h"
 #include "model/DieuDuong.h"

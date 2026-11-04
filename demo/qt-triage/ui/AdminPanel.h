@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Giao diện Qt quản lý nhân sự, ca trực và nhập/xuất file.
 #pragma once
 #include "repository/AdminFileManager.h"
 #include <QDialog>
@@ -46,6 +47,8 @@ protected:
     void closeEvent(QCloseEvent* SuKien) override;
 public:
     explicit AdminPanel(QWidget* Cha = nullptr, const QString& TepMacDinh = QString());
+    bool LuuNhanSu(const QString& Tep);
+    bool NapNhanSu(const QString& Tep);
     bool LuuTep(const QString& Tep);
     bool NapTep(const QString& Tep);
     const AdminData& LayDuLieu() const { return DuLieu; }

@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Lớp trừu tượng chứa thông tin và trạng thái nhân viên y tế.
 #pragma once
 #include "model/Person.h"
 #include "model/CapBac.h"

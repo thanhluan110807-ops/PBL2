@@ -1,3 +1,5 @@
+> Nhận diện nhanh: [bản đồ file phần B và chức năng chính](BAN-DO-FILE-PHAN-B.md).
+
 > Cập nhật mới: [các lớp trong sáu ảnh UML, file lịch và trạng thái phân công](HOAN-THIEN-CAC-LOP-TRONG-ANH-UML.md).
 
 # Phần B: cách chạy, cách hiểu và chuẩn bị kiểm tra

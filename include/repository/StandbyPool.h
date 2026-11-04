@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Lưu danh sách mã nhân viên dự phòng, không sở hữu nhân viên.
 #pragma once
 #include "dsa/LinkedList.h"
 #include <string>

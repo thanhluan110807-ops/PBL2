@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Lập lịch dự kiến, tăng cường và tìm người thay bằng các ràng buộc.
 #include "model/BacSi.h"
 #include "repository/ScheduleRegistry.h"
 #include "model/DieuDuong.h"

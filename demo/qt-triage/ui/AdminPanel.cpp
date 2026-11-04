@@ -1,9 +1,11 @@
+// Phần B — Chức năng chính: Giao diện Qt quản lý nhân sự, ca trực và nhập/xuất file.
 #include "model/BacSi.h"
 #include "model/DieuDuong.h"
 #include "ui/AdminPanel.h"
 #include "ui/StaffPresenter.h"
 #include "service/SchedulerService.h"
 #include "repository/ScheduleFileManager.h"
+#include "repository/StaffFileManager.h"
 #include <QInputDialog>
 #include <QTimeZone>
 #include "util/My_stdexcept.h"
@@ -201,6 +203,18 @@ void AdminPanel::TaoNhanSu(QTabWidget* Tab) {
     connect(BatDau,&QPushButton::clicked,this,[this] { CapNhatSangLoc(0); });
     connect(CapGio,&QPushButton::clicked,this,[this] { CapNhatSangLoc(1); });
     connect(KetThuc,&QPushButton::clicked,this,[this] { CapNhatSangLoc(2); });
+    auto* TepNhanSu=new QHBoxLayout; Cot->addLayout(TepNhanSu);
+    auto* Xuat=Nut(TepNhanSu,"Xuất file nhân viên…","staffExport");
+    auto* Nhap=Nut(TepNhanSu,"Mở file nhân viên…","staffImport");
+    connect(Xuat,&QPushButton::clicked,this,[this] {
+        const auto P=QFileDialog::getSaveFileName(this,"Xuất nhân viên",{},"PBL2 (*.pbl2)");
+        if (!P.isEmpty()) LuuNhanSu(P);
+    });
+    connect(Nhap,&QPushButton::clicked,this,[this] {
+        if (!ChoPhepBoThayDoi()) return;
+        const auto P=QFileDialog::getOpenFileName(this,"Mở nhân viên",{},"PBL2 (*.pbl2)");
+        if (!P.isEmpty()) NapNhanSu(P);
+    });
     Tab->addTab(W,"1. Nhân sự");
 }
 void AdminPanel::TaoCa(QTabWidget* Tab) {
@@ -460,4 +474,32 @@ void AdminPanel::ThaoTacPhanCong(int Lenh) {
         DuLieu.Lich=ChupLich(*R); DaSua=true; LamMoi(); ThongBao->setText("Đã cập nhật phân công. Hãy lưu file để giữ thay đổi.");
     } catch (const My_stdexcept& E) { BaoLoi(E.LayThongBao()); }
       catch (const std::exception& E) { BaoLoi(E.what()); }
+}
+
+bool AdminPanel::LuuNhanSu(const QString& Tep) {
+    try {
+        StaffFileManager::LuuNhanVien(Tep.toStdString(),*DuLieu.NhanSu);
+        // Xuất riêng không đồng nghĩa snapshot lịch/dự phòng đã được lưu.
+        ThongBao->setText("Đã xuất file nhân viên. Lưu file chung để giữ cả lịch và danh sách dự phòng.");
+        return true;
+    } catch (const My_stdexcept& E) { BaoLoi(E.LayThongBao()); }
+      catch (const std::exception& E) { BaoLoi(E.what()); }
+    return false;
+}
+bool AdminPanel::NapNhanSu(const QString& Tep) {
+    try {
+        auto Moi=StaffFileManager::DocNhanVien(Tep.toStdString());
+        // Kiểm tra trước khi thay nguồn dữ liệu: không xóa lịch để lách lỗi tham chiếu.
+        ScheduleRegistry KiemTra;
+        for (int I=0; I<DuLieu.Lich.CacCa.KichThuoc(); ++I) KiemTra.ThemCaTruc(DuLieu.Lich.CacCa[I]);
+        for (int I=0; I<DuLieu.Lich.PhanCong.KichThuoc(); ++I) KiemTra.ThemPhanCong(DuLieu.Lich.PhanCong[I],*Moi);
+        DuLieu.DuPhong.Duyet([&](const std::string& Ma) {
+            if (!Moi->Tim(Ma)) throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe,"File nhan vien thieu ma trong danh sach du phong");
+        });
+        DuLieu.NhanSu=std::move(Moi); DaSua=true; LamMoi();
+        ThongBao->setText("Đã nạp nhân viên và kiểm tra liên kết lịch/dự phòng. Hãy lưu file chung.");
+        return true;
+    } catch (const My_stdexcept& E) { BaoLoi(E.LayThongBao()); }
+      catch (const std::exception& E) { BaoLoi(E.what()); }
+    return false;
 }

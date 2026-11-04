@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Đọc/ghi file nhân viên và phục hồi đúng lớp BacSi/DieuDuong.
 #pragma once
 #include "repository/StaffRegistry.h"
 #include <iosfwd>

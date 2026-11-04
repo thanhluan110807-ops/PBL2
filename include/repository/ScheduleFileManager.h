@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Đọc/ghi file ca trực và phân công, giữ lịch sử trạng thái.
 #pragma once
 #include "repository/ScheduleRegistry.h"
 #include <memory>

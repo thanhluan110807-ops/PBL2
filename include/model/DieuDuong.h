@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Quản lý điều dưỡng và thời gian trực sàng lọc.
 #pragma once
 #include "model/NhanVienYTe.h"
 #include <ctime>

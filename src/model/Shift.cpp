@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Lưu ca trực và kiểm tra thời gian, ca đêm, cuối tuần.
 #include "model/Shift.h"
 #include "util/My_stdexcept.h"
 namespace {

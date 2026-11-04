@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Quản lý điều dưỡng và thời gian trực sàng lọc.
 #include "model/DieuDuong.h"
 #include "util/My_stdexcept.h"
 #include <cmath>

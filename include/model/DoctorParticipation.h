@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Ghi bác sĩ thực sự tham gia khám, thời điểm và vai trò.
 #pragma once
 #include <string>
 #include <ctime>

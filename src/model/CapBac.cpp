@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Định nghĩa cấp bậc và loại nhân viên.
 #include "model/CapBac.h"
 #include "util/My_stdexcept.h"
 std::string CapBacThanhChuoi(CapBac Bac) {

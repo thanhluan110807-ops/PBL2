@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Quản lý nhân viên trong RAM, tra cứu theo mã và tên bác sĩ.
 #pragma once
 #include "model/NhanVienYTe.h"
 #include "dsa/HashTable.h"

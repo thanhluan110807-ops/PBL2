@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Đọc/ghi file ca trực và phân công, giữ lịch sử trạng thái.
 #include "repository/ScheduleFileManager.h"
 #include "util/My_stdexcept.h"
 #include <fstream>
@@ -70,6 +71,8 @@ void ScheduleFileManager::LuuLichTruc(const std::string& Ten, const ScheduleRegi
     } catch (...) { std::error_code E; std::filesystem::remove(Tam,E); throw; }
 }
 std::unique_ptr<ScheduleRegistry> ScheduleFileManager::DocLichTruc(const std::string& Ten, const StaffRegistry& N) {
+    int DongHienTai=1;
+    try {
     std::ifstream Tep(Ten,std::ios::binary); if (!Tep) Loi("Khong mo duoc file lich");
     auto R=std::make_unique<ScheduleRegistry>();
     std::string Dong,Loai; int PhienBan;
@@ -77,18 +80,25 @@ std::unique_ptr<ScheduleRegistry> ScheduleFileManager::DocLichTruc(const std::st
     std::istringstream Dau(Dong);
     if (!(Dau>>Loai>>PhienBan) || Loai!="PBL2_SCHEDULE" || PhienBan!=1) Loi("Sai phien ban file lich");
     HetDong(Dau);
-    Vector<ShiftAssignment> CacP; bool Xong=false; int SoDong=0;
+    Vector<ShiftAssignment> CacP; Vector<int> DongPhanCong; bool Xong=false; int SoDong=0;
     while (std::getline(Tep,Dong)) {
+        ++DongHienTai;
         if (++SoDong>550 || Dong.size()>8192) Loi("File lich vuot gioi han");
         std::istringstream S(Dong); if (!(S>>Loai)) continue;
         if (Xong) Loi("Du lieu sau END");
         if (Loai=="CA") R->ThemCaTruc(DocCa(S));
-        else if (Loai=="PC") { if (CacP.KichThuoc()>=512) Loi("Qua 512 phan cong"); CacP.ThemCuoi(DocPhanCong(S)); }
+        else if (Loai=="PC") { if (CacP.KichThuoc()>=512) Loi("Qua 512 phan cong"); CacP.ThemCuoi(DocPhanCong(S)); DongPhanCong.ThemCuoi(DongHienTai); }
         else if (Loai=="END") { HetDong(S); Xong=true; }
         else Loi("Loai dong lich khong ho tro");
     }
     if (Tep.bad() || !Xong) Loi("File lich bi cat ngang");
     // Đọc hết ca trước rồi liên kết mã; PC có thể xuất hiện trước CA trong file.
-    for (int I=0; I<CacP.KichThuoc(); ++I) R->ThemPhanCong(CacP[I],N);
+    for (int I=0; I<CacP.KichThuoc(); ++I) {
+        DongHienTai=DongPhanCong[I]; R->ThemPhanCong(CacP[I],N);
+    }
     return R;
+    } catch (const My_stdexcept& E) {
+        const std::string ThongBao="Dong " + std::to_string(DongHienTai) + ": " + E.LayThongBao() + " | File: " + Ten;
+        throw My_stdexcept(E.LayLoaiLoi(),ThongBao.c_str());
+    }
 }

@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Đọc/ghi file nhân viên và phục hồi đúng lớp BacSi/DieuDuong.
 #include "repository/StaffFileManager.h"
 #include "model/BacSi.h"
 #include "model/DieuDuong.h"
@@ -102,15 +103,18 @@ void StaffFileManager::LuuNhanVien(const std::string& TenTep, const StaffRegistr
     } catch (...) { std::error_code EC; std::filesystem::remove(Tam,EC); throw; }
 }
 std::unique_ptr<StaffRegistry> StaffFileManager::DocNhanVien(const std::string& TenTep) {
+    int DongHienTai=1;
+    try {
     std::ifstream Tep(TenTep,std::ios::binary);
     if (!Tep) Loi("Khong mo duoc file nhan vien");
     std::string Dong, Nhan; int PhienBan;
-    if (!std::getline(Tep,Dong)) Loi("File nhan vien rong");
+    if (!std::getline(Tep,Dong) || Dong.size()>8192) Loi("File nhan vien rong");
     std::istringstream Dau(Dong);
     if (!(Dau>>Nhan>>PhienBan) || Nhan!="PBL2_STAFF" || (PhienBan!=1 && PhienBan!=2 && PhienBan!=3)) Loi("Sai dinh dang file nhan vien");
     HetDong(Dau);
     auto Moi=std::make_unique<StaffRegistry>(); bool KetThuc=false; int SoDong=0;
     while (std::getline(Tep,Dong)) {
+        ++DongHienTai;
         if (++SoDong>110 || Dong.size()>8192) Loi("File nhan vien vuot gioi han");
         std::istringstream S(Dong); if (!(S>>Nhan)) continue;
         if (KetThuc) Loi("Du lieu sau END");
@@ -120,4 +124,8 @@ std::unique_ptr<StaffRegistry> StaffFileManager::DocNhanVien(const std::string& 
     }
     if (Tep.bad() || !KetThuc) Loi("File nhan vien bi cat ngang hoac doc loi");
     return Moi;
+    } catch (const My_stdexcept& E) {
+        const std::string ThongBao="Dong " + std::to_string(DongHienTai) + ": " + E.LayThongBao() + " | File: " + TenTep;
+        throw My_stdexcept(E.LayLoaiLoi(),ThongBao.c_str());
+    }
 }

@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Tính điểm mệt mỏi mô phỏng và giờ đã xếp.
 #pragma once
 #include "model/NhanVienYTe.h"
 #include "model/Shift.h"

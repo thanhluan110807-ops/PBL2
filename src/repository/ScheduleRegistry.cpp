@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Quản lý ca và phân công trong RAM, kiểm tra liên kết và trạng thái.
 #include "repository/ScheduleRegistry.h"
 #include "service/SchedulerService.h"
 #include "util/My_stdexcept.h"

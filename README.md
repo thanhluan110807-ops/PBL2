@@ -1,4 +1,6 @@
-> Phần B: [bổ sung các lớp trong ảnh UML và hướng dẫn thao tác](docs/member-b/HOAN-THIEN-CAC-LOP-TRONG-ANH-UML.md). Bộ test hiện tại: 13 core, 16 khi bật Qt.
+> [Bản đồ file phần B — chức năng từng thư mục/module, cách đọc/ghi file](docs/member-b/BAN-DO-FILE-PHAN-B.md).
+
+> Phần B: [bổ sung các lớp trong ảnh UML và hướng dẫn thao tác](docs/member-b/HOAN-THIEN-CAC-LOP-TRONG-ANH-UML.md). Bộ test hiện tại: 14 core, 17 khi bật Qt.
 
 # PBL2 — Smart Hospital Triage & Flexible Shift Scheduler
 

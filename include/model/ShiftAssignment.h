@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Quản lý mã, vai trò và trạng thái một phân công.
 #pragma once
 #include <string>
 #include <ctime>

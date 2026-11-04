@@ -1,3 +1,4 @@
+// Phần B — Chức năng chính: Đọc/ghi snapshot chung nhân sự, lịch và dự phòng cho GUI.
 #include "model/BacSi.h"
 #include "model/DieuDuong.h"
 #include "repository/AdminFileManager.h"
@@ -82,11 +83,13 @@ void AdminFileManager::Luu(const std::string& DuongDan, const AdminData& D) {
     } catch (...) { std::error_code EC; std::filesystem::remove(Tam, EC); throw; }
 }
 AdminData AdminFileManager::Doc(const std::string& DuongDan) {
+    int DongHienTai=1;
+    try {
     std::ifstream Tep(DuongDan, std::ios::binary);
     if (!Tep) Loi("Khong mo duoc file");
     AdminData D;
     std::string Dong, Loai;
-    if (!std::getline(Tep, Dong)) Loi("File rong");
+    if (!std::getline(Tep, Dong) || Dong.size()>8192) Loi("File rong");
     std::istringstream Dau(Dong);
     int PhienBan = 0;
     if (!(Dau >> Loai >> PhienBan >> D.TuanBatDau) || Loai != "PBL2_ADMIN" || (PhienBan != 1 && PhienBan != 2 && PhienBan != 3 && PhienBan != 4)) Loi("Sai dinh dang hoac phien ban");
@@ -94,11 +97,12 @@ AdminData AdminFileManager::Doc(const std::string& DuongDan) {
     bool DaKetThuc = false;
     int SoDong = 0;
     while (std::getline(Tep, Dong)) {
+        ++DongHienTai;
         if (++SoDong > 800 || Dong.size() > 8192) Loi("File vuot gioi han");
         if (!Dong.empty() && Dong.back() == '\r') Dong.pop_back();
         if (Dong.empty()) continue;
+        std::istringstream S(Dong); if (!(S >> Loai)) continue;
         if (DaKetThuc) Loi("Du lieu sau END");
-        std::istringstream S(Dong); S >> Loai;
         if (Loai == "NV") {
             StaffFileManager::DocDong(S,*D.NhanSu,PhienBan==4?3:PhienBan);
         } else if (Loai == "CA" && PhienBan==4) {
@@ -150,4 +154,8 @@ AdminData AdminFileManager::Doc(const std::string& DuongDan) {
     }
     KiemTra(D);
     return D; // Chỉ giao dữ liệu mới sau khi toàn bộ file đã hợp lệ.
+    } catch (const My_stdexcept& E) {
+        const std::string ThongBao="Dong " + std::to_string(DongHienTai) + ": " + E.LayThongBao() + " | File: " + DuongDan;
+        throw My_stdexcept(E.LayLoaiLoi(),ThongBao.c_str());
+    }
 }

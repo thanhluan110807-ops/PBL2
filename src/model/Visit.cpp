@@ -118,23 +118,36 @@ void Visit::PhanCongBacSi(const std::string& MaBacSi) {
     DanhSachBacSiDuocPhanCong.ThemCuoi(MaBacSi);
 }
 void Visit::GhiNhanBacSiThamGiaKham(const std::string& MaBacSi) {
+    GhiNhanBacSiThamGiaKham(DoctorParticipation(MaBacSi, std::time(nullptr)));
+}
+void Visit::KiemTraThamGia(const DoctorParticipation& P) const {
+    if (P.LayMaBacSi().empty() || P.LayThoiDiemThamGia() < ThoiDiemTiepNhan ||
+        (!LichSuBacSiThamGiaKham.Rong() && P.LayThoiDiemThamGia() < LichSuBacSiThamGiaKham.Lay(LichSuBacSiThamGiaKham.KichThuoc()-1).LayThoiDiemThamGia()))
+        BaoLoi("Thoi diem tham gia khong hop le");
+    if (P.LayVaiTro() == DoctorRole::ThayThe && !DaThamGiaKham(P.LayMaBacSiDuocThay()))
+        BaoLoi("Bac si duoc thay chua tham gia lan kham");
+}
+void Visit::GhiNhanBacSiThamGiaKham(const DoctorParticipation& P) {
     if (TrangThaiLanKham != VisitStatus::DangKham) SaiTrangThai();
-    if (MaBacSi.empty()) BaoLoi("Ma bac si khong duoc rong");
+    KiemTraThamGia(P);
     // Mỗi lời gọi tương ứng một lượt khám thực tế, kể cả khi cùng bác sĩ quay lại.
-    LichSuBacSiThamGiaKham.ThemCuoi(MaBacSi);
+    LichSuBacSiThamGiaKham.ThemCuoi(P);
 }
 bool Visit::DaThamGiaKham(const std::string& MaBacSi) const {
     for (int I = 0; I < LichSuBacSiThamGiaKham.KichThuoc(); ++I) {
-        if (LichSuBacSiThamGiaKham.Lay(I) == MaBacSi) return true;
+        if (LichSuBacSiThamGiaKham.Lay(I).LayMaBacSi() == MaBacSi) return true;
     }
     return false;
 }
 void Visit::BatDauKham(const std::string& MaBacSi) {
+    BatDauKham(DoctorParticipation(MaBacSi, std::time(nullptr)));
+}
+void Visit::BatDauKham(const DoctorParticipation& P) {
     if (LichSuDanhGia.Rong()) SaiTrangThai();
     if (TrangThaiLanKham != VisitStatus::ChoKhamLanDau && TrangThaiLanKham != VisitStatus::ChoKhamQuayLai) SaiTrangThai();
-    if (MaBacSi.empty()) BaoLoi("Ma bac si khong duoc rong");
+    KiemTraThamGia(P);
     // Ghi nhận bác sĩ trước; nếu Vector cấp phát thất bại thì trạng thái vẫn là chờ khám.
-    LichSuBacSiThamGiaKham.ThemCuoi(MaBacSi);
+    LichSuBacSiThamGiaKham.ThemCuoi(P);
     TrangThaiLanKham = VisitStatus::DangKham;
 }
 void Visit::ChuyenDiCanLamSang(const std::string& ChiDinh, const std::string& MaBacSiChiDinh) {

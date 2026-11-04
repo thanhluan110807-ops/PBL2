@@ -1,5 +1,8 @@
 #include "ui/DemoWindow.h"
 #include "ui/DemoStyle.h"
+#include "ui/AdminPanel.h"
+#include <QStandardPaths>
+#include <QDir>
 #include <QButtonGroup>
 #include <QComboBox>
 #include <QDialog>
@@ -53,6 +56,16 @@ void DemoWindow::TaoThanhBen(QHBoxLayout *Khung) {
         Cot->addWidget(NutMoi);
         connect(NutMoi, &QPushButton::clicked, this, [this, ViTri] { ChuyenTrang(ViTri); });
     }
+    auto* NhanSu = Nut("Nhân sự và lịch trực", "openAdmin");
+    Cot->addWidget(NhanSu);
+    connect(NhanSu, &QPushButton::clicked, this, [this] {
+        if (!QuanTri) {
+            const QString ThuMuc = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+            QDir().mkpath(ThuMuc);
+            QuanTri = new AdminPanel(this, ThuMuc + "/nhan-su-lich.pbl2");
+        }
+        QuanTri->exec();
+    });
     Cot->addStretch();
     Cot->addWidget(Nhan("●  Khoa Cấp cứu", "section"));
     Cot->addWidget(Nhan("Ca sáng · 07:00 – 15:00", "muted"));
@@ -99,9 +112,13 @@ void DemoWindow::TaoGiaoDien() {
                 Hop.accept();
             });
         }
+        auto* QuanTriNut = Nut("Nhân sự và lịch trực", "mobileAdmin");
+        CotMenu->addWidget(QuanTriNut);
+        connect(QuanTriNut, &QPushButton::clicked, &Hop, [&] { Dich = 5; Hop.accept(); });
         Hop.exec();
-        if (Dich >= 0)
-            ChuyenTrang(Dich);
+        if (Dich == 5) {
+            if (auto* N = findChild<QPushButton*>("openAdmin")) N->click();
+        } else if (Dich >= 0) ChuyenTrang(Dich);
     });
     KhuVuc = Nhan("Tổng quan", "muted");
     HangDau->addWidget(KhuVuc);

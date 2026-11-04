@@ -20,6 +20,9 @@ private:
     static int TinhTuoiTheoNgay(const Date& NgaySinh, const Date& NgayXet);
     static void KiemTraNgaySinh(const Date& NgaySinh);
 
+protected:
+    // Dùng khi cập nhật cùng một người; chỉ đổi thông tin, không đổi mã bất biến.
+    void HoanDoiThongTin(Person& Khac) noexcept;
 public:
     // Mã luôn bắt buộc, kể cả khi người bệnh chưa rõ danh tính.
     explicit Person(const std::string& MaDinhDanh,

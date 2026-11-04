@@ -1,3 +1,5 @@
+> Phần B: [bổ sung các lớp trong ảnh UML và hướng dẫn thao tác](docs/member-b/HOAN-THIEN-CAC-LOP-TRONG-ANH-UML.md). Bộ test hiện tại: 13 core, 16 khi bật Qt.
+
 # PBL2 — Smart Hospital Triage & Flexible Shift Scheduler
 
 Dự án C++17 mô phỏng phân loại cấp cứu và xếp lịch trực. Giao diện người dùng theo định hướng Qt Widgets; quy ước lập trình nằm trong [CLAUDE.md](CLAUDE.md).
@@ -128,3 +130,19 @@ Tác vụ cloud đã được cách ly; chỉ tạo Git worktree nếu người 
 - [Kiểm thử và giao diện Person](tests/model/README.md)
 - [Ngoại lệ My_stdexcept](docs/util/README.md)
 - [Cấu trúc dữ liệu dùng chung](docs/dsa/README.md)
+
+
+## Phần B — Nhân sự, xếp lịch và file
+
+Bản triển khai phần B bổ sung `Staff`, `Shift`, `StaffRegistry`, `SchedulerService`,
+`FatigueService`, `AdminFileManager` và bảng Qt **Nhân sự và lịch trực**.
+Hướng dẫn chạy, kịch bản demo, giải thích từng module và giới hạn hiện tại nằm tại
+[docs/member-b/HUONG-DAN.md](docs/member-b/HUONG-DAN.md).
+
+Cấu hình hiện tại có **12 CTest lõi**, hoặc **15 CTest khi bật Qt demo**;
+bao gồm kiểm thử Backtracking, round-trip file, custom LinkedList/HashTable và widget quản trị.
+Số lượng cũ ở các phần trên chưa phản ánh toàn bộ các target mới.
+
+Staff đã tách theo từng lớp và trách nhiệm; xem [bảng chuyển API từ Staff gốc](docs/member-b/TACH-STAFF-THEO-UML.md).
+
+Các bổ sung Staff mới và phần UML còn lại: [bảng trạng thái chức năng](docs/member-b/CHUC-NANG-STAFF-DA-CO-VA-BO-SUNG.md).

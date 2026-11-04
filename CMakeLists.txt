@@ -12,7 +12,7 @@ option(PBL2_ENABLE_SANITIZERS "Bat AddressSanitizer va UndefinedBehaviorSanitize
 add_library(pbl2_build_options INTERFACE)
 target_compile_features(pbl2_build_options INTERFACE cxx_std_17)
 if(MSVC)
-    target_compile_options(pbl2_build_options INTERFACE /W4 /WX)
+    target_compile_options(pbl2_build_options INTERFACE /W4 /WX /utf-8)
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang|AppleClang)$")
     target_compile_options(pbl2_build_options INTERFACE -Wall -Wextra -Wpedantic -Werror)
 endif()
@@ -27,7 +27,12 @@ if(PBL2_ENABLE_SANITIZERS)
 endif()
 
 # GUI trong tương lai có thể liên kết phần lõi này, không chứa main hoặc mã hiển thị.
-add_library(pbl2_core STATIC src/model/Person.cpp src/model/Patient.cpp src/model/Visit.cpp)
+add_library(pbl2_core STATIC src/model/Person.cpp src/model/Patient.cpp src/model/Visit.cpp
+    src/model/DoctorParticipation.cpp src/model/ShiftAssignment.cpp
+    src/repository/ScheduleRegistry.cpp src/repository/ScheduleFileManager.cpp
+    src/model/CapBac.cpp src/model/CaTrucMongMuon.cpp
+    src/model/NhanVienYTe.cpp src/model/BacSi.cpp src/model/DieuDuong.cpp src/model/Shift.cpp src/repository/StaffRegistry.cpp
+    src/service/SchedulerService.cpp src/service/FatigueService.cpp src/repository/AdminFileManager.cpp src/repository/StaffFileManager.cpp)
 target_include_directories(pbl2_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(pbl2_core PUBLIC pbl2_build_options)
 
@@ -106,7 +111,18 @@ if(BUILD_TESTING)
     target_include_directories(test_priority_queue PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
     target_link_libraries(test_priority_queue PRIVATE pbl2_build_options)
 
-    foreach(TenKiemThu IN ITEMS test_person test_patient test_visit test_my_stdexcept test_vector test_priority_queue)
+    add_executable(test_admin tests/service/test_admin.cpp)
+    target_link_libraries(test_admin PRIVATE pbl2_core)
+
+    add_executable(test_schedule_uml tests/service/test_schedule_uml.cpp)
+    target_link_libraries(test_schedule_uml PRIVATE pbl2_core)
+    add_executable(test_staff_uml tests/model/test_staff_uml.cpp)
+    target_link_libraries(test_staff_uml PRIVATE pbl2_core)
+    add_executable(test_staff tests/model/test_staff.cpp)
+    target_link_libraries(test_staff PRIVATE pbl2_core)
+    add_executable(test_admin_containers tests/dsa/test_admin_containers.cpp)
+    target_link_libraries(test_admin_containers PRIVATE pbl2_core)
+    foreach(TenKiemThu IN ITEMS test_schedule_uml test_staff_uml test_staff test_admin_containers test_admin test_person test_patient test_visit test_my_stdexcept test_vector test_priority_queue)
         # Release thường đặt NDEBUG; bỏ macro này để assert vẫn thực sự được chạy.
         if(MSVC)
             target_compile_options(${TenKiemThu} PRIVATE /UNDEBUG)

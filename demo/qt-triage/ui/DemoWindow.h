@@ -1,6 +1,7 @@
 #pragma once
 #include "model/DemoTriageService.h"
 #include <QMainWindow>
+class AdminPanel;
 class QBoxLayout;
 class QVBoxLayout;
 class QHBoxLayout;
@@ -16,6 +17,7 @@ class QStackedWidget;
 
 class DemoWindow : public QMainWindow {
     Demo::DemoTriageService &DichVu;
+    AdminPanel* QuanTri = nullptr;
     QFrame *ThanhBen = nullptr;
     QPushButton *DieuHuong[5]{};
     QLabel *TieuDe;

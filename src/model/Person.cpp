@@ -1,4 +1,5 @@
 #include "model/Person.h"
+#include <utility>
 
 // Ngoại lệ giúp GUI nhận biết dữ liệu sai mà model không tự in thông báo.
 #include "util/My_stdexcept.h"
@@ -125,4 +126,11 @@ void Person::CapNhatThongTinCaNhan(const std::string& HoTen, Gender GioiTinh,
 void Person::XoaNgaySinh() {
     DaBietNgaySinh = false;
     NgaySinh = {0, 0, 0}; // Giá trị nội bộ; không trả ra khi chưa có ngày sinh.
+}
+
+void Person::HoanDoiThongTin(Person& Khac) noexcept {
+    HoTen.swap(Khac.HoTen);
+    std::swap(GioiTinh, Khac.GioiTinh);
+    std::swap(NgaySinh, Khac.NgaySinh);
+    std::swap(DaBietNgaySinh, Khac.DaBietNgaySinh);
 }

@@ -4,6 +4,7 @@
 #include <string>
 #include "dsa/Vector.h"
 #include "model/Patient.h"
+#include "model/DoctorParticipation.h"
 
 // Một bộ sinh hiệu hợp lệ, lưu giá trị gốc để đánh giá và xem lại.
 class VitalSigns {
@@ -63,7 +64,7 @@ class Visit {
     Vector<TriageAssessment> LichSuDanhGia;
     Vector<BanGhiCanLamSang> LichSuCanLamSang;
     Vector<std::string> DanhSachBacSiDuocPhanCong;
-    Vector<std::string> LichSuBacSiThamGiaKham;
+    Vector<DoctorParticipation> LichSuBacSiThamGiaKham;
     bool DaThamGiaKham(const std::string& MaBacSi) const;
     void KiemTraDangMo() const;
 public:
@@ -83,13 +84,17 @@ public:
     int SoBacSiDuocPhanCong() const { return DanhSachBacSiDuocPhanCong.KichThuoc(); }
     const std::string& LayBacSiDuocPhanCongTai(int ChiSo) const { return DanhSachBacSiDuocPhanCong.Lay(ChiSo); }
     int SoLanBacSiThamGiaKham() const { return LichSuBacSiThamGiaKham.KichThuoc(); }
-    const std::string& LayBacSiThamGiaKhamTai(int ChiSo) const { return LichSuBacSiThamGiaKham.Lay(ChiSo); }
+    const std::string& LayBacSiThamGiaKhamTai(int ChiSo) const { return LichSuBacSiThamGiaKham.Lay(ChiSo).LayMaBacSi(); }
     // Tự xác định ngày Việt Nam (UTC+7) từ thời điểm đánh giá để tính tuổi.
     void DanhGia(const Patient& BenhNhan, const VitalSigns& SinhHieu,
                  std::time_t ThoiDiemDanhGia, const std::string& MaDieuDuong);
     void PhanCongBacSi(const std::string& MaBacSi);
     void GhiNhanBacSiThamGiaKham(const std::string& MaBacSi);
     void BatDauKham(const std::string& MaBacSi);
+    const DoctorParticipation& LayThamGiaTai(int I) const { return LichSuBacSiThamGiaKham.Lay(I); }
+    void GhiNhanBacSiThamGiaKham(const DoctorParticipation& ThamGia);
+    void BatDauKham(const DoctorParticipation& ThamGia);
+    void KiemTraThamGia(const DoctorParticipation& ThamGia) const;
     void ChuyenDiCanLamSang(const std::string& ChiDinh, const std::string& MaBacSiChiDinh);
     void GhiNhanKetQua(const std::string& KetQua);
     void DanhDauQuayLai();

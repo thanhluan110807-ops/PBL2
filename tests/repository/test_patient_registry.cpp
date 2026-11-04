@@ -265,7 +265,20 @@ void KiemTraNgayLocChuyenThang() {
     }
 }
 
+void KiemTraDanhSachBenhNhan() {
+    PatientRegistry R;
+    assert(R.LayDanhSachBenhNhan().KichThuoc() == 0);
+    const Patient* A = R.ThemBenhNhan("A");
+    auto DanhSach = R.LayDanhSachBenhNhan();
+    assert(DanhSach.KichThuoc() == 1 && DanhSach[0] == A);
+    R.ThemBenhNhan("B");
+    assert(DanhSach.KichThuoc() == 1);
+    assert(R.LayDanhSachBenhNhan().KichThuoc() == 2);
+    assert(R.SoLanKham() == 0);
+}
+
 int main() {
+    KiemTraDanhSachBenhNhan();
     KiemTraHoSoVaDanhTinh();
     KiemTraTimTen();
     KiemTraLanKhamVaTaiSuDung();

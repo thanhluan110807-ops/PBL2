@@ -1,5 +1,26 @@
+#include <QAbstractItemView>
+#include <QBoxLayout>
+#include <QWidget>
+#include <QSizePolicy>
+#include <QTableWidgetItem>
+#include <QChar>
+#include <QString>
+#include <QVariant>
 #include "ui/DemoWindow.h"
 #include "ui/DemoStyle.h"
+#include "model/Patient.h"
+#include "model/Visit.h"
+#include "model/Date.h"
+#include "dsa/Vector.h"
+#include "util/My_stdexcept.h"
+#include <ctime>
+#include <string>
+#include <QDate>
+#include <QTimer>
+#include <QLabel>
+#include <QPushButton>
+#include <QFrame>
+#include <QColor>
 #include <QButtonGroup>
 #include <QComboBox>
 #include <QDialog>
@@ -16,7 +37,9 @@
 #include <QVBoxLayout>
 using namespace DemoUi;
 
-DemoWindow::DemoWindow(Demo::DemoTriageService &DichVu, QWidget *Cha) : QMainWindow(Cha), DichVu(DichVu) {
+DemoWindow::DemoWindow(PatientRegistry &Registry, TriageService &DichVu,
+                       VisitSearchService &TraCuu, QWidget *Cha)
+    : QMainWindow(Cha), Registry(Registry), DichVu(DichVu), TraCuu(TraCuu) {
     setWindowTitle("An Tâm · Điều phối cấp cứu · Demo Qt");
     setWindowIcon(BieuTuong("pulse", QColor("#7050F2")));
     setStyleSheet(Qss());
@@ -55,10 +78,12 @@ void DemoWindow::TaoThanhBen(QHBoxLayout *Khung) {
     }
     Cot->addStretch();
     Cot->addWidget(Nhan("●  Khoa Cấp cứu", "section"));
-    Cot->addWidget(Nhan("Ca sáng · 07:00 – 15:00", "muted"));
+    auto *Lich = Nut("Phân lịch trực · sắp có", "lichTruc");
+    Lich->setEnabled(false);
+    Cot->addWidget(Lich);
     Cot->addSpacing(24);
-    Cot->addWidget(Nhan("Nguyễn An"));
-    Cot->addWidget(Nhan("Điều dưỡng điều phối", "muted"));
+
+
     Khung->addWidget(ThanhBen);
 }
 void DemoWindow::TaoGiaoDien() {
@@ -108,11 +133,11 @@ void DemoWindow::TaoGiaoDien() {
     HangDau->addStretch();
     TimChung = new QLineEdit;
     TimChung->setObjectName("timChung");
-    TimChung->setPlaceholderText("Tìm bệnh nhân hoặc lượt khám…");
-    TimChung->setAccessibleName("Tìm bệnh nhân hoặc lượt khám");
+    TimChung->setPlaceholderText("Tên bệnh nhân để tra cứu lượt khám…");
+    TimChung->setAccessibleName("Tên bệnh nhân để tra cứu lượt khám");
     TimChung->setMaximumWidth(330);
     HangDau->addWidget(TimChung, 1);
-    HangDau->addWidget(Nhan("● Dữ liệu demo", "status"));
+    HangDau->addWidget(Nhan("● Dữ liệu phiên này", "status"));
     Cot->addWidget(Dau);
     auto *Cuon = new QScrollArea;
     Cuon->setObjectName("mainScroll");
@@ -151,7 +176,7 @@ void DemoWindow::TaoNoiDung(QVBoxLayout *Khung) {
     Khung->addLayout(Dau);
     LuoiSoLieu = new QGridLayout;
     LuoiSoLieu->setSpacing(14);
-    const char *CacNhan[] = {"Chờ sàng lọc", "Chờ khám lần đầu", "Chờ khám quay lại", "Cần tái đánh giá"};
+    const char *CacNhan[] = {"Chờ đánh giá", "Chờ khám lần đầu", "Chờ khám quay lại", "Đang khám"};
     for (int ViTri = 0; ViTri < 4; ++ViTri) {
         auto *The = new QFrame;
         The->setObjectName("card");
@@ -165,7 +190,7 @@ void DemoWindow::TaoNoiDung(QVBoxLayout *Khung) {
         SoLieu[ViTri]->setObjectName(QString("kpi%1").arg(ViTri));
         Hang->addWidget(SoLieu[ViTri]);
         Hang->addStretch();
-        auto *Xem = Nut(ViTri == 3 ? "Cần chú ý" : "Xem lượt", qPrintable(QString("xemKpi%1").arg(ViTri)));
+        auto *Xem = Nut("Xem lượt", qPrintable(QString("xemKpi%1").arg(ViTri)));
         Xem->setProperty("link", true);
         Hang->addWidget(Xem);
         Cot->addWidget(Duoi);
@@ -174,12 +199,18 @@ void DemoWindow::TaoNoiDung(QVBoxLayout *Khung) {
         connect(Xem, &QPushButton::clicked, this, [this, ViTri] {
             Trang = 3;
             LocKpi = ViTri;
+            // KPI mở toàn bộ nhóm; xóa điều kiện của lần tra cứu trước.
             TimChung->clear();
+            TimHang->clear();
+            MaLanKhamLoc->clear();
+            NgayLoc->clear();
             LamMoi();
         });
     }
     Khung->addLayout(LuoiSoLieu);
-    Khung->addWidget(Nhan("Nhóm cần tái đánh giá có thể trùng với các nhóm đang chờ.", "muted"));
+    auto *LuuY = Nhan("Dữ liệu chỉ ở trong phiên này. Chưa lưu thay đổi khi thoát; CSV gốc không bị sửa.", "muted");
+    LuuY->setWordWrap(true);
+    Khung->addWidget(LuuY);
     auto *Panel = new QFrame;
     Panel->setObjectName("panel");
     auto *CotPanel = new QVBoxLayout(Panel);
@@ -189,6 +220,12 @@ void DemoWindow::TaoNoiDung(QVBoxLayout *Khung) {
     TenPanel = Nhan("Hàng chờ khám", "section");
     HangTieuDe->addWidget(TenPanel);
     HangTieuDe->addStretch();
+    MaBacSi = new QLineEdit;
+    MaBacSi->setObjectName("maBacSi");
+    MaBacSi->setPlaceholderText("Mã bác sĩ gọi khám");
+    MaBacSi->setAccessibleName("Mã bác sĩ gọi khám");
+    MaBacSi->setMaximumWidth(180);
+    HangTieuDe->addWidget(MaBacSi);
     GoiLuot = Nut("Gọi lượt tiếp theo", "goiTiep", true);
     GoiLuot->setIcon(BieuTuong("arrow", Qt::white));
     HangTieuDe->addWidget(GoiLuot);
@@ -233,8 +270,8 @@ void DemoWindow::TaoNoiDung(QVBoxLayout *Khung) {
     LocTrangThai->setObjectName("locTrangThai");
     LocTrangThai->setAccessibleName("Lọc trạng thái lượt khám");
     LocTrangThai->addItem("Tất cả trạng thái");
-    for (int Loai = 0; Loai < 7; ++Loai)
-        LocTrangThai->addItem(Demo::DemoTriageService::TenTrangThai(static_cast<Demo::TrangThai>(Loai)));
+    LocTrangThai->addItems({"Chờ đánh giá", "Chờ khám lần đầu", "Chờ khám quay lại",
+                            "Đang khám", "Chờ cận lâm sàng", "Đã kết thúc", "Đã hủy"});
     HangLoc->addWidget(LocTrangThai);
     TimHang = new QLineEdit;
     TimHang->setObjectName("timHang");
@@ -250,13 +287,25 @@ void DemoWindow::TaoNoiDung(QVBoxLayout *Khung) {
         LocKpi = -1;
         DoDuLieu();
     });
+    MaLanKhamLoc = new QLineEdit;
+    MaLanKhamLoc->setObjectName("maLanKhamLoc");
+    MaLanKhamLoc->setPlaceholderText("Mã lần khám (khớp chính xác)");
+    MaLanKhamLoc->setAccessibleName("Mã lần khám để tra cứu");
+    NgayLoc = new QLineEdit;
+    NgayLoc->setObjectName("ngayLoc");
+    NgayLoc->setPlaceholderText("Ngày tiếp nhận dd/MM/yyyy · UTC+7 (để trống: tất cả)");
+    NgayLoc->setAccessibleName("Ngày tiếp nhận UTC+7");
+    CotPanel->addWidget(MaLanKhamLoc);
+    CotPanel->addWidget(NgayLoc);
+    connect(MaLanKhamLoc, &QLineEdit::textChanged, this, [this] { DoDuLieu(); });
+    connect(NgayLoc, &QLineEdit::textChanged, this, [this] { DoDuLieu(); });
     VungDanhSach = new QStackedWidget;
     VungDanhSach->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Ignored);
     Bang = new QTableWidget;
     Bang->setObjectName("hangCho");
     Bang->setColumnCount(7);
     Bang->setHorizontalHeaderLabels({"STT", "Bệnh nhân / Lượt khám", "Cấp cứu", "Luồng / Trạng thái",
-                                     "Đã chờ", "Đánh giá gần nhất", "Thao tác"});
+                                     "Tiếp nhận (UTC+7)", "Đánh giá gần nhất", "Thao tác"});
     Bang->verticalHeader()->hide();
     Bang->setShowGrid(false);
     Bang->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -277,45 +326,38 @@ void DemoWindow::TaoNoiDung(QVBoxLayout *Khung) {
     CotPanel->addWidget(VungDanhSach, 1);
     SoKetQua = Nhan("", "muted");
     SoKetQua->setObjectName("soKetQua");
+    SoKetQua->setWordWrap(true);
     CotPanel->addWidget(SoKetQua);
     Khung->addWidget(Panel, 1);
     auto *GhiChu = Nhan(
-        "Mức 1 ưu tiên cao nhất · Cùng mức: tối đa 3 lượt quay lại rồi 1 lượt lần đầu khi có cạnh tranh.",
+        "Mức 1 ưu tiên cao nhất · Hai đầu hàng cùng mức: luân phiên, lần hòa đầu ưu tiên quay lại. Mức cao hơn luôn được chọn trước.",
         "muted");
     GhiChu->setWordWrap(true);
     Khung->addWidget(GhiChu);
-    auto *DemoHang = new QHBoxLayout;
-    HangDemo = DemoHang;
-    DemoHang->addWidget(Nhan("Điều khiển demo", "section"));
-    DemoHang->addStretch();
-    auto *DatLaiNut = Nut("Đặt lại dữ liệu", "datLai");
-    auto *BaMot = Nut("Kịch bản 3:1", "baMot");
-    auto *Tien = Nut("+10 phút", "tienGio");
-    DemoHang->addWidget(DatLaiNut);
-    DemoHang->addWidget(BaMot);
-    DemoHang->addWidget(Tien);
-    Khung->addLayout(DemoHang);
-    connect(DatLaiNut, &QPushButton::clicked, this, [this] { DatLai(false); });
-    connect(BaMot, &QPushButton::clicked, this, [this] { DatLai(true); });
-    connect(Tien, &QPushButton::clicked, this, [this] {
-        DichVu.TienThoiGian();
-        LamMoi();
-        statusBar()->showMessage("Đã tiến 10 phút và cập nhật các cảnh báo.", 6000);
-    });
-    DongHo = Nhan("", "muted");
+    DongHo = Nhan("Thời điểm hiển thị theo UTC+7 · Chưa liên kết danh sách nhân viên.", "muted");
     DongHo->setWordWrap(true);
     Khung->addWidget(DongHo);
 }
+
 void DemoWindow::ChuyenTrang(int ChiSo) {
     Trang = ChiSo;
     LocKpi = -1;
     TimChung->clear();
     TimHang->clear();
+    MaLanKhamLoc->clear();
+    NgayLoc->clear();
+    LocTrangThai->setCurrentIndex(0);
     LamMoi();
 }
 void DemoWindow::LamMoi() {
-    const auto So = DichVu.LayThongKe();
-    const int Mang[] = {So.SangLoc, So.LanDau, So.QuayLai, So.CanDanhGia};
+    int Mang[4]{};
+    const auto TatCa = TraCuu.TimTheoBenhNhan();
+    for (int I = 0; I < TatCa.KichThuoc(); ++I) {
+        const Visit &V = *TatCa[I].LanKham;
+        if (V.LayTrangThai() == VisitStatus::ChoKhamLanDau) ++Mang[V.SoDanhGia() ? 1 : 0];
+        if (V.LayTrangThai() == VisitStatus::ChoKhamQuayLai) ++Mang[2];
+        if (V.LayTrangThai() == VisitStatus::DangKham) ++Mang[3];
+    }
     for (int ViTri = 0; ViTri < 4; ++ViTri)
         SoLieu[ViTri]->setText(QString("%1").arg(Mang[ViTri], 2, 10, QChar('0')));
     const char *Ten[] = {"Tổng quan", "Tiếp nhận", "Hàng chờ", "Lượt khám", "Hồ sơ bệnh nhân"};
@@ -332,17 +374,14 @@ void DemoWindow::LamMoi() {
     LocMuc->setVisible(LaHang);
     LocTrangThai->setVisible(Trang == 3);
     GoiLuot->setVisible(LaHang);
-    GoiLuot->setEnabled(DichVu.LayHangCho().SoLuong > 0);
+    GoiLuot->setEnabled(DichVu.SoDangCho() > 0);
+    MaBacSi->setVisible(LaHang);
+    MaLanKhamLoc->setVisible(Trang == 3);
+    NgayLoc->setVisible(Trang == 3);
     HuongDan->setText(LaHang       ? "Gọi theo toàn bộ hàng chờ hiệu lực, không theo bộ lọc."
                       : Trang == 1 ? "Xác nhận phân loại trước khi đưa lượt vào hàng chờ khám."
                       : Trang == 4 ? "Hồ sơ lâu dài giữ mã ổn định, liên kết với các lượt khám."
                                    : "Xem diễn biến và thực hiện thao tác hợp lệ theo trạng thái.");
-    const Date Ngay = DichVu.LayNgay();
-    DongHo->setText(QString("Đồng hồ mô phỏng: %1 · %2/%3/%4 (UTC+7) · Chỉ chạy khi bấm +10 phút")
-                        .arg(Gio(DichVu.LayBayGio()))
-                        .arg(Ngay.Ngay)
-                        .arg(Ngay.Thang)
-                        .arg(Ngay.Nam));
     DoDuLieu();
 }
 void DemoWindow::DoDuLieu() {
@@ -352,71 +391,70 @@ void DemoWindow::DoDuLieu() {
         delete Muc;
     }
     const bool LaHang = Trang == 0 || Trang == 2;
-    const auto Hang = DichVu.LayHangCho();
+    const auto Hang = DichVu.LayDanhSachCho();
+    const auto HoSo = Registry.LayDanhSachBenhNhan();
+    Date Ngay{};
+    const Date *NgayCanTim = nullptr;
+    if (Trang == 3 && !NgayLoc->text().trimmed().isEmpty()) {
+        const QDate D = QDate::fromString(NgayLoc->text().trimmed(), "dd/MM/yyyy");
+        if (!D.isValid()) {
+            SoKetQua->setText("Ngày không hợp lệ. Nhập dd/MM/yyyy hoặc để trống.");
+            VungDanhSach->setCurrentIndex(0);
+            return;
+        }
+        Ngay = {D.day(), D.month(), D.year()}; NgayCanTim = &Ngay;
+    }
+    const auto CacLuot = TraCuu.TimTheoBenhNhan(
+        Trang == 3 ? TimChung->text().trimmed().toStdString() : "", NgayCanTim,
+        Trang == 3 ? MaLanKhamLoc->text().trimmed().toStdString() : "");
     int SoHien = 0;
-    const int Tong = LaHang ? Hang.SoLuong : Trang == 4 ? DichVu.LaySoHoSo() : DichVu.LaySoLuot();
+    const int Tong = LaHang ? Hang.KichThuoc() : Trang == 4 ? HoSo.KichThuoc() : CacLuot.KichThuoc();
+    const QString CacTrangThai[] = {"Chờ đánh giá", "Chờ khám lần đầu", "Chờ khám quay lại",
+                                    "Đang khám", "Chờ cận lâm sàng", "Đã kết thúc", "Đã hủy"};
     for (int Thu = 0; Thu < Tong; ++Thu) {
-        const int So = LaHang ? Hang.CacLuot[Thu] : Thu;
-        const Demo::LuotKham *Luot = Trang == 4 ? nullptr : &DichVu.LayLuot(So);
-        const int HoSoSo = Luot ? Luot->BenhNhan : So;
-        const auto &HoSo = DichVu.LayHoSo(HoSoSo);
-        const QString Ten = HoSo.ChuaRo ? "Chưa rõ danh tính" : Chu(HoSo.HoTen);
-        const QString Tim = ChuanHoa(Ten + " " + Chu(HoSo.Ma) + (Luot ? " " + Chu(Luot->Ma) : ""));
-        if (!Tim.contains(ChuanHoa(TimHang->text())) || !Tim.contains(ChuanHoa(TimChung->text())))
-            continue;
+        const Visit *Luot = Trang == 4 ? nullptr : LaHang ? Hang[Thu] : CacLuot[Thu].LanKham;
+        const Patient &BenhNhan = *(Luot ? Registry.TimBenhNhan(Luot->LayMaBenhNhan()) : HoSo[Thu]);
+        const QString Ten = BenhNhan.LayHoTen().empty() ? "Chưa rõ danh tính" : Chu(BenhNhan.LayHoTen());
+        const std::string MaBenhNhan = BenhNhan.LayMaDinhDanh();
+        const std::string MaKham = Luot ? Luot->LayMaLanKham() : "";
+        const QString Tim = ChuanHoa(Ten + " " + Chu(MaBenhNhan) + " " + Chu(MaKham) + " " + Chu(BenhNhan.LaySoCanCuoc()));
+        if (!Tim.contains(ChuanHoa(TimHang->text()))) continue;
+        const int Muc = Luot && Luot->SoDanhGia() ? Luot->LayDanhGiaGanNhat().LayMuc() : 0;
         if (Luot) {
-            if (Trang == 1 && Luot->TinhTrang != Demo::TrangThai::SangLoc)
-                continue;
-            if (LaHang && ((Luong == 1 && Luot->TinhTrang != Demo::TrangThai::LanDau) ||
-                           (Luong == 2 && Luot->TinhTrang != Demo::TrangThai::QuayLai) ||
-                           (LocMuc->currentIndex() > 0 && Luot->Muc != LocMuc->currentIndex())))
-                continue;
-            if (Trang == 3 && LocKpi >= 0) {
-                if (LocKpi == 3 ? !DichVu.CanDanhGia(So) : static_cast<int>(Luot->TinhTrang) != LocKpi)
-                    continue;
-            } else if (Trang == 3 && LocTrangThai->currentIndex() > 0 &&
-                       static_cast<int>(Luot->TinhTrang) != LocTrangThai->currentIndex() - 1)
-                continue;
+            const auto TrangThai = Luot->LayTrangThai();
+            if (Trang == 1 && (TrangThai != VisitStatus::ChoKhamLanDau || Luot->SoDanhGia())) continue;
+            if (LaHang && ((Luong == 1 && TrangThai != VisitStatus::ChoKhamLanDau) ||
+                           (Luong == 2 && TrangThai != VisitStatus::ChoKhamQuayLai) ||
+                           (LocMuc->currentIndex() && Muc != LocMuc->currentIndex()))) continue;
+            const int Loc = LocKpi >= 0 ? LocKpi : LocTrangThai->currentIndex() - 1;
+            if (Trang == 3 && Loc >= 0 && TenTrangThai(*Luot) != CacTrangThai[Loc]) continue;
         }
         const int Dong = SoHien++;
         Bang->insertRow(Dong);
         Bang->setRowHeight(Dong, 74);
-        const QString MaLuot = Luot ? Chu(Luot->Ma) : "Hồ sơ lâu dài";
-        auto *TenO = new QTableWidgetItem(Ten + "\n" + Chu(HoSo.Ma) + " · " + MaLuot);
-        TenO->setData(Qt::UserRole, So);
+        const QString MaLuot = Luot ? Chu(MaKham) : "Hồ sơ lâu dài";
+        auto *TenO = new QTableWidgetItem(Ten + "\n" + Chu(MaBenhNhan) + " · " + MaLuot);
+        TenO->setData(Qt::UserRole, Luot ? Chu(MaKham) : Chu(MaBenhNhan));
         Bang->setItem(Dong, 1, TenO);
         Bang->setItem(Dong, 0, new QTableWidgetItem(QString::number(Thu + 1)));
         auto *MucO = new QWidget;
         auto *BoCuc = new QHBoxLayout(MucO);
         BoCuc->setContentsMargins(6, 16, 6, 16);
-        BoCuc->addWidget(HuyHieu(Luot ? Luot->Muc : 0));
+        BoCuc->addWidget(HuyHieu(Muc));
         Bang->setCellWidget(Dong, 2, MucO);
-        const QString Loai =
-            Luot ? (LaHang ? (Luot->TinhTrang == Demo::TrangThai::QuayLai ? "Quay lại" : "Lần đầu")
-                           : Demo::DemoTriageService::TenTrangThai(Luot->TinhTrang))
-                 : QString("%1").arg(DichVu.LayTuoi(HoSo) < 0
-                                         ? "Chưa rõ tuổi"
-                                         : QString::number(DichVu.LayTuoi(HoSo)) + " tuổi");
-        const QString Cho = Luot && Demo::DemoTriageService::DangCho(*Luot)
-                                ? QString("%1 phút").arg(DichVu.LayBayGio() - Luot->VaoHangLuc)
-                                : "—";
-        const bool Can = Luot && DichVu.CanDanhGia(So);
-        const QString DanhGia = Luot && Luot->SoDanhGia ? (Can ? "Cần tái đánh giá\n" : "Đã xác nhận\n") +
-                                                              Gio(Luot->LichSu[Luot->SoDanhGia - 1].Luc)
-                                                        : "Chưa đánh giá";
+        const QString Loai = Luot ? TenTrangThai(*Luot) : "Hồ sơ bệnh nhân";
+        const QString Cho = Luot ? ThoiDiem(Luot->LayThoiDiemTiepNhan()) : "—";
+        const QString DanhGia = Luot && Luot->SoDanhGia()
+            ? ThoiDiem(Luot->LayDanhGiaGanNhat().LayThoiDiemDanhGia()) : "Chưa đánh giá";
         Bang->setItem(Dong, 3, new QTableWidgetItem(Loai));
         Bang->setItem(Dong, 4, new QTableWidgetItem(Cho));
-        auto *DanhGiaO = new QTableWidgetItem(DanhGia);
-        if (Can)
-            DanhGiaO->setForeground(QColor("#9A5E0D"));
-        Bang->setItem(Dong, 5, DanhGiaO);
-        const auto Mo = [this, So, HoSoSo] {
-            if (Trang == 4)
-                MoHoSo(HoSoSo);
-            else
-                MoChiTiet(So);
+        Bang->setItem(Dong, 5, new QTableWidgetItem(DanhGia));
+        // Giữ mã ổn định trong callback, không giữ chỉ số danh sách đang lọc.
+        const auto Mo = [this, MaKham, MaBenhNhan] {
+            if (MaKham.empty()) MoHoSo(MaBenhNhan);
+            else MoChiTiet(MaKham);
         };
-        auto *ChiTiet = Nut("Chi tiết", qPrintable(QString("chiTiet%1").arg(So)));
+        auto *ChiTiet = Nut("Chi tiết", qPrintable(QString("chiTiet%1").arg(Thu)));
         ChiTiet->setProperty("link", true);
         ChiTiet->setAccessibleName("Chi tiết " + Ten + " " + MaLuot);
         connect(ChiTiet, &QPushButton::clicked, this, Mo);
@@ -433,16 +471,16 @@ void DemoWindow::DoDuLieu() {
         TenNhan->setWordWrap(true);
         Dau->addWidget(TenNhan, 1);
         if (Luot)
-            Dau->addWidget(HuyHieu(Luot->Muc));
+            Dau->addWidget(HuyHieu(Muc));
         Cot->addLayout(Dau);
-        Cot->addWidget(Nhan(Chu(HoSo.Ma) + " · " + MaLuot, "muted"));
+        Cot->addWidget(Nhan(Chu(MaBenhNhan) + " · " + MaLuot, "muted"));
         Cot->addWidget(Nhan(Luot ? Loai + " · " + Cho : Loai));
         auto *Duoi = new QHBoxLayout;
-        auto *N = Nhan(Luot ? DanhGia : "Dị ứng: " + Chu(HoSo.DiUng.empty() ? "Chưa ghi nhận" : HoSo.DiUng),
+        auto *N = Nhan(Luot ? DanhGia : "Dị ứng: " + Chu(BenhNhan.LayThongTinDiUng().empty() ? "Chưa ghi nhận" : BenhNhan.LayThongTinDiUng()),
                        "muted");
         N->setWordWrap(true);
         Duoi->addWidget(N, 1);
-        auto *Xem = Nut("Chi tiết", qPrintable(QString("theChiTiet%1").arg(So)));
+        auto *Xem = Nut("Chi tiết", qPrintable(QString("theChiTiet%1").arg(Thu)));
         Xem->setProperty("link", true);
         connect(Xem, &QPushButton::clicked, this, Mo);
         Duoi->addWidget(Xem);
@@ -469,7 +507,6 @@ void DemoWindow::resizeEvent(QResizeEvent *SuKien) {
         return;
     const auto Huong = width() < 750 ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight;
     HangDauTrang->setDirection(Huong);
-    HangDemo->setDirection(Huong);
     HangBoLoc->setDirection(Huong);
     KhuVuc->setVisible(width() >= 750);
     const bool HepMoi = width() < 1050;
@@ -484,29 +521,11 @@ void DemoWindow::resizeEvent(QResizeEvent *SuKien) {
     }
 }
 void DemoWindow::GoiTiep() {
-    const auto K = DichVu.GoiTiep();
-    if (!K.ThanhCong) {
-        statusBar()->showMessage(Chu(K.Loi), 7000);
-        return;
+    try {
+        const Visit &V = DichVu.GoiTiep(MaBacSi->text().trimmed().toStdString());
+        LamMoi();
+        statusBar()->showMessage("Đã gọi " + Chu(V.LayMaLanKham()) + " → Đang khám", 10000);
+    } catch (const My_stdexcept &Loi) {
+        statusBar()->showMessage(QString::fromUtf8(Loi.LayThongBao()), 10000);
     }
-    const auto &L = DichVu.LayLuot(K.ChiSo);
-    const auto &H = DichVu.LayHoSo(L.BenhNhan);
-    LamMoi();
-    statusBar()->showMessage("Đã gọi " + Chu(H.ChuaRo ? "Chưa rõ danh tính" : H.HoTen) + " · " + Chu(L.Ma) +
-                                 " → Đang khám",
-                             10000);
-}
-void DemoWindow::DatLai(bool BaMot) {
-    if (QMessageBox::question(this, "Điều khiển demo",
-                              BaMot ? "Nạp 5 lượt quay lại và 2 lượt lần đầu cùng mức 3? Các thay đổi thử "
-                                      "nghiệm sẽ được thay thế."
-                                    : "Đặt lại 14 hồ sơ mẫu? Các thay đổi thử nghiệm sẽ được thay thế.",
-                              QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
-        return;
-    DichVu.NapMau(BaMot);
-    Luong = 0;
-    LocLuong[0]->setChecked(true);
-    LocMuc->setCurrentIndex(0);
-    ChuyenTrang(0);
-    statusBar()->showMessage("Đã nạp dữ liệu mô phỏng.", 6000);
 }

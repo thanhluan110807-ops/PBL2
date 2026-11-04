@@ -1,194 +1,153 @@
+#include <QPixmap>
+#include <QString>
+#include <QWidget>
 #include "ui/DemoWindow.h"
+#include "repository/PatientRegistry.h"
+#include "service/TriageService.h"
+#include "service/VisitSearchService.h"
+#include "model/Patient.h"
+#include "model/Visit.h"
+#include "model/Gender.h"
 #include <QApplication>
-#include <QCheckBox>
 #include <QComboBox>
+#include <QDateTime>
+#include <QListWidget>
 #include <QDialog>
-#include <QDir>
-#include <QKeyEvent>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMessageBox>
-#include <QPlainTextEdit>
 #include <QPushButton>
+#include <QTableWidget>
 #include <QScrollArea>
 #include <QScrollBar>
-#include <QTableWidget>
 #include <QTimer>
 #include <cassert>
-#include <iostream>
+#include <ctime>
 
-template <class T> T *Tim(QWidget *Cha, const char *Ma) {
-    auto *K = Cha->findChild<T *>(Ma);
-    assert(K);
-    return K;
+template<class T> T* Tim(QWidget* Cha, const char* Ma) {
+    auto* KetQua = Cha->findChild<T*>(Ma);
+    assert(KetQua);
+    return KetQua;
 }
-QString ThuMucAnh;
-void Chup(QWidget *W, const char *Ten) {
-    if (!ThuMucAnh.isEmpty()) {
-        QDir().mkpath(ThuMucAnh);
-        assert(W->grab().save(ThuMucAnh + "/" + Ten));
-    }
-}
-QWidget *Hop() {
-    auto *H = QApplication::activeModalWidget();
-    assert(H);
-    return H;
-}
-void Bam(QWidget *Cha, const char *Ma) {
-    Tim<QPushButton>(Cha, Ma)->click();
-}
-void Nhap(QWidget *Cha, const char *Ma, const QString &Chu) {
-    Tim<QLineEdit>(Cha, Ma)->setText(Chu);
-}
-void NhapSoDo(QWidget *H, int Muc = 1) {
-    Nhap(H, "Mach", "80");
-    Nhap(H, "HuyetAp", "120");
-    Nhap(H, "NhipTho", "18");
-    Nhap(H, "SpO2", "98");
-    Nhap(H, "GCS", "15");
-    Tim<QComboBox>(H, "Muc")->setCurrentIndex(Muc);
-}
-void DongChiTietSau() {
-    QTimer::singleShot(0, [] { Bam(Hop(), "dongChiTiet"); });
-}
+QWidget* Hop() { auto* H = QApplication::activeModalWidget(); assert(H); return H; }
+void Nhap(QWidget* H, const char* Ma, const QString& Chu) { Tim<QLineEdit>(H, Ma)->setText(Chu); }
+void Bam(QWidget* H, const char* Ma) { Tim<QPushButton>(H, Ma)->click(); }
 
-int main(int SoThamSo, char **ThamSo) {
-    QApplication U(SoThamSo, ThamSo);
-    ThuMucAnh = qEnvironmentVariable("PBL2_DEMO_CAPTURE_DIR");
-    QApplication::setStyle("Fusion");
-    auto *D = new Demo::DemoTriageService;
-    D->NapMau();
-    {
-        DemoWindow W(*D);
-        W.show();
-        U.processEvents();
-        assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 8);
-        assert(Tim<QLabel>(&W, "kpi0")->text() == "02");
-        // Bộ lọc không làm thay đổi lượt thực sự được gọi.
-        const int Dau = D->LayHangCho().CacLuot[0];
-        Tim<QComboBox>(&W, "locMuc")->setCurrentIndex(5);
-        Nhap(&W, "timHang", "không có");
-        Bam(&W, "goiTiep");
-        assert(D->LayLuot(Dau).TinhTrang == Demo::TrangThai::DangKham);
-        Nhap(&W, "timHang", "");
-        Tim<QComboBox>(&W, "locMuc")->setCurrentIndex(0);
-        // Tiếp nhận thật qua các trường native; kiểm tra lỗi không mất dữ liệu.
-        QTimer::singleShot(0, [&] {
-            auto *H = Hop();
-            Nhap(H, "HoTen", "Nguyễn Thử Nghiệm");
-            Nhap(H, "NgaySinh", "10/10/1995");
-            Bam(H, "luu");
-            assert(Tim<QLineEdit>(H, "HoTen")->text() == "Nguyễn Thử Nghiệm");
-            assert(!Tim<QLabel>(H, "errTrieuChung")->text().isEmpty());
-            Tim<QPlainTextEdit>(H, "TrieuChung")->setPlainText("Đau đầu mẫu");
-            DongChiTietSau();
-            Bam(H, "luu");
-        });
-        Bam(&W, "tiepNhan");
-        assert(D->LaySoLuot() == 15);
-        const int Moi = 14;
-        // Không điền sẵn sinh hiệu; đề xuất và xác nhận tách nhau.
-        QTimer::singleShot(0, [&] {
-            auto *H = Hop();
-            assert(Tim<QLineEdit>(H, "Mach")->text().isEmpty());
-            Bam(H, "luu");
-            assert(!Tim<QLabel>(H, "errMach")->text().isEmpty());
-            NhapSoDo(H);
-            Bam(H, "xemDeXuat");
-            assert(Tim<QLabel>(H, "deXuat")->text().contains("Mức 5"));
-            Bam(H, "luu");
-        });
-        W.MoDanhGia(Moi);
-        assert(D->LayLuot(Moi).Muc == 1);
-        assert(D->LayHangCho().CacLuot[0] == Moi);
-        Bam(&W, "goiTiep");
-        assert(D->LayLuot(Moi).TinhTrang == Demo::TrangThai::DangKham);
-        // Hai vòng cận lâm sàng, cùng mã lượt.
-        for (int Lan = 0; Lan < 2; ++Lan) {
-            QTimer::singleShot(0, [] {
-                Tim<QPlainTextEdit>(Hop(), "NoiDung")->setPlainText("Xét nghiệm mẫu");
-                Bam(Hop(), "luu");
-            });
-            W.MoCanLamSang(Moi, false);
-            Bam(&W, "tienGio");
-            QTimer::singleShot(0, [] {
-                Tim<QPlainTextEdit>(Hop(), "NoiDung")->setPlainText("Kết quả mẫu");
-                Bam(Hop(), "luu");
-            });
-            W.MoCanLamSang(Moi, true);
-            assert(D->LayLuot(Moi).TinhTrang == Demo::TrangThai::QuayLai);
-            Bam(&W, "goiTiep");
-            assert(D->LayLuot(Moi).TinhTrang == Demo::TrangThai::DangKham);
-        }
-        QTimer::singleShot(0, [] {
-            auto *M = qobject_cast<QMessageBox *>(Hop());
-            assert(M);
-            for (auto *B : M->buttons())
-                if (B->text() == "Xác nhận kết thúc") {
-                    B->click();
-                    break;
-                }
-        });
-        W.XacNhanDong(Moi, false);
-        assert(D->LayLuot(Moi).TinhTrang == Demo::TrangThai::KetThuc);
-        // Bổ sung danh tính, mã ổn định.
-        const auto Ma = D->LayHoSo(2).Ma;
-        QTimer::singleShot(0, [] {
-            auto *H = Hop();
-            Tim<QCheckBox>(H, "ChuaRo")->setChecked(false);
-            Nhap(H, "HoTen", "Nguyễn Đã Xác Minh");
-            Nhap(H, "Tuoi", "32");
-            Bam(H, "luu");
-        });
-        W.MoHoSo(2);
-        assert(D->LayHoSo(2).Ma == Ma && D->LayLuot(2).BenhNhan == 2);
-        // Đánh giá lại vẫn giữ mốc vào hàng, lịch sử tăng.
-        const auto Vao = D->LayLuot(6).VaoHangLuc;
-        QTimer::singleShot(0, [] {
-            NhapSoDo(Hop(), 1);
-            Bam(Hop(), "luu");
-        });
-        W.MoDanhGia(6);
-        assert(D->LayLuot(6).SoDanhGia == 2 && D->LayLuot(6).VaoHangLuc == Vao);
-        assert(D->LayHangCho().CacLuot[0] == 6);
-        // Đóng hộp thoại bằng Esc qua sự kiện bàn phím native.
-        QTimer::singleShot(0, [] {
-            QKeyEvent E(QEvent::KeyPress, Qt::Key_Escape, Qt::NoModifier);
-            QApplication::sendEvent(Hop(), &E);
-        });
-        W.MoDanhGia(6);
-        assert(!QApplication::activeModalWidget());
-        // Kịch bản 3:1 nạp bằng nút, xác nhận QMessageBox.
-        QTimer::singleShot(0, [] {
-            auto *M = qobject_cast<QMessageBox *>(Hop());
-            assert(M);
-            M->button(QMessageBox::Yes)->click();
-        });
-        Bam(&W, "baMot");
-        const auto Hang = D->LayHangCho();
-        for (int I = 0; I < 7; ++I) {
-            Bam(&W, "goiTiep");
-            assert(D->LayLuot(Hang.CacLuot[I]).TinhTrang == Demo::TrangThai::DangKham);
-        }
-        assert(!Tim<QPushButton>(&W, "goiTiep")->isEnabled());
-        // Khung hẹp: đổi sang thẻ, vẫn thấy mức/thời gian/thao tác.
-        D->NapMau();
-        W.LamMoi();
-        W.resize(600, 900);
-        U.processEvents();
-        assert(!Tim<QTableWidget>(&W, "hangCho")->isVisible());
-        assert(Tim<QPushButton>(&W, "theChiTiet0")->isVisible());
-        assert(Tim<QScrollArea>(&W, "mainScroll")->horizontalScrollBar()->maximum() == 0);
-        Chup(&W, "narrow.png");
-        W.resize(1440, 980);
-        U.processEvents();
-        Chup(&W, "desktop.png");
-        QTimer::singleShot(0, [] {
-            Chup(Hop(), "visit-detail.png");
-            Bam(Hop(), "dongChiTiet");
-        });
-        W.MoChiTiet(0);
-    }
-    delete D;
-    std::cout << "PASS: native widgets intake/assessment/queue/lab/identity/history/3:1/Esc/responsive\n";
+int main(int SoThamSo, char** ThamSo) {
+    QApplication UngDung(SoThamSo, ThamSo);
+    PatientRegistry R;
+    TriageService T(R);
+    VisitSearchService S(R);
+    DemoWindow W(R, T, S);
+    W.show(); UngDung.processEvents();
+    assert(!W.findChild<QPushButton*>("baMot"));
+    assert(!W.findChild<QPushButton*>("tienGio"));
+    QTimer::singleShot(0, [&] {
+        auto* H = Hop();
+        Nhap(H, "MaBenhNhan", "BN1"); Nhap(H, "HoTen", "Nguyễn An");
+        Nhap(H, "Tuoi", "30"); Nhap(H, "MaLanKham", "LK1");
+        Nhap(H, "TrieuChung", "Đau đầu"); Bam(H, "luu");
+    });
+    W.MoTiepNhan();
+    assert(R.SoBenhNhan() == 1 && R.SoLanKham() == 1);
+    QTimer::singleShot(0, [&] {
+        auto* H = Hop();
+        assert(!H->findChild<QComboBox*>("Muc"));
+        Nhap(H, "Mach", "sai"); Nhap(H, "HuyetAp", "120");
+        Nhap(H, "NhipTho", "18"); Nhap(H, "SpO2", "98"); Nhap(H, "GCS", "15");
+        Nhap(H, "MaDieuDuong", "DD1"); Bam(H, "luu");
+        assert(!Tim<QLabel>(H, "loiTong")->text().isEmpty());
+        assert(R.TimLanKham("LK1")->SoDanhGia() == 0);
+        Nhap(H, "Mach", "80"); Bam(H, "luu");
+    });
+    W.MoDanhGia("LK1");
+    assert(T.SoDangCho() == 1);
+    assert(R.TimLanKham("LK1")->LayDanhGiaGanNhat().LayMuc() == 5);
+    assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 1);
+    Nhap(&W, "maBacSi", "BS1"); Bam(&W, "goiTiep");
+    assert(R.TimLanKham("LK1")->LayTrangThai() == VisitStatus::DangKham);
+    QTimer::singleShot(0, [&] {
+        auto* H = Hop(); Nhap(H, "NoiDung", "Xét nghiệm");
+        Nhap(H, "MaBacSi", "BS2"); Bam(H, "luu");
+        assert(!Tim<QLabel>(H, "loiTong")->text().isEmpty());
+        Nhap(H, "MaBacSi", "BS1"); Bam(H, "luu");
+    });
+    W.MoCanLamSang("LK1", false);
+    assert(R.TimLanKham("LK1")->LayTrangThai() == VisitStatus::ChoCanLamSang);
+    QTimer::singleShot(0, [&] { Nhap(Hop(), "NoiDung", "Bình thường"); Bam(Hop(), "luu"); });
+    W.MoCanLamSang("LK1", true);
+    assert(T.SoDangCho() == 1);
+    Patient P("BN2", "Bình", Gender::Nam); P.DatTuoiUocLuong(30); R.ThemBenhNhan(P);
+    T.TiepNhan("LK2", "BN2", std::time(nullptr), "Khám");
+    T.DanhGia("LK2", VitalSigns(80,120,18,98,15), std::time(nullptr), "DD1");
+    W.LamMoi();
+    UngDung.processEvents();
+    assert(W.grab().save("demo-core-workflow.png"));
+    // Lọc không tiêu thụ lượt hòa: lần đầu vẫn nhường quay lại ở lần hòa đầu tiên.
+    Bam(&W, "locLuong1"); Bam(&W, "goiTiep");
+    assert(R.TimLanKham("LK1")->LayTrangThai() == VisitStatus::DangKham);
+    assert(R.TimLanKham("LK2")->LayTrangThai() == VisitStatus::ChoKhamLanDau);
+    Bam(&W, "nav3"); Nhap(&W, "timChung", "nguyễn");
+    assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 1);
+    Nhap(&W, "maLanKhamLoc", "LK2");
+    assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 0);
+    Nhap(&W, "maLanKhamLoc", "LK1");
+    assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 1);
+    // KPI phải mở cả nhóm chờ khám, bỏ bộ lọc chính xác LK1 của tra cứu trước.
+    Nhap(&W, "ngayLoc", "01/01/2000"); Bam(&W, "xemKpi1");
+    assert(Tim<QLineEdit>(&W, "maLanKhamLoc")->text().isEmpty());
+    assert(Tim<QLineEdit>(&W, "ngayLoc")->text().isEmpty());
+    assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 1);
+    R.ThemBenhNhan("BN3", "Chưa khám"); Bam(&W, "nav4");
+    assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 3);
+    // Trùng mã Visit phải bị chặn trước khi tạo Patient mới.
+    QTimer::singleShot(0, [&] {
+        auto *H = Hop(); Nhap(H, "MaBenhNhan", "BN_KHONG_TAO");
+        Nhap(H, "MaLanKham", "LK1"); Nhap(H, "TrieuChung", "Khám"); Bam(H, "luu");
+        assert(!Tim<QLabel>(H, "loiTong")->text().isEmpty());
+        assert(R.TimBenhNhan("BN_KHONG_TAO") == nullptr); Bam(H, "dongHop");
+    });
+    W.MoTiepNhan();
+    // Chọn hồ sơ đã có và đang khám: không mở thêm Visit.
+    QTimer::singleShot(0, [&] {
+        auto *H = Hop(); Tim<QComboBox>(H, "cheDo")->setCurrentIndex(1);
+        Nhap(H, "timHoSo", "BN1"); auto *L = Tim<QListWidget>(H, "chonHoSo");
+        assert(L->count() == 1); L->setCurrentRow(0);
+        Nhap(H, "MaLanKham", "LK_KHONG_TAO"); Nhap(H, "TrieuChung", "Khám"); Bam(H, "luu");
+        assert(R.TimLanKham("LK_KHONG_TAO") == nullptr);
+        assert(!Tim<QLabel>(H, "loiTong")->text().isEmpty()); Bam(H, "dongHop");
+    });
+    W.MoTiepNhan();
+    // Đổi danh tính qua Registry giữ nguyên địa chỉ hồ sơ và lịch sử.
+    const Patient *Cu = R.TimBenhNhan("BN1");
+    QTimer::singleShot(0, [&] {
+        auto *H = Hop(); Nhap(H, "HoTen", "Nguyễn An mới");
+        Nhap(H, "NgaySinh", "01/01/1996"); Nhap(H, "CanCuoc", "001"); Bam(H, "luu");
+    });
+    W.MoHoSo("BN1"); assert(R.TimBenhNhan("BN1") == Cu);
+    assert(Cu->LayHoTen() == "Nguyễn An mới" && R.TimLanKham("LK1")->SoDanhGia() == 1);
+    Bam(&W, "nav3"); Nhap(&W, "timChung", "an mới");
+    const QString Ngay = QDateTime::fromSecsSinceEpoch(R.TimLanKham("LK1")->LayThoiDiemTiepNhan(), Qt::UTC)
+        .addSecs(7*3600).toString("dd/MM/yyyy");
+    Nhap(&W, "ngayLoc", Ngay); assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 1);
+    Nhap(&W, "ngayLoc", "31/02/2026"); assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 0);
+    assert(Tim<QLabel>(&W, "soKetQua")->text().contains("không hợp lệ"));
+    Nhap(&W, "ngayLoc", "01/01/2000"); assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 0);
+    // Hộp chi tiết của Visit đang khám không cho đánh giá lại.
+    QTimer::singleShot(0, [&] {
+        assert(!Hop()->findChild<QPushButton*>("danhGia"));
+        assert(Hop()->findChild<QPushButton*>("chuyenCls")); Bam(Hop(), "dongHop");
+    });
+    W.MoChiTiet("LK1");
+    QTimer::singleShot(0, [] { Bam(Hop(), "xacNhanDong"); }); W.XacNhanDong("LK1", false);
+    assert(R.TimLanKham("LK1")->LayTrangThai() == VisitStatus::DaKetThuc);
+    QTimer::singleShot(0, [] { static_cast<QDialog*>(Hop())->reject(); }); W.XacNhanDong("LK2", true);
+    assert(T.SoDangCho() == 1);
+    QTimer::singleShot(0, [] { Bam(Hop(), "xacNhanDong"); }); W.XacNhanDong("LK2", true);
+    assert(R.TimLanKham("LK2")->LayTrangThai() == VisitStatus::DaHuy && T.SoDangCho() == 0);
+    Bam(&W, "nav4");
+    W.resize(520, 800); UngDung.processEvents();
+    assert(Tim<QScrollArea>(&W, "mainScroll")->horizontalScrollBar()->maximum() == 0);
+    assert(W.grab().save("demo-core-narrow.png"));
+    W.resize(1440, 980); UngDung.processEvents();
+    Bam(&W, "nav0"); assert(W.grab().save("demo-core-wide.png"));
 }

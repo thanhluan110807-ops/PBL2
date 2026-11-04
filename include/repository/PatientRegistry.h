@@ -52,6 +52,8 @@ public:
     // Tìm một phần tên, giữ dấu, không phân biệt hoa/thường ASCII và tiếng Việt.
     // Chuỗi tìm rỗng trả danh sách rỗng; kết quả không cam kết thứ tự.
     Vector<const Patient*> TimBenhNhanTheoTen(const std::string& TenCanTim) const;
+    // Mượn tất cả hồ sơ, gồm cả người chưa khám; không cam kết thứ tự.
+    Vector<const Patient*> LayDanhSachBenhNhan() const;
     // Kết hợp các điều kiện bằng AND; tên tìm một phần, mã lần khám khớp chính xác.
     // Chuỗi rỗng/nullptr bỏ lọc; ngày là ngày tiếp nhận Việt Nam (UTC+7).
     // Mới nhất trước, cùng thời điểm thì mã lần khám tăng dần; gồm cả đã đóng/hủy.

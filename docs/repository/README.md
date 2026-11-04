@@ -2,7 +2,42 @@
 
 `PatientRegistry` sở hữu hồ sơ Patient và Visit trong bộ nhớ. Patient đại diện
 một người bệnh có mã dùng xuyên suốt; Visit đại diện một lần khám có mã riêng.
-Chưa lưu file, chưa tự sinh mã hoặc gộp hồ sơ. Các mã do bên gọi cung cấp.
+Registry không tự đọc/ghi file; `PatientFileManager` hiện chỉ đọc Patient CSV.
+Chưa lưu file Visit, chưa tự sinh mã hoặc gộp hồ sơ. Các mã do bên gọi cung cấp.
+
+## Đọc hồ sơ Patient từ CSV
+
+`PatientFileManager::DocBenhNhan(DuongDan)` đọc file UTF-8 có tiêu đề cố định
+và một dòng cho mỗi Patient, rồi trả con trỏ `PatientRegistry*` mới. Bên gọi
+sở hữu con trỏ và phải `delete` sau khi các service mượn Registry đã bị hủy.
+Gọi trực tiếp lớp `PatientFileManager`; không có lớp trừu tượng trung gian.
+
+```cpp
+PatientFileManager QuanLyFile;
+PatientRegistry* SoBo = QuanLyFile.DocBenhNhan("patients.csv");
+// Tạo và dùng các service mượn *SoBo sau khi đọc thành công.
+// Hủy các service trước, rồi giải phóng Registry:
+delete SoBo;
+```
+
+Tiêu đề v1 là:
+
+```csv
+MaBenhNhan,HoTen,GioiTinh,NgaySinh,SoCanCuoc,NhomMau,ThongTinDiUng,TienSuBenh,TuoiUocLuong
+```
+
+Ngày sinh dùng `YYYY-MM-DD`; ngày hoặc tuổi ước lượng chưa biết để trống, còn
+tuổi `0` là một giá trị hợp lệ. CCCD được giữ dạng chuỗi để không mất số 0 đầu.
+Các trường chứa dấu phẩy, dấu ngoặc kép hoặc xuống dòng dùng quy tắc CSV có
+ngoặc kép; bộ đọc chấp nhận BOM UTF-8 đầu file. Xem [thiết kế CSV](../superpowers/specs/2026-11-04-patient-csv-read-design.md)
+để biết các giá trị giới tính/nhóm máu và ví dụ đầy đủ.
+
+File thiếu, tiêu đề hoặc dữ liệu sai, mã/CCCD trùng đều báo lỗi; lỗi dữ liệu có
+số dòng bắt đầu bản ghi. Nếu lỗi giữa file, Registry tạm được hủy và không có
+Registry mới được trả ra. Bộ đọc tự `delete` Registry tạm khi gặp lỗi giữa file.
+Chỉ thay dữ liệu đang dùng lúc khởi động, trước khi
+tạo service mượn Registry. Chưa có hàm ghi CSV, đọc Visit hoặc khôi phục hàng
+chờ, nên bộ đọc này chưa phục hồi toàn bộ phiên làm việc.
 
 ## Tiếp nhận đúng hồ sơ
 
@@ -225,3 +260,6 @@ Trong môi trường Codex hiện tại, LeakSanitizer báo fatal do giới hạ
 Debug ASan/UBSan được kiểm tra với ASAN_OPTIONS=detect_leaks=0:halt_on_error=1;
 đây không phải kết quả LeakSanitizer. Test allocation riêng đếm khối nhớ để
 kiểm tra thu hồi qua từng lỗi cấp phát và destructor Registry.
+
+GUI dùng `LayDanhSachBenhNhan()` để liệt kê cả hồ sơ chưa có Visit. Kết quả
+`Vector<const Patient*>` chỉ mượn hồ sơ; không tự delete và không cam kết thứ tự.

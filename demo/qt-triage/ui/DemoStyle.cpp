@@ -1,8 +1,39 @@
+#include <QWidget>
+#include <QLabel>
+#include <QPushButton>
+#include <QIcon>
+#include <QVariant>
 #include "ui/DemoStyle.h"
+#include <QDateTime>
+#include <QColor>
+#include <QPixmap>
+#include <QPen>
+#include <QChar>
+#include <QString>
+#include <ctime>
+#include <string>
+#include "model/Visit.h"
 #include <QPainter>
 #include <QPainterPath>
 
 namespace DemoUi {
+QString ThoiDiem(std::time_t Luc) {
+    return QDateTime::fromSecsSinceEpoch(static_cast<qint64>(Luc), Qt::UTC)
+        .addSecs(7 * 3600).toString("dd/MM/yyyy HH:mm");
+}
+QString TenTrangThai(const Visit &LanKham) {
+    if (LanKham.LayTrangThai() == VisitStatus::ChoKhamLanDau && LanKham.SoDanhGia() == 0)
+        return "Chờ đánh giá";
+    switch (LanKham.LayTrangThai()) {
+    case VisitStatus::ChoKhamLanDau: return "Chờ khám lần đầu";
+    case VisitStatus::DangKham: return "Đang khám";
+    case VisitStatus::ChoCanLamSang: return "Chờ cận lâm sàng";
+    case VisitStatus::ChoKhamQuayLai: return "Chờ khám quay lại";
+    case VisitStatus::DaKetThuc: return "Đã kết thúc";
+    case VisitStatus::DaHuy: return "Đã hủy";
+    }
+    return "";
+}
 QString Qss() {
     return QString::fromUtf8(R"(
 QWidget { font-family: "Inter", "Segoe UI", "DejaVu Sans"; font-size: 14px; color: #28282B; }

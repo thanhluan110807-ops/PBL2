@@ -250,3 +250,11 @@ Vector<const Visit*> PatientRegistry::LayLichSuLanKham(const std::string& MaBenh
 
 int PatientRegistry::SoBenhNhan() const { return DanhSachBenhNhan.Kichthuoc(); }
 int PatientRegistry::SoLanKham() const { return DanhSachLanKham.Kichthuoc(); }
+
+Vector<const Patient*> PatientRegistry::LayDanhSachBenhNhan() const {
+    Vector<const Patient*> KetQua;
+    DanhSachBenhNhan.Duyet([&](const std::string&, const Patient* BenhNhan) {
+        KetQua.ThemCuoi(BenhNhan);
+    });
+    return KetQua;
+}

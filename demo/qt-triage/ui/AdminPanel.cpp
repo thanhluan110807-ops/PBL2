@@ -1,3 +1,4 @@
+#include <QtGlobal>
 // Phần B — Chức năng chính: Giao diện Qt quản lý nhân sự, ca trực và nhập/xuất file.
 #include "model/BacSi.h"
 #include "model/DieuDuong.h"
@@ -149,7 +150,7 @@ void AdminPanel::TaoNhanSu(QTabWidget* Tab) {
     KinhNghiem = new QSpinBox; KinhNghiem->setRange(0,80); F->addRow("Năm kinh nghiệm",KinhNghiem);
     ChuyenKhoa = new QLineEdit; ChuyenKhoa->setObjectName("staffSpecialty"); F->addRow("Chuyên khoa",ChuyenKhoa);
     DiemNen = new QDoubleSpinBox; DiemNen->setRange(0,10000); F->addRow("Điểm mệt mỏi nền",DiemNen);
-    connect(LoaiNV,&QComboBox::currentIndexChanged,this,[CapNhatCap](int) { CapNhatCap(); }); CapNhatCap();
+    connect(LoaiNV,qOverload<int>(&QComboBox::currentIndexChanged),this,[CapNhatCap](int) { CapNhatCap(); }); CapNhatCap();
     GioMongDau = new QSpinBox; GioMongDau->setRange(0,23); GioMongDau->setValue(7);
     GioMongCuoi = new QSpinBox; GioMongCuoi->setRange(0,23); GioMongCuoi->setValue(15);
     MongCuoiTuan = new QCheckBox("Ưu tiên ca cuối tuần");

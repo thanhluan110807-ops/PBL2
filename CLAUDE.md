@@ -133,6 +133,8 @@ Quy tắc:
 - Quy ước áp dụng cho tên mới từ thời điểm này. Khi đổi tên có sẵn, cập nhật đồng bộ khai báo, định nghĩa, nơi sử dụng và kiểm thử; việc đổi tên toàn bộ mã cũ là một thay đổi riêng.
 - File: tên trùng tên class (`Patient.h`, `Patient.cpp`)
 - Mỗi header có `#pragma once`
+- Mỗi file `.h`/`.cpp` phải `#include` trực tiếp các header định nghĩa kiểu hoặc API mà file đó sử dụng; không dựa vào include gián tiếp từ file khác.
+- Không dùng `#include <cstddef>`. Với chỉ số chuỗi dùng `std::string::size_type` từ `<string>`; với giá trị băm dùng kiểu số nguyên không dấu. Riêng chữ ký `operator new`/`operator delete` trong test vẫn dùng `std::size_t` do `<new>` cung cấp trực tiếp theo chuẩn C++.
 - Class thông thường có cặp file `.h` / `.cpp`; class template có thể đặt cả khai báo và cài đặt trong `.h` như các cấu trúc dữ liệu ở `include/dsa/`.
 - Dùng `const` và tham chiếu `const&` khi truyền đối tượng lớn
 - Ưu tiên `Vector`, `LinkedList`, `HashTable`, `PriorityQueue` tự viết trong `include/dsa/`; không dùng container STL thay thế các cấu trúc dữ liệu thuộc mục tiêu đồ án.
@@ -156,13 +158,14 @@ Quy tắc:
 Chạy từ thư mục gốc repository theo [hướng dẫn build/test trong README.md](README.md#build-và-chạy-toàn-bộ-test-hiện-có). README duy trì các lệnh sử dụng; `CMakeLists.txt` định nghĩa target và đăng ký test.
 
 - `pbl2_core` là thư viện lõi, không chứa GUI hoặc `main`; các test là chương trình độc lập, không cần Qt.
-- `BUILD_TESTING=ON` bật hai test C++ và các kiểm tra nguồn bằng Python; chạy toàn bộ qua CTest với `--no-tests=error`. Header lõi được biên dịch độc lập khi build. Xem README để biết phạm vi và các thư mục bị loại trừ; assertions vẫn hoạt động trong Release.
+- `BUILD_TESTING=ON` bật các test C++ và các kiểm tra nguồn bằng Python; chạy toàn bộ qua CTest với `--no-tests=error`. Header lõi được biên dịch độc lập khi build. Xem README để biết phạm vi và các thư mục bị loại trừ; assertions vẫn hoạt động trong Release.
 - `PBL2_ENABLE_SANITIZERS=ON` bật AddressSanitizer/UndefinedBehaviorSanitizer với GCC/Clang có runtime phù hợp; cấu hình thường mặc định OFF.
 - GitHub Actions chạy Debug, Release và Debug có sanitizer cho PR vào `dev` và push lên `dev`. Chỉ báo CI đạt khi có kết quả chạy thực tế.
-- Có target demo riêng `pbl2_qt_demo`, bật bằng `PBL2_BUILD_QT_DEMO=ON` (mặc định OFF). Demo native Qt Widgets/QSS và service mô phỏng C++ nằm trong `demo/qt-triage/`; giữ build lõi/test hiện có độc lập Qt. Xem README của demo để build/chạy và biết giới hạn.
+- Có target demo riêng `pbl2_qt_demo`, bật bằng `PBL2_BUILD_QT_DEMO=ON` (mặc định OFF). Demo native Qt Widgets/QSS nằm trong `demo/qt-triage/`, nối Registry/TriageService/VisitSearchService thật và đọc/ghi Patient/Visit, khôi phục hàng chờ; tự ghi vào bộ file đã chọn sau thay đổi, có backup/journal để khôi phục ghi gián đoạn; giữ build lõi/test hiện có độc lập Qt. Code mô phỏng cũ được giữ làm lịch sử, không thuộc target demo hiện tại. Xem README của demo để build/chạy và biết giới hạn.
 
 ## 10. Quy trình Git
 
+- Theo quyết định mới nhất: làm việc trên `work`; khi hoàn tất và kiểm tra phù hợp, đưa vào `dev` qua merge theo yêu cầu, sau khi đối chiếu nhánh đích.
 - Branch chính: `main` (luôn chạy được)
 - Branch tính năng: `feature/<ten-tinh-nang>` (ví dụ `feature/triage-queue`)
 - Branch sửa lỗi: `fix/<mo-ta>`

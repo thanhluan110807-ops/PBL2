@@ -1,4 +1,8 @@
 #pragma once
+#include <string>
+#include <ctime>
+#include "model/Visit.h"
+#include <QColor>
 #include <QFrame>
 #include <QIcon>
 #include <QLabel>
@@ -7,6 +11,8 @@
 
 namespace DemoUi {
 QString Qss();
+QString ThoiDiem(std::time_t Luc);
+QString TenTrangThai(const Visit &LanKham);
 QIcon BieuTuong(const QString &Ten, const QColor &Mau = QColor("#766a90"));
 QLabel *Nhan(const QString &Chu, const char *VaiTro = "", QWidget *Cha = nullptr);
 QPushButton *Nut(const QString &Chu, const char *Ma, bool Chinh = false);

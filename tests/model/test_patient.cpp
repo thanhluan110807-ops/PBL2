@@ -1,8 +1,22 @@
 #include "model/Patient.h"
-#include "util/My_stdexcept.h"
+
 #include <cassert>
+#include <string>
+
+#include "model/Date.h"
+#include "model/Gender.h"
+#include "util/My_stdexcept.h"
 
 int main() {
+    // Có CCCD không có nghĩa đã biết ngày sinh; giữ cả các số 0 đầu.
+    Patient CoCanCuoc("BN_CCCD", "Le An", Gender::Nu, "001234567890");
+    assert(CoCanCuoc.LaySoCanCuoc() == "001234567890");
+    assert(!CoCanCuoc.CoNgaySinh());
+    Patient ChiBietCanCuoc("BN_CCCD2", "", Gender::ChuaXacDinh, "009876543210");
+    assert(ChiBietCanCuoc.LaySoCanCuoc() == "009876543210");
+    assert(ChiBietCanCuoc.LaBenhNhanVoDanh());
+    Patient DuThongTin("BN_CCCD3", "Le B", Gender::Nam, Date{1, 1, 2000}, "001111111111");
+    assert(DuThongTin.LaySoCanCuoc() == "001111111111" && DuThongTin.CoNgaySinh());
     Patient VoDanh("BN001");
     assert(VoDanh.LaBenhNhanVoDanh());
     assert(VoDanh.LayHoTen().empty());

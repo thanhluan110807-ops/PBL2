@@ -50,10 +50,26 @@ public:
     BanGhiCanLamSang() = default;
     BanGhiCanLamSang(const std::string& ChiDinh, const std::string& MaBacSiChiDinh)
         : ChiDinh(ChiDinh), MaBacSiChiDinh(MaBacSiChiDinh) {}
+    // Dựng bản ghi từ file, kiểm tra chỉ định và cờ kết quả khớp nội dung.
+    BanGhiCanLamSang(const std::string& ChiDinh, const std::string& MaBacSiChiDinh,
+                    bool CoKetQua, const std::string& KetQua);
     const std::string& LayChiDinh() const { return ChiDinh; }
     const std::string& LayKetQua() const { return KetQua; }
     const std::string& LayMaBacSiChiDinh() const { return MaBacSiChiDinh; }
     bool DaCoKetQua() const { return CoKetQua; }
+};
+
+// Dữ liệu sao chép độc lập dùng để lưu/khôi phục, không giữ con trỏ Patient.
+struct BanChupLanKham {
+    std::string MaLanKham, MaBenhNhan, TrieuChungChinh;
+    std::time_t ThoiDiemTiepNhan = 0;
+    VisitStatus TrangThai = VisitStatus::ChoKhamLanDau;
+    Vector<TriageAssessment> DanhGia;
+    Vector<BanGhiCanLamSang> CanLamSang;
+    Vector<std::string> BacSiPhanCong, BacSiThamGia;
+    // Giữ danh sách mã cho bên gọi cũ; lịch sử mới lưu đầy đủ sự kiện khám.
+    // Nếu chi tiết rỗng, đây là bản cũ chỉ biết mã, thời điểm được khôi phục là 0.
+    Vector<DoctorParticipation> BacSiThamGiaChiTiet;
 };
 
 class Visit {
@@ -70,6 +86,13 @@ class Visit {
 public:
     Visit(const std::string& MaLanKham, const std::string& MaBenhNhan,
           std::time_t ThoiDiemTiepNhan, const std::string& TrieuChungChinh);
+    // Có thể chép lịch sử để xem, nhưng không được move lấy mất dữ liệu
+    // của một Visit đang được Registry giữ và cho thành phần khác mượn.
+    Visit(const Visit&) = default;
+    Visit(Visit&&) = delete;
+    BanChupLanKham LayBanChup() const;
+    // Trả đối tượng mới do bên gọi sở hữu; chỉ công bố khi toàn bộ lịch sử hợp lệ.
+    static Visit* TuBanChup(const BanChupLanKham& BanChup);
     const std::string& LayMaLanKham() const { return MaLanKham; }
     const std::string& LayMaBenhNhan() const { return MaBenhNhan; }
     const std::string& LayTrieuChungChinh() const { return TrieuChungChinh; }

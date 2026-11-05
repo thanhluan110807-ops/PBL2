@@ -4,11 +4,13 @@
 
 Dự án C++17 mô phỏng phân loại cấp cứu và xếp lịch trực. Giao diện người dùng theo định hướng Qt Widgets; quy ước lập trình nằm trong [CLAUDE.md](CLAUDE.md).
 
-## Phạm vi hiện tại trên dev
+## Phạm vi hiện tại
 
-Repository có model bệnh nhân/lần khám, nhân sự/lịch trực, các registry/file manager, DSA tự viết và kiểm thử độc lập. CMake biên dịch thư viện lõi và các test; CTest chạy các test đã đăng ký.
+Nhánh này có các model `Person`, `Patient`, `Visit`, `PatientRegistry`, `TriageService`, `VisitSearchService`, bộ đọc/ghi CSV `PatientFileManager`, `VisitFileManager`, `SessionFileManager`, ngoại lệ tự viết và các cấu trúc dữ liệu dùng chung. `VisitSearchService` tra cứu các lần khám theo thông tin bệnh nhân trên dữ liệu trong Registry; xem [thiết kế và giới hạn](docs/superpowers/specs/2026-11-04-visit-search-patient-design.md). `PatientFileManager` đọc/ghi hồ sơ Patient; `VisitFileManager` đọc/ghi Visit và trạng thái hàng chờ; `SessionFileManager` điều phối một cặp file; xem [hướng dẫn file Patient](docs/repository/README.md#đọc-hồ-sơ-patient-từ-csv). CMake biên dịch thư viện lõi và các test; CTest chạy các test đã đăng ký.
 
-Có demo Qt Widgets/C++ riêng với target `pbl2_qt_demo`, bật bằng `PBL2_BUILD_QT_DEMO=ON`; xem [hướng dẫn demo Qt](demo/qt-triage/README.md). Demo dùng dữ liệu mô phỏng trong bộ nhớ và QSS, tách khỏi API lõi. Tùy chọn mặc định OFF, nên build lõi và các kiểm thử hiện có **không cần Qt**. Đầu ra console của test phục vụ kiểm tra, không phải giao diện người dùng.
+Phần nhân sự/lịch trực có StaffRegistry, ScheduleRegistry, SchedulerService, FatigueService và các bộ đọc/ghi riêng; xem [bản đồ phần B](docs/PHAN-B.md).
+
+Có demo Qt Widgets/C++ riêng với target `pbl2_qt_demo`, bật bằng `PBL2_BUILD_QT_DEMO=ON`; xem [hướng dẫn demo Qt](demo/qt-triage/README.md). Demo dùng QSS và nối trực tiếp Registry/TriageService/VisitSearchService; nạp Patient/Visit khi khởi động, tự cập nhật bộ file đã chọn sau mỗi thay đổi, có dự phòng và khôi phục khi ghi gián đoạn. Tùy chọn mặc định OFF, nên build lõi và các kiểm thử hiện có **không cần Qt**. Đầu ra console của test phục vụ kiểm tra, không phải giao diện người dùng.
 
 ## Yêu cầu
 
@@ -76,11 +78,19 @@ Cấu hình này chủ ý không tạo test. Để kiểm tra chất lượng, d
 | `pbl2_core` | Thư viện tĩnh chứa model, repository, service; công khai header `include/` |
 | `test_person` | Dữ liệu đầu vào, ngày sinh chưa biết, tính tuổi quanh sinh nhật, cập nhật, mã định danh và destructor ảo |
 | `test_my_stdexcept` | Vòng đời/sao chép thông báo, giới hạn bộ đệm, bắt lỗi; tích hợp lỗi vượt phạm vi của LinkedList/HashTable |
+| `test_patient`, `test_visit` | Hồ sơ bệnh nhân, đánh giá và trạng thái lần khám |
+| `test_patient_registry`, `test_patient_registry_allocation` | Quy tắc hồ sơ/lần khám, quyền sở hữu và lỗi cấp phát |
+| `test_patient_file_manager` | Đọc/ghi hồ sơ Patient, round-trip CSV và lỗi I/O |
+| `test_visit_file_manager`, `test_visit_restore`, `test_session_file_manager`, `test_autosave_file_manager` | Lịch sử Visit, khôi phục hàng chờ, dữ liệu sai và cặp file lưu phiên |
+| `test_triage_service`, `test_triage_allocation` | Điều phối hàng chờ, chuyển trạng thái và xử lý lỗi cấp phát |
+| `test_visit_search_service` | Tra cứu lần khám theo bệnh nhân qua service, lọc kết hợp và lỗi ngày không hợp lệ |
+| `test_admin`, `test_file_io`, `test_schedule_uml`, `test_staff_uml`, `test_staff`, `test_admin_containers` | Nhân sự, xếp lịch, cấu trúc dữ liệu và đọc/ghi phần B |
+| `test_vector`, `test_priority_queue` | Kiểm thử độc lập mảng động và hàng đợi ưu tiên |
 | `check_project_sources` | Kiểm tra include trực tiếp `stdexcept` và dấu hiệu Qt trong mã lõi |
 | `test_project_checks` | Kiểm tra công cụ bằng các tình huống vi phạm, comment/literal và thư mục bị loại trừ |
 | `check_core_headers` (target build) | Biên dịch từng header lõi độc lập; cũng được thực hiện khi build toàn bộ |
 
-CTest đăng ký **14 kiểm tra lõi**. Bật `PBL2_BUILD_QT_DEMO=ON` bổ sung ba kiểm tra demo/GUI, tổng cộng **17**. Các chương trình test chạy độc lập; assertions vẫn hoạt động trong Release.
+CTest đăng ký **24 kiểm tra lõi** (22 C++ và hai Python). `PBL2_BUILD_QT_DEMO=ON` bổ sung `test_demo_widgets`, `test_demo_startup`, `test_demo_persistence` và `test_admin_widgets`, tổng cộng **28 kiểm tra**. Kết quả đạt cần toàn bộ kiểm tra thành công, không có lỗi sanitizer khi bật sanitizer.
 
 Có thể chạy một test từ cấu hình đã build bằng `ctest --test-dir build -R '^test_person$' --output-on-failure --no-tests=error`. Dùng `ctest --test-dir build -V` để xem đầu ra chi tiết.
 
@@ -127,6 +137,7 @@ Tác vụ cloud đã được cách ly; chỉ tạo Git worktree nếu người 
 
 ## Tài liệu liên quan
 
+- [Điều phối phân loại và hàng chờ](docs/service/README.md)
 - [Kiểm thử và giao diện Person](tests/model/README.md)
 - [Ngoại lệ My_stdexcept](docs/util/README.md)
 - [Cấu trúc dữ liệu dùng chung](docs/dsa/README.md)
@@ -136,4 +147,4 @@ Tác vụ cloud đã được cách ly; chỉ tạo Git worktree nếu người 
 
 Nhân sự được tách thành `NhanVienYTe`, `BacSi`, `DieuDuong`; lịch có `Shift`, `ShiftAssignment`, `ScheduleRegistry`. `StaffFileManager` đọc/ghi nhân viên, `ScheduleFileManager` đọc/ghi lịch, `AdminFileManager` lưu snapshot chung cho GUI. Xem [bảng chức năng phần B](docs/PHAN-B.md); từng file có ghi chú chức năng chính ở đầu và mỗi thư mục có README tra cứu.
 
-Cấu hình hiện tại có **14 CTest lõi**, hoặc **17 khi bật Qt demo**, gồm cả kiểm thử đọc file lỗi, bảo toàn dữ liệu và nhập/xuất nhân viên qua giao diện. File `Staff` và `DocFile` cũ cùng thư mục `docs/member-b` đã xóa được giữ nguyên trạng thái đó.
+Cấu hình hợp nhất hiện tại có **24 CTest lõi**, hoặc **28 khi bật Qt demo**, gồm cả kiểm thử đọc file lỗi, bảo toàn dữ liệu và nhập/xuất nhân viên qua giao diện. File `Staff` và `DocFile` cũ cùng thư mục `docs/member-b` đã xóa được giữ nguyên trạng thái đó.

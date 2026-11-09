@@ -4,7 +4,7 @@
 
 **Goal:** Hoàn thiện AdminPanel Qt nối demo An Tâm theo bản thiết kế đã duyệt.
 
-**Architecture:** Giữ AdminPanel và các service/file hiện có; thay đổi chỉ ở widget, QSS và test. DemoWindow tiếp tục mở AdminPanel.
+**Architecture:** Giữ AdminPanel và các service/file hiện có; thay đổi phần lịch ở widget, QSS và test. Theo yêu cầu bổ sung, DemoWindow nhúng AdminPanel trong vùng nội dung chính.
 
 **Tech Stack:** C++17, Qt Widgets/QSS, CMake/CTest, assert.
 
@@ -14,7 +14,7 @@
 
 - Giữ tên class và API nghiệp vụ; không thêm thư viện UI.
 - Không triển khai đăng nhập/phân quyền tương lai.
-- Không thay cơ chế lưu phần B.
+- Giữ định dạng snapshot phần B; theo yêu cầu bổ sung, tự nạp nguồn liên kết và ghi khi bấm Lưu thay đổi.
 - Giữ file cục bộ không liên quan và chỉ commit/push khi người dùng yêu cầu.
 
 ## Review Focus
@@ -47,3 +47,9 @@
 
 - [x] Kiểm tra bố cục 580×680 và 1050×760, test thao tác Qt và lưu/nạp qua demo.
 - [x] Cập nhật tài liệu, build và CTest; kiểm tra diff/status.
+
+### Điều chỉnh đã triển khai theo yêu cầu bổ sung
+
+- [x] Chuyển nhân sự/lịch thành trang trong cửa sổ chính, giữ dữ liệu khi đổi trang và cảnh báo khi đóng với thay đổi chưa lưu.
+- [x] Bỏ hộp chọn file và nút nhập/xuất khỏi GUI, dùng một nút xanh Lưu thay đổi ghi nguồn liên kết.
+- [x] Kiểm tra cửa sổ chính ở 520×800 và 1440×980, widget lịch độc lập ở 580×680 và 1050×760.

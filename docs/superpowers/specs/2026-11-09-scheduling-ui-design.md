@@ -13,6 +13,8 @@ Căn cứ: `docs/PHAN-B.md`, `demo/qt-triage/README.md`, `AdminPanel.h/.cpp`, `S
 
 Đề xuất nâng cấp AdminPanel tại chỗ, giữ tên class và vị trí file. Hướng viết một bộ cửa sổ khác sẽ trùng các luồng nhân sự/lịch đã có và làm tăng phạm vi kiểm tra, nên không chọn. Chưa tách MainWindow mới hay chuyển ứng dụng sang web.
 
+Điều chỉnh theo yêu cầu tiếp theo của người dùng: mục **Nhân sự và lịch trực** chuyển trang trong vùng nội dung chính, cùng cấp với Lượt khám/Hồ sơ bệnh nhân. Không mở hộp thoại quản trị riêng. File dữ liệu được liên kết sẵn; giao diện chỉ có nút **Lưu thay đổi** màu xanh lá để ghi trực tiếp.
+
 ## Quy tắc thiết kế từ UI/UX Pro Max
 
 Đã chạy tìm kiếm hệ thiết kế cho healthcare scheduling và enterprise operations dashboard, sau đó tìm riêng keyboard focus modal. Kết quả thứ hai gợi ý Minimalism & Swiss Style phù hợp ứng dụng nghiệp vụ: bố cục rõ, khoảng cách đều, chữ dễ đọc, ít hiệu ứng. Các phần Hero/Testimonials/CTA của bộ sinh hướng tới trang quảng cáo nên không áp dụng; chưa tìm được mẫu cấu trúc chuyên biệt cho lịch bệnh viện từ bộ sinh. Không lưu kết quả thô đó làm chuẩn sản phẩm.
@@ -31,17 +33,17 @@ Căn cứ: `docs/PHAN-B.md`, `demo/qt-triage/README.md`, `AdminPanel.h/.cpp`, `S
 
 Ba tab giữ thứ tự quy trình hiện tại:
 
-1. **Nhân sự:** gom biểu mẫu thành thông tin cơ bản, chuyên môn, nguyện vọng và dự phòng. Bảng là vùng chính; xem chi tiết người đã chọn bằng vùng thông tin đọc được. Ghi rõ nguyện vọng là ưu tiên mềm. Giữ thao tác sàng lọc và nhập/xuất nhân viên.
+1. **Nhân sự:** gom biểu mẫu thành thông tin cơ bản, chuyên môn, nguyện vọng và dự phòng. Xem chi tiết người đã chọn bằng vùng thông tin đọc được. Ghi rõ nguyện vọng là ưu tiên mềm. Giữ thao tác sàng lọc; bỏ nút nhập/xuất nhân viên khỏi giao diện.
 2. **Ca trực:** biểu mẫu có nhãn ngắn, hướng dẫn riêng cho ca qua đêm; bảng hiển thị mã, ngày giờ bắt đầu/kết thúc, số bác sĩ/điều dưỡng và yêu cầu trưởng ca. Nút chính Thêm ca; xóa ca tách khỏi nút chính.
-3. **Lịch và thay ca:** nút chính Đề xuất lịch; bảng có ca, thời gian ca, nhân viên, vai trò và trạng thái. Chọn phân công mới hiện rõ hành động xác nhận/bắt đầu/hủy; khu vực thay ca hiển thị tên cùng mã người thay. Giữ đề xuất tăng cường và nhập/xuất lịch. Không đổi thuật toán hay tự xác nhận các đề xuất.
+3. **Lịch và thay ca:** nút chính Đề xuất lịch; bảng có ca, thời gian ca, nhân viên, vai trò và trạng thái. Chọn phân công mới hiện rõ hành động xác nhận/bắt đầu/hủy; khu vực thay ca hiển thị tên cùng mã người thay. Giữ đề xuất tăng cường; bỏ nút nhập/xuất lịch khỏi giao diện. Không đổi thuật toán hay tự xác nhận các đề xuất.
 
-Cuối màn hình là phản hồi thao tác và trạng thái lưu. Giữ cơ chế lưu/mở snapshot phần B cùng các file nhân viên/lịch riêng; không tự chuyển phần B sang autosave Patient/Visit.
+Cuối trang phân lịch là phản hồi thao tác, trạng thái chưa lưu/đã lưu và nút **Lưu thay đổi**. Chương trình tự nạp snapshot `nhan-su-lich.pbl2` trong thư mục dữ liệu ứng dụng khi mở; bấm lưu ghi vào đúng nguồn đó, không mở hộp chọn đường dẫn. Có thay đổi thì bật nút; ghi lỗi giữ thay đổi để lưu lại. Nguồn có sẵn không đọc được phải báo lỗi và chặn lưu đè. Các API file riêng vẫn được giữ ở tầng code. Patient/Visit tiếp tục tự lưu theo cơ chế đã có. Các ghi chú kỹ thuật và đường dẫn dài ở cuối trang chính đã được bỏ; thanh đầu chỉ báo trạng thái lưu hồ sơ ngắn.
 
 Trạng thái rỗng giải thích bước tiếp theo: thêm/nạp nhân sự → tạo ca → đề xuất lịch → xác nhận. Lỗi nhập giữ nguyên dữ liệu người dùng để sửa; không âm thầm thay bằng dữ liệu mẫu. Giữ cảnh báo mất thay đổi và xác nhận thao tác phá hủy đã có.
 
 ## Màn hình hẹp và kiểm chứng
 
-Mục tiêu kiểm tra 580×680 và 1050×760: biểu mẫu/hàng nút xuống dòng hoặc chuyển dọc, nội dung dài được cuộn phù hợp; bảng dữ liệu được cuộn ngang khi thực sự cần và không ép cửa sổ rộng hơn màn hình. Nút đóng/lưu và thông báo còn truy cập được.
+Mục tiêu kiểm tra trang tích hợp ở 520×800 và 1440×980, widget độc lập ở 580×680 và 1050×760: biểu mẫu/hàng nút xuống dòng hoặc chuyển dọc, nội dung dài được cuộn phù hợp; bảng dữ liệu được cuộn ngang khi thực sự cần và không ép cửa sổ rộng hơn màn hình. Nút lưu và thông báo còn truy cập được.
 
 Kiểm tra widget với dữ liệu thật: tiếp nhận nhân sự/nguyện vọng, tạo ca qua đêm, đề xuất/xác nhận lịch, thay người, lưu và mở lại. Giữ test phần B hiện có; thêm kiểm tra có ý nghĩa cho các hành vi được thay đổi. Chụp ảnh rộng/hẹp và rà trực quan. Chạy build/test Qt và các kiểm tra nguồn phù hợp; chỉ công bố kết quả thực chạy, không dùng lại số test trong bàn giao cũ.
 
@@ -49,4 +51,4 @@ Kiểm tra widget với dữ liệu thật: tiếp nhận nhân sự/nguyện v�
 
 Thiết kế giao diện giữ công thức/ràng buộc xếp lịch hiện có. Chưa thêm QueuePressureCalculator, tự sinh mã hay quy tắc nghiệp vụ mới. Nguồn lực/tăng cường được nhập và gọi API hiện có. Không cam kết mức tối ưu lịch hoặc tự thỏa toàn bộ nguyện vọng.
 
-Bản thiết kế đã được người dùng duyệt trước khi triển khai. Phần giao diện và kiểm thử tương ứng được lưu cùng bản thiết kế trong lần cập nhật tiếp theo trên nhánh `dev`.
+Bản thiết kế đã được người dùng duyệt trước khi triển khai và được cập nhật theo các yêu cầu điều chỉnh tiếp theo. Xem lịch sử Git và bản bàn giao để xác định trạng thái triển khai/kiểm chứng hiện tại trên `dev`.

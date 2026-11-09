@@ -16,12 +16,11 @@ checkout hiện tại. Không coi kết quả test lịch sử là kết quả c
 
 ### Người dùng đang làm gì
 
-Người dùng đang chuẩn bị trình bày/bảo vệ đồ án, vừa trao đổi về OOP, hàng
-chờ và cách giải thích đọc/ghi, tự lưu, dự phòng file. Chưa có yêu cầu triển
-khai tính năng tiếp theo. Nếu người dùng muốn tiếp tục ôn, có thể giải thích
-luồng tiếp nhận → đánh giá → chờ → khám → cận lâm sàng → quay lại, hoặc đi
-sâu vào cấu trúc dữ liệu và quản lí file. Không tự coi việc này là yêu cầu sửa
-code. Người dùng muốn xem code `.h`/`.cpp` liên quan khi nhờ triển khai class.
+Người dùng đã duyệt và yêu cầu triển khai các cải tiến demo bên dưới trên
+nhánh `dev`, dùng skill UI/UX Pro Max đã cài trong repository. Sau các lượt
+chỉnh giao diện, người dùng yêu cầu cập nhật toàn bộ thay đổi demo, commit và
+push lên `dev`. Không suy yêu cầu đó thành được phép triển khai các đề xuất
+tương lai. Người dùng muốn xem code `.h`/`.cpp` liên quan khi nhờ sửa class.
 
 ### Quyết định nghiệp vụ và phạm vi
 
@@ -56,6 +55,26 @@ code. Người dùng muốn xem code `.h`/`.cpp` liên quan khi nhờ triển kh
 - Sau merge có code nhân sự, lịch trực, mệt mỏi, file và AdminPanel; xem
   [phần B](../PHAN-B.md). Sự tồn tại của module không chứng minh mọi tích
   hợp hoặc hành vi trong UML đã hoàn thành; kiểm tra theo yêu cầu cụ thể.
+- **Nhân sự và lịch trực** hiện trong vùng nội dung chính qua `QStackedWidget`;
+  `AdminPanel` vẫn giữ tên class, được nhúng dưới dạng widget và không mở
+  hộp thoại riêng. Ba tab nhân sự/ca/lịch được giữ. Tự nạp
+  `nhan-su-lich.pbl2` trong thư mục dữ liệu ứng dụng; một nút xanh
+  **Lưu thay đổi** ghi trực tiếp. Ghi lỗi giữ thay đổi để thử lại; nguồn có
+  sẵn lỗi đọc sẽ chặn lưu đè. Không còn các nút chọn/mở/xuất file trong GUI.
+- Hồ sơ bệnh nhân mở ở chế độ xem, mỗi dòng có nhãn/giá trị, thông tin chưa
+  biết để trống. **Bổ sung / cập nhật thông tin** mới hiện ô nhập danh tính;
+  có lưu/hủy và quay lại phần xem. Chi tiết lần khám cũng xếp thông tin từ
+  trên xuống. Chữ nội dung 18px, tiêu đề 24px; đánh giá sinh hiệu có dòng
+  hướng dẫn 14px ngay dưới từng ô, đúng giới hạn nhập liệu trong `VitalSigns`.
+- Tiếp nhận chỉ hiện tìm kiếm/danh sách khi chọn hồ sơ cũ. Chọn bệnh nhân tự
+  điền dữ liệu: ô xám chỉ đọc là thông tin đã có, ô trắng cho bổ sung mục còn
+  thiếu. `PatientRegistry::BoSungThongTinConThieu` kiểm tra CCCD, từ chối khi
+  còn lượt khám đang mở, giữ mã/địa chỉ Patient và dữ liệu đã có. Có thể bổ
+  sung tuổi ước lượng, dị ứng, tiền sử tại bước tiếp nhận lại.
+- Đã bỏ ô tìm bệnh nhân trên thanh đầu và khối ghi chú/đường dẫn dài ở cuối
+  trang. Ô tìm trong tab Lượt khám hỗ trợ tên/mã/CCCD không dấu; bộ lọc ngày
+  và mã Visit tiếp tục đi qua `VisitSearchService`. Trạng thái lưu hồ sơ được
+  tóm tắt trên thanh đầu. Luồng Patient/Visit vẫn tự lưu theo cơ chế đã có.
 - Tra cứu bảng băm theo mã trung bình O(1), trường hợp xấu O(n); tìm tên/CCCD
   hiện duyệt dữ liệu, không nói mọi tìm kiếm là O(1). `Visit` có lịch sử đánh
   giá, bác sĩ tham gia và cận lâm sàng, không khẳng định có đầy đủ ghi chú khám.
@@ -113,24 +132,24 @@ tìm thấy; không tự suy diễn. Người dùng từng gửi ảnh UML tổn
 repo có thể không hiện diện trong chat mới, cần người dùng cung cấp lại nếu cần.
 [Bản lịch sử](../handoffs/2026-11-03-chuyen-chat.md) có các ảnh chụp cũ.
 
-### Git và kiểm chứng — ảnh chụp trước commit bàn giao
+### Git và kiểm chứng — ảnh chụp trước commit cải tiến demo
 
-Ngày 09/11, checkout `/workspace/PBL2` ở `dev`, HEAD
-`816cb4ed0a9306fe6a996d922a9e421eef5b013d`, trùng `origin/dev` lưu cục bộ;
-`work` cục bộ `4389bee`, `origin/work` lưu cục bộ `97e0a1b`. Remote origin là
-`https://github.com/thanhluan110807-ops/PBL2.git`. Các ref từ xa là bản lưu
-cục bộ, không chứng minh trạng thái GitHub mới nhất nếu chưa kiểm tra mạng.
-Ảnh chụp này thay đổi sau commit/push; kiểm tra lại branch, status và remote.
-Trước lượt cập nhật tài liệu: không có file tracked/untracked thay đổi theo
-`git status --short`; có các thư mục build và `__pycache__` bị ignore, giữ
-nguyên. Bảo toàn mọi thay đổi và file của người khác, kể cả file bị bỏ qua.
-Thông tin danh sách thay đổi cũ bên dưới chỉ là lịch sử, không khẳng định còn.
+Ngày 09/11, checkout `/workspace/PBL2` ở `dev`, nền trước lần cập nhật này là
+`b3f338a` (giao diện phân lịch đầu tiên). Đã fetch `origin/dev` và xác nhận
+hai nhánh trùng nhau trước khi commit các cải tiến tiếp theo. Remote origin:
+`https://github.com/thanhluan110807-ops/PBL2.git`. Xem Git thực tế để lấy commit
+mới sau push; không suy trạng thái mới từ SHA nền này. Các thay đổi hiện tại
+gồm GUI, API bổ sung thông tin còn thiếu, kiểm thử và tài liệu liên quan.
+Giữ nguyên các thư mục build/kit Qt cục bộ và file bị ignore; không đưa chúng
+hoặc ảnh chụp tạm vào commit. Các danh sách thay đổi bên dưới là lịch sử.
 
-Lượt này chỉ đối chiếu tài liệu và code, không chạy build/test; các kết quả
-ở mục merge phía dưới là kiểm tra lịch sử. Không xác nhận CI hiện tại, runtime
-Qt6/Windows hay mất điện vật lý. Khi có yêu cầu code, chạy kiểm tra phù hợp.
-Chỉ commit/push theo yêu cầu; người dùng đã yêu cầu commit/push tài liệu của
-lượt bàn giao hiện tại, không tự mở rộng phạm vi sang công việc khác.
+Kiểm chứng trên Linux, Qt5 Debug với `QT_QPA_PLATFORM=offscreen`: build đầy đủ
+và CTest **30/30** đạt; `git diff --check` đạt. Bộ test mới
+`test_patient_detail_widgets` kiểm tra xem/sửa/hủy hồ sơ và bố cục rộng/hẹp;
+`test_reception_widgets` kiểm tra tự điền, khóa ô, bổ sung phần thiếu, lỗi và
+lưu/đọc lại. Có kiểm tra lỗi cấp phát khi bổ sung để giữ nguyên hồ sơ cũ.
+Đây là kiểm chứng cục bộ; chưa chạy lại Qt6/Windows native hay sanitizer cho
+các thay đổi mới, không coi kết quả CI/sanitizer lịch sử là kết quả hiện tại.
 
 ---
 

@@ -60,7 +60,8 @@ QPushButton:focus, QLineEdit:focus, QComboBox:focus, QPlainTextEdit:focus { bord
 QPushButton[primary="true"] { color:white; background:qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #7856ED,stop:1 #6A47EB); border:1px solid #7050F2; font-weight:600; }
 QPushButton[primary="true"]:hover { background:#5E3AD4; }
 QPushButton:disabled { color:#8A8396; background:#F0EEF3; border-color:#ECEBF0; }
-QPushButton[nav="true"] { text-align:left; border:0; background:transparent; color:#686571; padding:12px; }
+QPushButton[nav="true"] { text-align:left; border:0; background:#FDFCFE; color:#686571; padding:12px; }
+QPushButton[nav="true"]:hover { background:#F1EDFB; }
 QPushButton[nav="true"]:checked { color:#593AB8; background:#EEE9FA; font-weight:600; }
 QPushButton[tab="true"] { background:#F5F4F8; border:0; font-size:13px; }
 QPushButton[tab="true"]:checked { background:#EEE9FD; color:#5E3AD4; }

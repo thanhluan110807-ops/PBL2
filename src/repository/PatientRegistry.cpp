@@ -193,6 +193,14 @@ void PatientRegistry::BoSungDanhTinh(const std::string& MaBenhNhan, const std::s
     BenhNhan->BoSungDanhTinh(SoCanCuoc, HoTen, GioiTinh, NgaySinh);
 }
 
+void PatientRegistry::BoSungThongTinConThieu(const std::string& MaBenhNhan, const Patient& ThongTin) {
+    Patient* BenhNhan=LayBenhNhanBatBuoc(MaBenhNhan);
+    if (CoLanKhamDangMo(MaBenhNhan))
+        throw My_stdexcept(My_stdexcept::LoaiLoi::TrangThaiKhongHopLe,"Benh nhan con lan kham dang mo");
+    if (BenhNhan->LaySoCanCuoc().empty()) KiemTraCanCuoc(ThongTin.LaySoCanCuoc(),BenhNhan);
+    BenhNhan->BoSungThongTinConThieu(ThongTin);
+}
+
 bool PatientRegistry::CoLanKhamDangMo(const std::string& MaBenhNhan) const {
     bool CoLanMo = false;
     DanhSachLanKham.Duyet([&](const std::string&, const Visit* LanKham) {

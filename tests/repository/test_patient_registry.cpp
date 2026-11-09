@@ -277,7 +277,39 @@ void KiemTraDanhSachBenhNhan() {
     assert(R.SoLanKham() == 0);
 }
 
+void KiemTraBoSungThongTinConThieu() {
+    PatientRegistry R;
+    Patient Goc("A","Tên đã biết",Gender::Nam); Goc.DatTuoiUocLuong(0);
+    Goc.CapNhatNhomMau(BloodGroup::O); Goc.CapNhatThongTinDiUng("Penicillin");
+    const auto* Cu=R.ThemBenhNhan(Goc);
+    R.ThemBenhNhan("B","Người khác",Gender::Nu,"999");
+    Patient Trung("A","Tên khác",Gender::Nu,Date{1,1,2000},"999"); Trung.CapNhatTienSuBenh("Hen");
+    PhaiLoi([&] { R.BoSungThongTinConThieu("A",Trung); },My_stdexcept::LoaiLoi::DoiSoKhongHopLe);
+    assert(Cu->LaySoCanCuoc().empty() && !Cu->CoNgaySinh() && Cu->LayTienSuBenh().empty());
+    Patient Them("A","Tên khác",Gender::Nu,Date{1,1,2000},"001");
+    Them.DatTuoiUocLuong(50); Them.CapNhatNhomMau(BloodGroup::AB);
+    Them.CapNhatThongTinDiUng("Khác"); Them.CapNhatTienSuBenh("Hen");
+    R.BoSungThongTinConThieu("A",Them);
+    assert(R.TimBenhNhan("A")==Cu && R.TimBenhNhanTheoCanCuoc("001")==Cu);
+    assert(Cu->LayHoTen()=="Tên đã biết" && Cu->LayGioiTinh()==Gender::Nam);
+    assert(Cu->LayNgaySinh().Nam==2000 && Cu->LayTuoiUocLuong()==0);
+    assert(Cu->LayNhomMau()==BloodGroup::O && Cu->LayThongTinDiUng()=="Penicillin");
+    assert(Cu->LayTienSuBenh()=="Hen");
+    // Nội dung đã có vẫn giữ nguyên, kể cả khi nguồn gửi lại khác đi.
+    R.BoSungThongTinConThieu("A",Trung);
+    assert(Cu->LaySoCanCuoc()=="001");
+    PhaiLoi([&] { R.BoSungThongTinConThieu("A",Patient("SAI")); },My_stdexcept::LoaiLoi::DoiSoKhongHopLe);
+    R.ThemLanKham("V","A",1,"Khám");
+    PhaiLoi([&] { R.BoSungThongTinConThieu("A",Them); },My_stdexcept::LoaiLoi::TrangThaiKhongHopLe);
+    const auto* VoDanh=R.ThemBenhNhan("C");
+    Patient MotPhan("C","Ngọc",Gender::Nu); MotPhan.DatTuoiUocLuong(41);
+    R.BoSungThongTinConThieu("C",MotPhan);
+    assert(R.TimBenhNhan("C")==VoDanh && !VoDanh->LaBenhNhanVoDanh());
+    assert(VoDanh->LayHoTen()=="Ngọc" && VoDanh->LayTuoiUocLuong()==41 && !VoDanh->CoNgaySinh());
+}
+
 int main() {
+    KiemTraBoSungThongTinConThieu();
     KiemTraDanhSachBenhNhan();
     KiemTraHoSoVaDanhTinh();
     KiemTraTimTen();

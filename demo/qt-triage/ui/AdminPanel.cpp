@@ -1,12 +1,12 @@
 #include <QtGlobal>
-// Phần B — Chức năng chính: Giao diện Qt quản lý nhân sự, ca trực và nhập/xuất file.
+// Phần B — Chức năng chính: Giao diện Qt quản lý nhân sự, ca trực và lưu dữ liệu liên kết.
 #include "model/BacSi.h"
 #include "model/DieuDuong.h"
 #include "ui/AdminPanel.h"
 #include "ui/StaffPresenter.h"
 #include "ui/DemoStyle.h"
 #include "service/SchedulerService.h"
-#include "repository/ScheduleFileManager.h"
+#include "repository/ScheduleRegistry.h"
 #include "repository/StaffFileManager.h"
 #include <QInputDialog>
 #include <QTimeZone>
@@ -17,8 +17,10 @@
 #include <QDateEdit>
 #include <QDateTime>
 #include <QDoubleSpinBox>
-#include <QFileDialog>
 #include <QFileInfo>
+#include <QDir>
+#include <QStandardPaths>
+#include <QKeySequence>
 #include <QFormLayout>
 #include <QHeaderView>
 #include <QLabel>
@@ -34,6 +36,7 @@
 #include <QHBoxLayout>
 #include <QFrame>
 #include <QGridLayout>
+#include <QResizeEvent>
 #include <exception>
 
 namespace {
@@ -110,7 +113,10 @@ void GiuTrangThai(const NhanVienYTe* Cu, NhanVienYTe& Moi) {
 }
 
 }
-AdminPanel::AdminPanel(QWidget* Cha, const QString& TepMacDinh) : QDialog(Cha), DuongDan(TepMacDinh) {
+AdminPanel::AdminPanel(QWidget* Cha, const QString& TepMacDinh, bool TrongTrangChinh) : QDialog(Cha), TrongTrangChinh(TrongTrangChinh), DuongDan(TepMacDinh) {
+    if (DuongDan.isEmpty())
+        DuongDan=QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).filePath("nhan-su-lich.pbl2");
+    if (TrongTrangChinh) setWindowFlags(Qt::Widget);
     setWindowTitle("Nhân sự và lịch trực · Phần B"); setObjectName("adminPanel"); resize(1050,760);
     setStyleSheet(DemoUi::Qss() + QString::fromUtf8(R"(
 QDialog#adminPanel { background:#F6F5FA; }
@@ -119,6 +125,11 @@ QLabel[adminDetail="true"] { background:#F5F4F8; border-radius:9px; padding:12px
 QLabel#adminNextStep { color:#514B61; background:#EEE9FD; border-radius:9px; padding:10px; }
 QLabel#adminMessage { color:#514B61; padding:6px; }
 QLabel#adminFileStatus { color:#514B61; padding:6px; }
+QPushButton#adminSave { color:white; background:#15803D; border:2px solid #15803D; font-weight:600; min-width:150px; }
+QPushButton#adminSave:hover { background:#166534; border-color:#166534; }
+QPushButton#adminSave:pressed { background:#14532D; border-color:#14532D; }
+QPushButton#adminSave:focus { border-color:#052E16; }
+QPushButton#adminSave:disabled { color:#686571; background:#ECEBF0; border-color:#ECEBF0; }
 QTabWidget::pane { border:1px solid #ECEBF0; border-radius:10px; background:#FDFCFE; }
 QTabBar::tab { padding:10px 14px; min-width:105px; margin-right:3px; color:#514B61; background:#F7F5FA; border:1px solid #ECEBF0; border-top-left-radius:7px; border-top-right-radius:7px; }
 QTabBar::tab:last { min-width:170px; }
@@ -129,7 +140,7 @@ QDateEdit:focus, QTimeEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QCheckBo
     Cot->setSpacing(12); Cot->setContentsMargins(20,18,20,16);
     auto* TieuDe = new QLabel("Nhân sự và lịch trực"); TieuDe->setProperty("role","title"); Cot->addWidget(TieuDe);
     auto* MoTa = new QLabel("Lập lịch theo tuần · nghỉ giữa ca 12 giờ, sau ca đêm 24 giờ · tối đa 48 giờ/tuần.\n"
-                           "Điểm mệt mỏi là mô phỏng. Dữ liệu nhân sự và lịch được lưu riêng.");
+                           "Điểm mệt mỏi là mô phỏng. Bấm Lưu thay đổi sau khi cập nhật nhân sự hoặc lịch trực.");
     MoTa->setWordWrap(true); Cot->addWidget(MoTa);
     auto* TongQuan = new QHBoxLayout; Cot->addLayout(TongQuan);
     auto ThemSo = [TongQuan](const char* Ma, const QString& Ten) {
@@ -143,11 +154,11 @@ QDateEdit:focus, QTimeEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QCheckBo
     SoCa=ThemSo("adminShiftCount","Ca trực");
     SoPhanCong=ThemSo("adminAssignmentCount","Chờ xác nhận");
     BuocTiep = new QLabel; BuocTiep->setObjectName("adminNextStep"); BuocTiep->setWordWrap(true); Cot->addWidget(BuocTiep);
-    auto* Hang = new QHBoxLayout; Cot->addLayout(Hang);
-    Hang->addWidget(new QLabel("Tuần bắt đầu (thứ Hai):"));
+    auto* Hang = new QGridLayout; Cot->addLayout(Hang);
+    Hang->addWidget(new QLabel("Tuần bắt đầu (thứ Hai):"),0,0);
     Tuan = new QDateEdit; Tuan->setObjectName("adminWeek"); Tuan->setCalendarPopup(true);
     Tuan->setDate(QDate::fromString(QString::fromStdString(DuLieu.TuanBatDau),Qt::ISODate));
-    Hang->addWidget(Tuan);
+    Hang->addWidget(Tuan,0,1);
     connect(Tuan,&QDateEdit::dateChanged,this,[this](QDate Ngay) {
         if (Ngay.dayOfWeek() != 1) { BaoLoi("Hay chon ngay thu Hai"); return; }
         if (CoLichSu(DuLieu.Lich)) {
@@ -158,34 +169,36 @@ QDateEdit:focus, QTimeEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QCheckBo
             DuLieu.Lich.CacCa[I]=GanNgay(DuLieu.Lich.CacCa[I],Ngay.toString(Qt::ISODate).toStdString());
         DuLieu.TuanBatDau = Ngay.toString(Qt::ISODate).toStdString(); DaSua = true; LamMoi();
     });
-    auto* Mau = Nut(Hang,"Nạp mẫu nhân sự + ca","adminSeed");
+    auto* Mau = new QPushButton("Nạp mẫu nhân sự + ca"); Mau->setObjectName("adminSeed");
+    Mau->setCursor(Qt::PointingHandCursor); Mau->setMinimumHeight(40);
+    Hang->addWidget(Mau,1,0,1,2);
     connect(Mau,&QPushButton::clicked,this,[this] { NapMau(); });
-    auto* Tab = new QTabWidget; Cot->addWidget(Tab,1);
+    auto* Tab = new QTabWidget; Tab->setObjectName("adminTabs"); Cot->addWidget(Tab,1);
     TaoNhanSu(Tab); TaoCa(Tab); TaoLich(Tab);
     ThongBao = new QLabel; ThongBao->setObjectName("adminMessage"); ThongBao->setWordWrap(true); Cot->addWidget(ThongBao);
-    TrangThaiTep = new QLabel; TrangThaiTep->setObjectName("adminFileStatus"); TrangThaiTep->setWordWrap(true); Cot->addWidget(TrangThaiTep);
     auto* Tep = new QHBoxLayout; Cot->addLayout(Tep);
-    auto* Luu = Nut(Tep,"Lưu file…","adminSave"); auto* Doc = Nut(Tep,"Mở file…","adminLoad");
+    TrangThaiTep = new QLabel; TrangThaiTep->setObjectName("adminFileStatus"); TrangThaiTep->setWordWrap(true);
+    Tep->addWidget(TrangThaiTep,1);
+    NutLuu = Nut(Tep,"Lưu thay đổi","adminSave");
+    NutLuu->setShortcut(QKeySequence::Save);
+    NutLuu->setToolTip("Lưu thay đổi nhân sự và lịch trực (Ctrl+S)");
     auto* Dong = Nut(Tep,"Đóng","adminClose");
-    connect(Luu,&QPushButton::clicked,this,[this] {
-        const auto P = QFileDialog::getSaveFileName(this,"Lưu nhân sự và lịch",DuongDan,"PBL2 (*.pbl2);;Tất cả (*)");
-        if (!P.isEmpty()) LuuTep(P);
-    });
-    connect(Doc,&QPushButton::clicked,this,[this] {
-        if (!ChoPhepBoThayDoi()) return;
-        const auto P = QFileDialog::getOpenFileName(this,"Đọc nhân sự và lịch",DuongDan,"PBL2 (*.pbl2);;Tất cả (*)");
-        if (!P.isEmpty()) NapTep(P);
-    });
+    if (TrongTrangChinh) Dong->hide();
+    connect(NutLuu,&QPushButton::clicked,this,[this] { LuuTep(DuongDan); });
     connect(Dong,&QPushButton::clicked,this,&AdminPanel::close);
     LamMoi();
-    if (!TepMacDinh.isEmpty() && QFileInfo::exists(TepMacDinh)) NapTep(TepMacDinh);
+    if (QFileInfo::exists(DuongDan) && !NapTep(DuongDan)) {
+        // Không cho dữ liệu rỗng ghi đè nguồn đã tồn tại nhưng đọc thất bại.
+        LoiTepLienKet=true; LamMoi();
+        ThongBao->setText("Không tải được dữ liệu đã liên kết. Kiểm tra file dữ liệu rồi mở lại ứng dụng.\n" + ThongBao->text());
+    }
 }
 void AdminPanel::TaoNhanSu(QTabWidget* Tab) {
     auto* W = new QWidget; auto* Cot = new QVBoxLayout(W);
     auto* TruongNhap = new QWidget;
-    auto* F = new QFormLayout(TruongNhap); F->setRowWrapPolicy(QFormLayout::WrapLongRows);
-    auto* Cuon = new QScrollArea; Cuon->setWidgetResizable(true); Cuon->setWidget(TruongNhap);
-    Cuon->setMaximumHeight(290); Cot->addWidget(Cuon);
+    auto* F = new QFormLayout(TruongNhap); BieuMauNhanSu=F;
+    F->setRowWrapPolicy(QFormLayout::WrapLongRows);
+    Cot->addWidget(TruongNhap);
     auto ThemMuc=[F](const QString& Ten) {
         auto* NhanMuc=new QLabel(Ten); NhanMuc->setProperty("role","section"); F->addRow(NhanMuc);
     };
@@ -270,26 +283,14 @@ void AdminPanel::TaoNhanSu(QTabWidget* Tab) {
     auto* HangSL=new QHBoxLayout; Cot->addLayout(HangSL);
     auto* BatDau=Nut(HangSL,"Bắt đầu sàng lọc","staffTriageStart");
     auto* CapGio=Nut(HangSL,"Cập nhật giờ / cảnh báo","staffTriageRefresh");
-    auto* KetThuc=Nut(HangSL,"Kết thúc sàng lọc","staffTriageEnd");
+    auto* KetThuc=Nut(Cot,"Kết thúc sàng lọc","staffTriageEnd");
     connect(BatDau,&QPushButton::clicked,this,[this] { CapNhatSangLoc(0); });
     connect(CapGio,&QPushButton::clicked,this,[this] { CapNhatSangLoc(1); });
     connect(KetThuc,&QPushButton::clicked,this,[this] { CapNhatSangLoc(2); });
-    auto* TepNhanSu=new QHBoxLayout; Cot->addLayout(TepNhanSu);
-    auto* Xuat=Nut(TepNhanSu,"Xuất file nhân viên…","staffExport");
-    auto* Nhap=Nut(TepNhanSu,"Mở file nhân viên…","staffImport");
-    connect(Xuat,&QPushButton::clicked,this,[this] {
-        const auto P=QFileDialog::getSaveFileName(this,"Xuất nhân viên",{},"PBL2 (*.pbl2)");
-        if (!P.isEmpty()) LuuNhanSu(P);
-    });
-    connect(Nhap,&QPushButton::clicked,this,[this] {
-        if (!ChoPhepBoThayDoi()) return;
-        const auto P=QFileDialog::getOpenFileName(this,"Mở nhân viên",{},"PBL2 (*.pbl2)");
-        if (!P.isEmpty()) NapNhanSu(P);
-    });
     W->setMinimumHeight(820); ThemTab(Tab,W,"Nhân sự");
 }
 void AdminPanel::TaoCa(QTabWidget* Tab) {
-    auto* W = new QWidget; auto* Cot = new QVBoxLayout(W); auto* F = new QFormLayout; Cot->addLayout(F);
+    auto* W = new QWidget; auto* Cot = new QVBoxLayout(W); auto* F = new QFormLayout; BieuMauCa=F; Cot->addLayout(F);
     auto* MoTaCa=new QLabel("Tạo ca theo nhu cầu của bệnh viện. Nếu giờ kết thúc sớm hơn giờ bắt đầu, ca kéo dài sang ngày hôm sau.");
     MoTaCa->setWordWrap(true); Cot->insertWidget(0,MoTaCa);
     MaCa = new QLineEdit; MaCa->setObjectName("shiftId"); F->addRow("Mã ca",MaCa);
@@ -362,22 +363,6 @@ void AdminPanel::TaoLich(QTabWidget* Tab) {
         TrangThai->addWidget(N,I/2,I%2);
         connect(N,&QPushButton::clicked,this,[this,I] { ThaoTacPhanCong(I); });
     }
-    auto* TepLich=new QHBoxLayout; Cot->addLayout(TepLich);
-    auto* Luu=Nut(TepLich,"Xuất file lịch riêng…","scheduleExport");
-    auto* Doc=Nut(TepLich,"Mở file lịch riêng…","scheduleImport");
-    connect(Luu,&QPushButton::clicked,this,[this] {
-        const auto P=QFileDialog::getSaveFileName(this,"Xuất lịch",{},"PBL2 (*.pbl2)");
-        if (P.isEmpty()) return;
-        try { const auto R=TaoRegistry(DuLieu); ScheduleFileManager::LuuLichTruc(P.toStdString(),*R); ThongBao->setText("Đã xuất lịch; file này cần nhân sự tương ứng khi đọc."); }
-        catch (const My_stdexcept& E) { BaoLoi(E.LayThongBao()); }
-    });
-    connect(Doc,&QPushButton::clicked,this,[this] {
-        if (!ChoPhepBoThayDoi()) return;
-        const auto P=QFileDialog::getOpenFileName(this,"Mở lịch",{},"PBL2 (*.pbl2)");
-        if (P.isEmpty()) return;
-        try { auto R=ScheduleFileManager::DocLichTruc(P.toStdString(),*DuLieu.NhanSu); DuLieu.Lich=ChupLich(*R); DaSua=true; LamMoi(); }
-        catch (const My_stdexcept& E) { BaoLoi(E.LayThongBao()); }
-    });
     W->setMinimumHeight(610); ThemTab(Tab,W,"Lịch và thay ca");
 }
 void AdminPanel::BaoLoi(const char* Loi) { ThongBao->setText("Lỗi: " + QString::fromUtf8(Loi)); }
@@ -435,7 +420,12 @@ void AdminPanel::LamMoi() {
     ChiTietNhanSu->setText("Chọn nhân viên để xem thông tin và nguyện vọng.");
     ChiTietCa->setText("Chọn ca để xem thời gian và nhu cầu nhân sự.");
     ChiTietPhanCong->setText("Chọn phân công để xem ca, vai trò và trạng thái.");
-    TrangThaiTep->setText((DaSua ? "Chưa lưu · " : "Đã đồng bộ · ") + (DuongDan.isEmpty() ? "Chưa chọn file" : DuongDan));
+    NutLuu->setEnabled(DaSua && !LoiTepLienKet);
+    Tuan->setEnabled(!LoiTepLienKet);
+    findChild<QTabWidget*>("adminTabs")->setEnabled(!LoiTepLienKet);
+    findChild<QPushButton*>("adminSeed")->setEnabled(!LoiTepLienKet);
+    TrangThaiTep->setText(LoiTepLienKet ? "Không tải được dữ liệu đã lưu" : DaSua ? "Có thay đổi chưa lưu" :
+                         QFileInfo::exists(DuongDan) ? "Đã lưu thay đổi" : "Chưa có thay đổi");
 }
 void AdminPanel::ThemNhanSu(bool CapNhat) {
     try {
@@ -491,7 +481,7 @@ void AdminPanel::LapLich() {
       catch (const std::exception& E) { BaoLoi(E.what()); }
 }
 void AdminPanel::NapMau() {
-    if (DuLieu.NhanSu->KichThuoc() || !DuLieu.Lich.CacCa.Rong()) { BaoLoi("Chi nap mau khi chua co du lieu; mo lai ung dung hoac mo file khac"); return; }
+    if (DuLieu.NhanSu->KichThuoc() || !DuLieu.Lich.CacCa.Rong()) { BaoLoi("Chỉ nạp mẫu khi chưa có nhân sự và ca trực."); return; }
     DuLieu.NhanSu->Them(BacSi("BS01","Nguyễn An",CapBac::BacSiChinh,8,"Cấp cứu"));
     DuLieu.NhanSu->Them(BacSi("BS02","Trần Bình",CapBac::BacSiChinh,6,"Cấp cứu"));
     DuLieu.NhanSu->Them(DieuDuong("DD01","Lê Lan",CapBac::DieuDuongChinh,5));
@@ -536,9 +526,13 @@ void AdminPanel::ThayNguoi() {
 }
 bool AdminPanel::LuuTep(const QString& Tep) {
     try {
+        if (LoiTepLienKet) { BaoLoi("Không thể lưu khi dữ liệu đã liên kết chưa được đọc thành công."); return false; }
         if (Tuan->date().dayOfWeek()!=1) { BaoLoi("Ngay bat dau phai la thu Hai"); return false; }
+        if (Tep.isEmpty() || !QDir().mkpath(QFileInfo(Tep).absolutePath())) {
+            BaoLoi("Không tạo được thư mục lưu. Các thay đổi chưa được lưu."); return false;
+        }
         AdminFileManager::Luu(Tep.toStdString(),DuLieu); DuongDan = Tep; DaSua = false; LamMoi();
-        ThongBao->setText("Đã lưu đầy đủ nhân sự và lịch."); return true;
+        ThongBao->setText("Đã lưu thay đổi nhân sự và lịch trực."); return true;
     } catch (const My_stdexcept& E) { BaoLoi(E.LayThongBao()); }
       catch (const std::exception& E) { BaoLoi(E.what()); }
     return false;
@@ -548,16 +542,26 @@ bool AdminPanel::NapTep(const QString& Tep) {
         AdminData Moi = AdminFileManager::Doc(Tep.toStdString());
         DuLieu = std::move(Moi); DuongDan = Tep;
         Tuan->blockSignals(true); Tuan->setDate(QDate::fromString(QString::fromStdString(DuLieu.TuanBatDau),Qt::ISODate)); Tuan->blockSignals(false);
-        DaSua = false; LamMoi(); ThongBao->setText("Đã nạp và kiểm tra toàn bộ dữ liệu."); return true;
+        DaSua = false; LoiTepLienKet=false; LamMoi(); ThongBao->setText("Đã nạp dữ liệu nhân sự và lịch trực."); return true;
     } catch (const My_stdexcept& E) { BaoLoi(E.LayThongBao()); }
       catch (const std::exception& E) { BaoLoi(E.what()); }
     return false;
 }
 bool AdminPanel::ChoPhepBoThayDoi() {
-    return !DaSua || QMessageBox::question(this,"Dữ liệu chưa lưu","Bỏ các thay đổi chưa lưu? Chọn Không để quay lại lưu file.",QMessageBox::Yes|QMessageBox::No,QMessageBox::No)==QMessageBox::Yes;
+    return !DaSua || QMessageBox::question(this,"Dữ liệu chưa lưu","Bỏ các thay đổi chưa lưu? Chọn Không để quay lại bấm Lưu thay đổi.",QMessageBox::Yes|QMessageBox::No,QMessageBox::No)==QMessageBox::Yes;
+}
+bool AdminPanel::ChoPhepDong() { return ChoPhepBoThayDoi(); }
+void AdminPanel::resizeEvent(QResizeEvent* E) {
+    QDialog::resizeEvent(E);
+    const auto Kieu=width()<700 ? QFormLayout::WrapAllRows : QFormLayout::WrapLongRows;
+    if (BieuMauNhanSu) BieuMauNhanSu->setRowWrapPolicy(Kieu);
+    if (BieuMauCa) BieuMauCa->setRowWrapPolicy(Kieu);
 }
 void AdminPanel::closeEvent(QCloseEvent* E) { if (ChoPhepBoThayDoi()) E->accept(); else E->ignore(); }
-void AdminPanel::reject() { if (ChoPhepBoThayDoi()) QDialog::reject(); }
+void AdminPanel::reject() {
+    if (TrongTrangChinh) return; // Esc không được đóng trang đang gắn trong cửa sổ chính.
+    if (ChoPhepBoThayDoi()) QDialog::reject();
+}
 
 void AdminPanel::CapNhatSangLoc(int Lenh) {
     try {

@@ -12,6 +12,7 @@
 #include <QLabel>
 #include <QTemporaryDir>
 #include <QFile>
+#include <QDir>
 #include <QTabWidget>
 #include <QScrollArea>
 #include <QScrollBar>
@@ -20,8 +21,14 @@ int main(int argc, char** argv) {
     QApplication App(argc,argv);
     QTemporaryDir Tmp;
     assert(Tmp.isValid());
-    AdminPanel W;
+    qputenv("XDG_DATA_HOME",Tmp.path().toUtf8());
+    const QString Tep = Tmp.path()+"/du-lieu/nhan-su-lich.pbl2";
+    AdminPanel W(nullptr,Tep);
     W.show(); App.processEvents();
+    auto* NutLuu=W.findChild<QPushButton*>("adminSave");
+    assert(NutLuu && !NutLuu->isEnabled());
+    for (const auto* Ma : {"adminLoad","staffImport","staffExport","scheduleImport","scheduleExport"})
+        assert(!W.findChild<QPushButton*>(Ma));
     // Số liệu và hướng dẫn phải đọc được ngay, kể cả khi chưa có dữ liệu.
     assert(W.findChild<QLabel*>("adminStaffCount")->text()=="0");
     assert(W.findChild<QLabel*>("adminShiftCount")->text()=="0");
@@ -45,8 +52,10 @@ int main(int argc, char** argv) {
     assert(W.findChild<QLabel*>("adminAssignmentDetail")->text().contains("T2-SANG"));
     assert(W.findChild<QTableWidget*>("scheduleTable")->rowCount()==4);
     assert(SchedulerService::LichHopLe(*W.LayDuLieu().NhanSu,W.LayDuLieu().Lich));
-    const QString Tep = Tmp.path()+"/kiem-tra.pbl2";
-    assert(W.LuuTep(Tep));
+    assert(NutLuu->isEnabled() && !QFile::exists(Tep));
+    Click("adminSave");
+    assert(!QApplication::activeModalWidget());
+    assert(QFile::exists(Tep) && !NutLuu->isEnabled());
     AdminPanel Doc(nullptr,Tep);
     assert(Doc.findChild<QTableWidget*>("scheduleTable")->rowCount()==4);
     W.findChild<QLineEdit*>("staffId")->setText("BS01");
@@ -79,7 +88,8 @@ int main(int argc, char** argv) {
     assert(W.LayDuLieu().Lich.PhanCong[Cuoi].MaNhanVien=="BS03");
     assert(W.LayDuLieu().Lich.PhanCong[Cuoi].LayTrangThai()==AssignmentStatus::DaXacNhan);
     assert(W.findChild<QLabel*>("adminAssignmentCount")->text()=="3");
-    assert(W.LuuTep(Tep));
+    Click("adminSave");
+    assert(!NutLuu->isEnabled());
     assert(Doc.NapTep(Tep));
     assert(Doc.LayDuLieu().Lich.PhanCong[Cuoi].MaNhanVien=="BS03");
     assert(Doc.LayDuLieu().Lich.PhanCong[0].LayTrangThai()==AssignmentStatus::DaHuy);
@@ -180,8 +190,30 @@ int main(int argc, char** argv) {
     assert(MoLai.LayDuLieu().NhanSu->Tim("B")->LayHoTen()=="Ten moi");
     assert(MoLai.findChild<QTableWidget*>("staffTable")->item(0,1)->text()=="Ten moi");
     assert(MoLai.LayDuLieu().Lich.PhanCong[0].LayTrangThai()==AssignmentStatus::DangTruc);
-    assert(MoLai.findChild<QPushButton*>("staffImport"));
-    assert(MoLai.findChild<QPushButton*>("staffExport"));
+    assert(!MoLai.findChild<QPushButton*>("staffImport"));
+    assert(!MoLai.findChild<QPushButton*>("staffExport"));
     assert(MoLai.LuuTep(TepCa)); MoLai.close();
+
+    // Lỗi ghi giữ thay đổi trong RAM để bấm lưu lại, không mở hộp chọn file.
+    const QString TepLoiGhi=Tmp.path()+"/loi-ghi.pbl2";
+    AdminPanel LoiGhi(nullptr,TepLoiGhi);
+    LoiGhi.findChild<QPushButton*>("adminSeed")->click();
+    assert(QDir().mkdir(TepLoiGhi));
+    LoiGhi.findChild<QPushButton*>("adminSave")->click();
+    assert(LoiGhi.findChild<QPushButton*>("adminSave")->isEnabled());
+    assert(LoiGhi.findChild<QLabel*>("adminMessage")->text().startsWith("Lỗi:"));
+    assert(LoiGhi.LayDuLieu().NhanSu->KichThuoc()==4);
+    assert(QDir().rmdir(TepLoiGhi));
+    LoiGhi.findChild<QPushButton*>("adminSave")->click();
+    assert(!LoiGhi.findChild<QPushButton*>("adminSave")->isEnabled());
+    AdminPanel MoSauLoi(nullptr,TepLoiGhi);
+    assert(MoSauLoi.LayDuLieu().NhanSu->KichThuoc()==4);
+
+    // Nguồn liên kết không đọc được phải giữ nguyên, không lưu đè dữ liệu rỗng.
+    AdminPanel LoiDoc(nullptr,Hong);
+    assert(!LoiDoc.findChild<QPushButton*>("adminSave")->isEnabled());
+    LoiDoc.findChild<QPushButton*>("adminSave")->click();
+    QFile FileHong(Hong); assert(FileHong.open(QIODevice::ReadOnly));
+    assert(FileHong.readAll()=="khong hop le");
 
 }

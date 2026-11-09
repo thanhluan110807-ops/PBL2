@@ -51,3 +51,27 @@ void Patient::BoSungDanhTinh(const std::string& SoCanCuoc, const std::string& Ho
     this->SoCanCuoc.swap(CanCuocMoi);
     TrangThaiDanhTinh = IdentityStatus::DaXacDinh;
 }
+
+void Patient::BoSungThongTinConThieu(const Patient& ThongTin) {
+    if (LayMaDinhDanh()!=ThongTin.LayMaDinhDanh())
+        throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe,"Thong tin bo sung khong cung ma benh nhan");
+    // Chuẩn bị toàn bộ trên bản tạm; lỗi kiểm tra/cấp phát không đổi hồ sơ gốc.
+    Patient Moi(*this);
+    const auto& Ten=LayHoTen().empty() ? ThongTin.LayHoTen() : LayHoTen();
+    const auto Gioi=LayGioiTinh()==Gender::ChuaXacDinh ? ThongTin.LayGioiTinh() : LayGioiTinh();
+    if (!CoNgaySinh() && ThongTin.CoNgaySinh())
+        Moi.CapNhatThongTinCaNhan(Ten,Gioi,ThongTin.LayNgaySinh());
+    else Moi.CapNhatThongTinCaNhan(Ten,Gioi);
+    if (SoCanCuoc.empty()) Moi.SoCanCuoc=ThongTin.SoCanCuoc;
+    if (!DaCoTuoiUocLuong && ThongTin.DaCoTuoiUocLuong) Moi.DatTuoiUocLuong(ThongTin.TuoiUocLuong);
+    if (NhomMau==BloodGroup::ChuaXacDinh) Moi.NhomMau=ThongTin.NhomMau;
+    if (ThongTinDiUng.empty()) Moi.ThongTinDiUng=ThongTin.ThongTinDiUng;
+    if (TienSuBenh.empty()) Moi.TienSuBenh=ThongTin.TienSuBenh;
+    Moi.TrangThaiDanhTinh=Moi.LayHoTen().empty() ? IdentityStatus::ChuaXacDinh : IdentityStatus::DaXacDinh;
+
+    // Các phép hoán đổi chuỗi và gán giá trị dưới đây không cấp phát bộ nhớ.
+    HoanDoiThongTin(Moi);
+    SoCanCuoc.swap(Moi.SoCanCuoc); ThongTinDiUng.swap(Moi.ThongTinDiUng); TienSuBenh.swap(Moi.TienSuBenh);
+    NhomMau=Moi.NhomMau; TrangThaiDanhTinh=Moi.TrangThaiDanhTinh;
+    TuoiUocLuong=Moi.TuoiUocLuong; DaCoTuoiUocLuong=Moi.DaCoTuoiUocLuong;
+}

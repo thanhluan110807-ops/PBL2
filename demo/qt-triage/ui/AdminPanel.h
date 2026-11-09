@@ -1,4 +1,4 @@
-// Phần B — Chức năng chính: Giao diện Qt quản lý nhân sự, ca trực và nhập/xuất file.
+// Phần B — Chức năng chính: Giao diện Qt quản lý nhân sự, ca trực và lưu dữ liệu liên kết.
 #pragma once
 #include "repository/AdminFileManager.h"
 #include <QDialog>
@@ -12,12 +12,18 @@ class QDateEdit;
 class QTimeEdit;
 class QCheckBox;
 class QCloseEvent;
+class QFormLayout;
+class QResizeEvent;
+class QPushButton;
 
 // Widget chỉ thu thập đầu vào và hiển thị; mọi quyết định lịch nằm trong service.
 class AdminPanel : public QDialog {
+    bool TrongTrangChinh = false;
     AdminData DuLieu;
     QString DuongDan;
     bool DaSua = false;
+    bool LoiTepLienKet = false;
+    QPushButton* NutLuu;
     QLabel *ThongBao;
     QLabel *TrangThaiTep;
     QLabel *SoNhanSu, *SoCa, *SoPhanCong, *BuocTiep;
@@ -30,6 +36,7 @@ class AdminPanel : public QDialog {
     QDoubleSpinBox *DiemNen;
     QTimeEdit *GioDau, *GioCuoi;
     QCheckBox *TruongCa, *MongCuoiTuan, *DangKyDuPhong;
+    QFormLayout *BieuMauNhanSu = nullptr, *BieuMauCa = nullptr;
     void TaoNhanSu(class QTabWidget* Tab);
     void TaoCa(class QTabWidget* Tab);
     void TaoLich(class QTabWidget* Tab);
@@ -47,8 +54,10 @@ class AdminPanel : public QDialog {
     void reject() override;
 protected:
     void closeEvent(QCloseEvent* SuKien) override;
+    void resizeEvent(QResizeEvent* SuKien) override;
 public:
-    explicit AdminPanel(QWidget* Cha = nullptr, const QString& TepMacDinh = QString());
+    explicit AdminPanel(QWidget* Cha = nullptr, const QString& TepMacDinh = QString(), bool TrongTrangChinh = false);
+    bool ChoPhepDong();
     bool LuuNhanSu(const QString& Tep);
     bool NapNhanSu(const QString& Tep);
     bool LuuTep(const QString& Tep);

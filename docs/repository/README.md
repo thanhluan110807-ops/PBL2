@@ -71,6 +71,13 @@ Visit* LanKham = SoBo.ThemLanKham("LK001", BenhNhan->LayMaDinhDanh(), 1767225600
 rỗng phải chưa thuộc người khác; dữ liệu sai/CCCD trùng không được đổi hồ sơ cũ.
 Patient mượn luôn chỉ đọc để không thể bỏ qua kiểm tra CCCD của Registry.
 
+`BoSungThongTinConThieu(ma, thongTin)` phục vụ tiếp nhận lại hồ sơ cũ. Chỉ điền
+các mục đang trống/chưa biết; giữ nguyên dữ liệu đã có, mã và địa chỉ Patient.
+Registry kiểm tra CCCD mới và từ chối nếu người bệnh còn lượt khám đang mở.
+Thông tin bổ sung có thể chưa có ngày sinh nhưng có tuổi ước lượng. Dữ liệu
+được chuẩn bị trên bản tạm trước khi cập nhật để lỗi không làm đổi một phần
+hồ sơ. Các lượt khám đã lưu vẫn liên kết với cùng mã Patient.
+
 Với bệnh nhân vô danh cần tuổi ước lượng hoặc dữ liệu y tế ban đầu, chuẩn bị hồ
 sơ mẫu rồi gọi overload nhận `const Patient&`. Registry tự tạo bản sao, không
 sở hữu hồ sơ mẫu, không nhận con trỏ từ bên gọi:

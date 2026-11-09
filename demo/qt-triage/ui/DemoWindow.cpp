@@ -59,14 +59,13 @@ DemoWindow::DemoWindow(PatientRegistry &Registry, TriageService &DichVu,
     ThuLaiLuu->start();
     if (!QFileInfo::exists(Chu(TepPatientTuDong)) || !QFileInfo::exists(Chu(TepVisitTuDong)))
         DanhDauThayDoi(); // Bộ mới cần tạo file ban đầu; mở bộ đã lưu không ghi lại khi chưa sửa.
-    else TinhTrangLuu->setText("Đã nạp bộ dữ liệu. Tự lưu sau mỗi thay đổi.\nPatient: " + Chu(TepPatientTuDong) +
-        "\nVisit: " + Chu(TepVisitTuDong));
+    else TinhTrangLuu->setText("● Hồ sơ đã lưu");
     LamMoi();
 }
 void DemoWindow::TaoThanhBen(QHBoxLayout *Khung) {
     ThanhBen = new QFrame;
     ThanhBen->setObjectName("sidebar");
-    ThanhBen->setFixedWidth(212);
+    ThanhBen->setFixedWidth(240);
     auto *Cot = new QVBoxLayout(ThanhBen);
     Cot->setContentsMargins(16, 28, 16, 20);
     Cot->setSpacing(8);
@@ -77,12 +76,12 @@ void DemoWindow::TaoThanhBen(QHBoxLayout *Khung) {
     Cot->addSpacing(32);
     Cot->addWidget(Nhan("KHÔNG GIAN LÀM VIỆC", "muted"));
     Cot->addSpacing(8);
-    const char *NhanNut[] = {"Tổng quan", "Tiếp nhận", "Hàng chờ", "Lượt khám", "Hồ sơ bệnh nhân"};
-    const char *Icon[] = {"grid", "plus", "list", "list", "users"};
+    const char *NhanNut[] = {"Tổng quan", "Tiếp nhận", "Hàng chờ", "Lượt khám", "Hồ sơ bệnh nhân", "Nhân sự và lịch trực"};
+    const char *Icon[] = {"grid", "plus", "list", "list", "users", "users"};
     auto *Nhom = new QButtonGroup(this);
     Nhom->setExclusive(true);
-    for (int ViTri = 0; ViTri < 5; ++ViTri) {
-        auto *NutMoi = Nut(NhanNut[ViTri], qPrintable(QString("nav%1").arg(ViTri)));
+    for (int ViTri = 0; ViTri < 6; ++ViTri) {
+        auto *NutMoi = Nut(NhanNut[ViTri], ViTri == 5 ? "openAdmin" : qPrintable(QString("nav%1").arg(ViTri)));
         NutMoi->setProperty("nav", true);
         NutMoi->setCheckable(true);
         NutMoi->setIcon(BieuTuong(Icon[ViTri]));
@@ -91,16 +90,6 @@ void DemoWindow::TaoThanhBen(QHBoxLayout *Khung) {
         Cot->addWidget(NutMoi);
         connect(NutMoi, &QPushButton::clicked, this, [this, ViTri] { ChuyenTrang(ViTri); });
     }
-    auto* NhanSu = Nut("Nhân sự và lịch trực", "openAdmin");
-    Cot->addWidget(NhanSu);
-    connect(NhanSu, &QPushButton::clicked, this, [this] {
-        if (!QuanTri) {
-            const QString ThuMuc = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-            QDir().mkpath(ThuMuc);
-            QuanTri = new AdminPanel(this, ThuMuc + "/nhan-su-lich.pbl2");
-        }
-        QuanTri->exec();
-    });
     Cot->addStretch();
     Cot->addWidget(Nhan("●  Khoa Cấp cứu", "section"));
     Cot->addSpacing(24);
@@ -138,7 +127,7 @@ void DemoWindow::TaoGiaoDien() {
         Hop.setWindowTitle("Điều hướng");
         auto *CotMenu = new QVBoxLayout(&Hop);
         int Dich = -1;
-        for (int I = 0; I < 5; ++I) {
+        for (int I = 0; I < 6; ++I) {
             auto *N = Nut(DieuHuong[I]->text(), "chonTrang");
             CotMenu->addWidget(N);
             connect(N, &QPushButton::clicked, &Hop, [&, I] {
@@ -146,24 +135,15 @@ void DemoWindow::TaoGiaoDien() {
                 Hop.accept();
             });
         }
-        auto* QuanTriNut = Nut("Nhân sự và lịch trực", "mobileAdmin");
-        CotMenu->addWidget(QuanTriNut);
-        connect(QuanTriNut, &QPushButton::clicked, &Hop, [&] { Dich = 5; Hop.accept(); });
         Hop.exec();
-        if (Dich == 5) {
-            if (auto* N = findChild<QPushButton*>("openAdmin")) N->click();
-        } else if (Dich >= 0) ChuyenTrang(Dich);
+        if (Dich >= 0) ChuyenTrang(Dich);
     });
     KhuVuc = Nhan("Tổng quan", "muted");
     HangDau->addWidget(KhuVuc);
     HangDau->addStretch();
-    TimChung = new QLineEdit;
-    TimChung->setObjectName("timChung");
-    TimChung->setPlaceholderText("Tên bệnh nhân để tra cứu lượt khám…");
-    TimChung->setAccessibleName("Tên bệnh nhân để tra cứu lượt khám");
-    TimChung->setMaximumWidth(330);
-    HangDau->addWidget(TimChung, 1);
-    HangDau->addWidget(Nhan("● Dữ liệu phiên này", "status"));
+    TinhTrangLuu = Nhan("● Đang lưu hồ sơ", "status");
+    TinhTrangLuu->setObjectName("tinhTrangLuu");
+    HangDau->addWidget(TinhTrangLuu);
     Cot->addWidget(Dau);
     auto *Cuon = new QScrollArea;
     Cuon->setObjectName("mainScroll");
@@ -175,14 +155,14 @@ void DemoWindow::TaoGiaoDien() {
     BoCuc->setSpacing(16);
     TaoNoiDung(BoCuc);
     Cuon->setWidget(NoiDung);
-    Cot->addWidget(Cuon, 1);
-    connect(TimChung, &QLineEdit::textChanged, this, [this] {
-        if (!TimChung->text().isEmpty()) {
-            Trang = 3;
-            LocKpi = -1;
-        }
-        LamMoi();
-    });
+    CacTrang = new QStackedWidget;
+    CacTrang->setObjectName("mainPages");
+    CacTrang->addWidget(Cuon);
+    const QString ThuMuc = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    QDir().mkpath(ThuMuc);
+    QuanTri = new AdminPanel(CacTrang, ThuMuc + "/nhan-su-lich.pbl2", true);
+    CacTrang->addWidget(QuanTri);
+    Cot->addWidget(CacTrang, 1);
 }
 void DemoWindow::TaoNoiDung(QVBoxLayout *Khung) {
     auto *Dau = new QHBoxLayout;
@@ -226,7 +206,6 @@ void DemoWindow::TaoNoiDung(QVBoxLayout *Khung) {
             Trang = 3;
             LocKpi = ViTri;
             // KPI mở toàn bộ nhóm; xóa điều kiện của lần tra cứu trước.
-            TimChung->clear();
             TimHang->clear();
             MaLanKhamLoc->clear();
             NgayLoc->clear();
@@ -234,7 +213,7 @@ void DemoWindow::TaoNoiDung(QVBoxLayout *Khung) {
         });
     }
     Khung->addLayout(LuoiSoLieu);
-    auto *LuuY = Nhan("Dữ liệu được tự động lưu sau mỗi thay đổi. Trạng thái lưu hiển thị ở cuối trang.", "muted");
+    auto *LuuY = Nhan("Dữ liệu được tự động lưu sau mỗi thay đổi.", "muted");
     LuuY->setWordWrap(true);
     Khung->addWidget(LuuY);
     auto *Panel = new QFrame;
@@ -301,8 +280,8 @@ void DemoWindow::TaoNoiDung(QVBoxLayout *Khung) {
     HangLoc->addWidget(LocTrangThai);
     TimHang = new QLineEdit;
     TimHang->setObjectName("timHang");
-    TimHang->setPlaceholderText("Tìm tên hoặc mã…");
-    TimHang->setAccessibleName("Tìm trong danh sách");
+    TimHang->setPlaceholderText("Tìm tên, mã hoặc CCCD…");
+    TimHang->setAccessibleName("Tìm tên, mã hoặc CCCD trong danh sách");
     TimHang->setMaximumWidth(230);
     HangLoc->addWidget(TimHang, 1);
     ThanhLoc->addWidget(NhomLoc);
@@ -355,23 +334,12 @@ void DemoWindow::TaoNoiDung(QVBoxLayout *Khung) {
     SoKetQua->setWordWrap(true);
     CotPanel->addWidget(SoKetQua);
     Khung->addWidget(Panel, 1);
-    auto *GhiChu = Nhan(
-        "Mức 1 ưu tiên cao nhất · Hai đầu hàng cùng mức: luân phiên, lần hòa đầu ưu tiên quay lại. Mức cao hơn luôn được chọn trước.",
-        "muted");
-    GhiChu->setWordWrap(true);
-    Khung->addWidget(GhiChu);
-    DongHo = Nhan("Thời điểm hiển thị theo UTC+7 · Chưa liên kết danh sách nhân viên.", "muted");
-    DongHo->setWordWrap(true);
-    Khung->addWidget(DongHo);
-    TinhTrangLuu = Nhan("Đang chuẩn bị dữ liệu tự lưu…", "muted");
-    TinhTrangLuu->setObjectName("tinhTrangLuu"); TinhTrangLuu->setWordWrap(true);
-    Khung->addWidget(TinhTrangLuu);
 }
 
 void DemoWindow::ChuyenTrang(int ChiSo) {
     Trang = ChiSo;
+    if (Trang == 5) { LamMoi(); return; }
     LocKpi = -1;
-    TimChung->clear();
     TimHang->clear();
     MaLanKhamLoc->clear();
     NgayLoc->clear();
@@ -379,6 +347,13 @@ void DemoWindow::ChuyenTrang(int ChiSo) {
     LamMoi();
 }
 void DemoWindow::LamMoi() {
+    if (Trang == 5) {
+        KhuVuc->setText("Nhân sự và lịch trực");
+        DieuHuong[5]->setChecked(true);
+        CacTrang->setCurrentWidget(QuanTri);
+        return;
+    }
+    CacTrang->setCurrentIndex(0);
     int Mang[4]{};
     const auto TatCa = TraCuu.TimTheoBenhNhan();
     for (int I = 0; I < TatCa.KichThuoc(); ++I) {
@@ -434,7 +409,7 @@ void DemoWindow::DoDuLieu() {
         Ngay = {D.day(), D.month(), D.year()}; NgayCanTim = &Ngay;
     }
     const auto CacLuot = TraCuu.TimTheoBenhNhan(
-        Trang == 3 ? TimChung->text().trimmed().toStdString() : "", NgayCanTim,
+        "", NgayCanTim,
         Trang == 3 ? MaLanKhamLoc->text().trimmed().toStdString() : "");
     int SoHien = 0;
     const int Tong = LaHang ? Hang.KichThuoc() : Trang == 4 ? HoSo.KichThuoc() : CacLuot.KichThuoc();
@@ -570,14 +545,15 @@ bool DemoWindow::ThuLuuTuDong() {
     try {
         SessionFileManager().LuuVaoBoFile(Registry,DichVu,TepPatientTuDong,TepVisitTuDong);
         DaThayDoi = false; setWindowModified(false);
-        TinhTrangLuu->setText("Đã tự động lưu dữ liệu. Có thể đóng chương trình.\nNơi lưu: " + Chu(TepPatientTuDong) + "\n" + Chu(TepVisitTuDong) + "\nDự phòng: " + Chu(TepPatientTuDong) + ".pbl2");
-        statusBar()->showMessage("Đã tự động lưu Patient, Visit và hàng chờ.",7000);
+        TinhTrangLuu->setText("● Hồ sơ đã lưu");
+        TinhTrangLuu->setToolTip({});
         return true;
     } catch (const My_stdexcept &E) {
-        TinhTrangLuu->setText("CHƯA LƯU ĐƯỢC: " + QString::fromUtf8(E.LayThongBao()) +
-            "\nDữ liệu mới vẫn ở RAM. Tạm dừng thay đổi; chương trình tự thử lại mỗi 3 giây.");
+        TinhTrangLuu->setText("● Hồ sơ chưa lưu");
+        TinhTrangLuu->setToolTip(QString::fromUtf8(E.LayThongBao()) + " · Chương trình tự thử lại mỗi 3 giây.");
     } catch (const std::exception &) {
-        TinhTrangLuu->setText("CHƯA LƯU ĐƯỢC: thiếu tài nguyên hoặc lỗi hệ thống. Tạm dừng thay đổi và tự thử lại.");
+        TinhTrangLuu->setText("● Hồ sơ chưa lưu");
+        TinhTrangLuu->setToolTip("Thiếu tài nguyên hoặc lỗi hệ thống. Chương trình tự thử lại mỗi 3 giây.");
     }
     statusBar()->showMessage("Chưa ghi được dữ liệu xuống đĩa. Đang tự thử lại.");
     return false;
@@ -589,6 +565,7 @@ bool DemoWindow::CoTheThayDoi() {
 }
 void DemoWindow::closeEvent(QCloseEvent *SuKien) {
     // Thử lưu ngay nếu lần trước gặp lỗi; không yêu cầu người dùng bấm Lưu.
-    if (!DaThayDoi || ThuLuuTuDong()) SuKien->accept();
-    else SuKien->ignore();
+    if (DaThayDoi && !ThuLuuTuDong()) { SuKien->ignore(); return; }
+    if (QuanTri && !QuanTri->ChoPhepDong()) { SuKien->ignore(); return; }
+    SuKien->accept();
 }

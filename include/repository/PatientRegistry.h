@@ -63,6 +63,8 @@ public:
         const std::string& MaLanKham = "") const;
     void BoSungDanhTinh(const std::string& MaBenhNhan, const std::string& SoCanCuoc,
                        const std::string& HoTen, Gender GioiTinh, const Date& NgaySinh);
+    // Tiếp nhận lại: bổ sung mục còn thiếu, kiểm tra CCCD và chặn khi còn lượt đang mở.
+    void BoSungThongTinConThieu(const std::string& MaBenhNhan, const Patient& ThongTin);
 
     // Từ chối mã trùng, Patient không tồn tại hoặc Patient còn Visit chưa đóng.
     Visit* ThemLanKham(const std::string& MaLanKham, const std::string& MaBenhNhan,

@@ -115,7 +115,36 @@ void KiemTraLoiBoSungDanhTinh() {
     assert(DaThanhCong && SoLanDaLoi > 0);
 }
 
+void KiemTraLoiBoSungThongTinConThieu() {
+    bool ThanhCong=false;
+    int SoLoi=0;
+    for (int Buoc=0; Buoc<60 && !ThanhCong; ++Buoc) {
+        const int SoKhoiCu=SoKhoiDangSong;
+        {
+            PatientRegistry R; const auto* Cu=R.ThemBenhNhan("BN");
+            const std::string Ten(120,'T'), Cccd(80,'1'), DiUng(140,'D'), TienSu(160,'S');
+            Patient Nguon("BN",Ten,Gender::Nu,Date{1,1,2000},Cccd);
+            Nguon.CapNhatThongTinDiUng(DiUng); Nguon.CapNhatTienSuBenh(TienSu);
+            SoLanCapPhatConLai=Buoc;
+            try { R.BoSungThongTinConThieu("BN",Nguon); ThanhCong=true; }
+            catch (const std::bad_alloc&) { ++SoLoi; }
+            SoLanCapPhatConLai=-1;
+            assert(R.TimBenhNhan("BN")==Cu);
+            if (ThanhCong) {
+                assert(Cu->LayHoTen()==Ten && Cu->LaySoCanCuoc()==Cccd);
+                assert(Cu->LayThongTinDiUng()==DiUng && Cu->LayTienSuBenh()==TienSu);
+            } else {
+                assert(Cu->LayHoTen().empty() && Cu->LaySoCanCuoc().empty() && !Cu->CoNgaySinh());
+                assert(Cu->LayThongTinDiUng().empty() && Cu->LayTienSuBenh().empty());
+            }
+        }
+        assert(SoKhoiDangSong==SoKhoiCu);
+    }
+    assert(ThanhCong && SoLoi>0);
+}
+
 int main() {
+    KiemTraLoiBoSungThongTinConThieu();
     KiemTraLoiThem(false, 0);
     KiemTraLoiThem(false, 11); // Cộng NguoiMoi = 12 Patient trước lần thêm.
     KiemTraLoiThem(true, 0);

@@ -31,15 +31,14 @@ class DemoWindow : public QMainWindow {
     QLineEdit *MaLanKhamLoc;
     QLineEdit *NgayLoc;
     QFrame *ThanhBen = nullptr;
-    QPushButton *DieuHuong[5]{};
+    QPushButton *DieuHuong[6]{};
     QLabel *TieuDe;
     QLabel *MoTa;
     QLabel *KhuVuc;
-    QLabel *DongHo;
+    QStackedWidget *CacTrang = nullptr;
     QLabel *SoLieu[4]{};
     QFrame *TheSoLieu[4]{};
     QGridLayout *LuoiSoLieu;
-    QLineEdit *TimChung;
     QLineEdit *TimHang;
     QComboBox *LocMuc;
     QComboBox *LocTrangThai;

@@ -43,4 +43,6 @@ public:
     void CapNhatTienSuBenh(const std::string& ThongTin);
     void BoSungDanhTinh(const std::string& SoCanCuoc, const std::string& HoTen,
                        Gender GioiTinh, const Date& NgaySinh);
+    // Chỉ điền các mục chưa biết từ hồ sơ cùng mã; giữ nguyên mọi mục đã có.
+    void BoSungThongTinConThieu(const Patient& ThongTin);
 };

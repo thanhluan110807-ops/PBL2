@@ -1,11 +1,17 @@
 # An Tâm — giao diện Qt nối code lõi
 
-Nút **Nhân sự và lịch trực** trong cửa sổ chính mở phần B. Ba tab Nhân sự,
+Mục **Nhân sự và lịch trực** trong thanh điều hướng mở phần B ngay trong vùng nội dung chính, không bật hộp thoại riêng. Ba tab Nhân sự,
 Ca trực, Lịch và thay ca dùng trực tiếp dữ liệu nhân sự/lịch và `SchedulerService`.
 Các thẻ tổng quan lấy số lượng từ dữ liệu hiện tại; vùng chi tiết hiện thông tin
 người, ca hoặc phân công được chọn. Khi tìm người thay, danh sách hiện tên kèm
-mã nhân viên; thao tác vẫn sử dụng mã. Phần này lưu/mở file riêng, không dùng
-cơ chế tự lưu Patient/Visit.
+mã nhân viên; thao tác vẫn sử dụng mã. Phần này tự nạp file `nhan-su-lich.pbl2`
+trong thư mục dữ liệu ứng dụng; nút **Lưu thay đổi** màu xanh ghi thẳng vào file
+đó, lưu chung nhân sự, ca trực, phân công và dự phòng. Không có hộp chọn file
+hay nút nhập/xuất riêng trong các tab. Nút lưu được bật khi có thay đổi; ghi lỗi
+giữ dữ liệu để lưu lại, còn nguồn có sẵn bị lỗi đọc sẽ chặn lưu đè.
+Phần này lưu khi bấm nút, còn Patient/Visit tự lưu sau mỗi thay đổi.
+Trạng thái lưu hồ sơ được tóm tắt ở thanh đầu;
+không hiển thị đường dẫn file và ghi chú kỹ thuật ở cuối trang.
 
 Demo Qt Widgets/QSS dùng trực tiếp `PatientRegistry`, `TriageService`,
 `VisitSearchService`, `PatientFileManager`, `VisitFileManager` và `SessionFileManager`. Nghiệp vụ và DSA vẫn độc lập Qt.
@@ -32,24 +38,38 @@ CTest đã đặt `QT_QPA_PLATFORM=offscreen` cho các test widget.
    [patients.csv](data/patients.csv) đúng lược đồ v1. CSV lỗi sẽ báo lỗi và giữ
    hộp thoại để chọn lại; đóng hộp thoại thì thoát. Có thể chọn thêm Visit CSV để khôi phục lần khám/hàng chờ. Nếu chưa có Visit, tạo visit.csv cạnh Patient. Lần sau tự mở lại bộ đã chọn. Không nạp lại CSV giữa phiên.
 2. Tiếp nhận: nhập mã Patient và mã Visit riêng, hoặc tìm tên/CCCD/mã rồi chọn
-   hồ sơ cũ. Hồ sơ cùng tên không tự gộp. Mã hoặc CCCD trùng bị từ chối; mỗi
-   Patient chỉ có một Visit đang mở. Patient mới có thể chưa rõ tên/tuổi.
+   hồ sơ cũ. Chỉ khi chọn **Chọn hồ sơ đã có** mới hiện tìm kiếm và danh sách
+   bệnh nhân. Chọn người sẽ điền thông tin đã có vào ô xám chỉ đọc; ô trắng
+   cho phép bổ sung mục còn thiếu. Phần bổ sung được lưu vào cùng hồ sơ khi
+   tiếp nhận, không thay mã hay ghi đè dữ liệu đã có. Mã lượt khám và triệu
+   chứng nhập riêng cho lần mới. Chữ nội dung 18px, tiêu đề 24px.
+   Hồ sơ cùng tên không tự gộp. Mã hoặc CCCD trùng bị từ chối; mỗi Patient chỉ
+   có một Visit đang mở. Patient mới có thể chưa rõ tên/tuổi.
 3. Đánh giá: mở chi tiết Visit ở trang **Tiếp nhận**, nhập mạch, huyết áp tâm
    thu, nhịp thở, SpO₂, GCS và mã điều dưỡng. Patient cần ngày sinh hoặc tuổi
-   ước lượng. Mức cấp cứu được lõi tự tính; lưu thành công mới vào hàng khám.
+   ước lượng. Dòng chữ nhỏ ngay dưới từng ô ghi khoảng giá trị nhập hợp lệ,
+   đơn vị và cách nhập số thập phân cho SpO₂. Chữ nội dung 18px, tiêu đề 24px;
+   hướng dẫn 14px. Mức cấp cứu được lõi tự tính;
+   lưu thành công mới vào hàng khám.
 4. Gọi khám: nhập mã bác sĩ và bấm **Gọi lượt tiếp theo**. Bộ lọc chỉ ảnh hưởng
    hiển thị. Mức cao hơn luôn đi trước; khi hai đầu hàng cùng mức, luân phiên
    quay lại/lần đầu, lần hòa đầu tiên ưu tiên quay lại.
 5. Chi tiết: bác sĩ đã tham gia có thể chỉ định cận lâm sàng, nhận kết quả và
    đưa Visit vào hàng quay lại. Có thể kết thúc khi đang khám hoặc hủy Visit
    đang mở. Đánh giá lại chỉ hiện khi đang chờ khám. Lịch sử đánh giá, bác sĩ
-   tham gia và cận lâm sàng đọc từ Visit thật.
-6. Tra cứu: ô tên trên đầu trang cùng ngày tiếp nhận UTC+7 và mã Visit chính
-   xác được kết hợp AND qua `VisitSearchService`. Tên không phân biệt hoa/
-   thường nhưng giữ dấu theo lõi. Ô tìm trong danh sách hỗ trợ lọc hiển thị
-   tên/mã/CCCD không dấu. Patient chưa khám nằm trong **Hồ sơ bệnh nhân**.
-7. Hồ sơ: xem dữ liệu y tế và các Visit liên kết; bổ sung danh tính bằng tên,
-   giới tính, ngày sinh, CCCD qua Registry, giữ nguyên mã và lịch sử.
+   tham gia và cận lâm sàng đọc từ Visit thật. Thông tin được xếp thành từng
+   dòng nhãn/giá trị từ trên xuống; nội dung dài cuộn trong hộp thoại.
+6. Tra cứu trong tab **Lượt khám**: ô tìm trong danh sách hỗ trợ tên/mã/CCCD
+   không phân biệt hoa/thường và dấu. Bộ lọc ngày tiếp nhận UTC+7 và mã Visit
+   chính xác đi qua `VisitSearchService`, kết hợp với từ khóa để thu hẹp kết
+   quả. Patient chưa khám nằm trong **Hồ sơ bệnh nhân**.
+7. Hồ sơ: mặc định xem từng dòng **Họ tên: …**, **CCCD: …**, ngày sinh, giới
+   tính, nhóm máu, dị ứng, tiền sử và các Visit liên kết. Giá trị chưa biết để
+   trống. Bấm **Bổ sung / cập nhật thông tin** mới hiện ô nhập tên, giới tính,
+   ngày sinh, CCCD. **Hủy chỉnh sửa** trở lại phần xem; **Lưu thay đổi** cập
+   nhật qua Registry, giữ nguyên mã, dữ liệu y tế và lịch sử. Lưu thành công
+   trở lại phần xem thông tin mới. Hồ sơ và chi tiết lần khám dùng chữ nội
+   dung 18px, tiêu đề 24px (tăng khoảng 30% so với trước).
 
 ## Bộ dữ liệu kiểm tra mở rộng
 
@@ -62,15 +82,17 @@ hai hàng, cận lâm sàng, bổ sung danh tính và các tình huống bị t�
 - Tự ghi vào đúng file Patient/Visit đã chọn sau mỗi thay đổi. Không cần nút
   lưu riêng. Có bản gốc và các bản dự phòng trong `<patient-path>.pbl2/`.
 - Mở lại tự dùng bộ file gần nhất; nếu bị dừng giữa hai lần ghi, tự hoàn tất
-  từ bản chụp đầy đủ. Ghi lỗi giữ RAM, tạm chặn thay đổi, tự thử lại mỗi3giây;
+  từ bản chụp đầy đủ. Ghi lỗi giữ RAM, tạm chặn thay đổi, tự thử lại mỗi 3 giây;
   không đóng cửa sổ khi chưa ghi được. [Chi tiết](../../docs/repository/visit-files.md).
 - Chưa nối danh sách nhân viên; mã bác sĩ/điều dưỡng do người dùng nhập.
-- Chưa tính áp lực hàng đợi. Nút **Nhân sự và lịch trực** mở AdminPanel của phần B; dữ liệu nhân sự/lịch có cơ chế nhập/xuất riêng.
+- Chưa tính áp lực hàng đợi. Mục **Nhân sự và lịch trực** hiển thị phần B trong
+  cửa sổ chính, tự đọc file đã liên kết và ghi khi bấm **Lưu thay đổi**.
 - Bỏ mức phân loại thủ công, cảnh báo chờ quá giờ, đồng hồ mô phỏng, mẫu 3:1.
   Thời gian là giờ hệ thống; màn hình hiển thị UTC+7. Cột **Tiếp nhận** không
   phải thời gian vào hàng (API chưa trả thời điểm vào hàng).
-- Hồ sơ đã tạo chỉ có API bổ sung danh tính, chưa sửa tự do thông tin y tế hay
-  tuổi ước lượng. Nếu thiếu tuổi khi đánh giá, cần bổ sung ngày sinh hợp lệ.
+- Khi tiếp nhận lại, có thể điền thông tin còn thiếu, gồm dị ứng, tiền sử và
+  tuổi ước lượng. Các mục đã có giữ nguyên; chưa có chức năng sửa tự do dữ
+  liệu y tế đã ghi. Màn hình hồ sơ vẫn cho cập nhật danh tính qua Registry.
 - `model/DemoTriageService.*`, `model/DemoSeed.cpp`, `tests/test_demo_state.cpp`
   và `tests/check_rule_parity.py` được giữ làm tham khảo lịch sử, không thuộc
   target demo hoặc bộ kiểm thử hiện tại.
@@ -86,11 +108,15 @@ hai hàng, cận lâm sàng, bổ sung danh tính và các tình huống bị t�
 - `tests/test_demo_widgets.cpp`: thao tác Qt thật kết hợp kiểm tra Registry;
   lưu ảnh rộng/hẹp tại thư mục chạy test.
 - `tests/test_demo_startup.cpp`: chọn rỗng, CSV hợp lệ/lỗi, hủy chọn file/thoát.
+- `tests/test_patient_detail_widgets.cpp`: xem/sửa/hủy hồ sơ, dữ liệu trống,
+  ngày sai/CCCD trùng, lưu và đọc lại, bố cục/cỡ chữ rộng-hẹp và lịch sử khám.
+- `tests/test_reception_widgets.cpp`: tạo mới/chọn hồ sơ cũ, tự điền/khóa ô,
+  bổ sung phần thiếu, kiểm tra trùng/đang khám, hủy và lưu/đọc lại đúng hồ sơ.
+- `tests/test_demo_persistence.cpp`: tự ghi sau thao tác GUI, đọc lại, ghi lỗi,
+  tự thử lại và chặn đóng khi chưa ghi được.
 
 Bộ dev Qt cục bộ dùng trong workspace không thuộc repository. Hướng dẫn build
 trên áp dụng với Qt development kit đã cài của người chạy.
-
-- `tests/test_demo_persistence.cpp`: tự ghi sau thao tác GUI, đọc lại, ghi lỗi, tự thử lại và chặn đóng khi chưa ghi được.
 
 Muốn chọn bộ dữ liệu khác lúc khởi động, chạy:
 

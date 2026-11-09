@@ -64,6 +64,25 @@ code. Người dùng muốn xem code `.h`/`.cpp` liên quan khi nhờ triển kh
 
 ### Đề xuất, chưa triển khai hoặc chưa chốt
 
+- **Đăng nhập và phân quyền theo vai trò:** người dùng muốn ghi nhận để làm
+  sau, chưa yêu cầu triển khai. Ý tưởng là có màn hình chung, liên kết người
+  dùng với mã nhân viên và chỉ cho phép chức năng phù hợp:
+  - Điều dưỡng tiếp nhận, tra cứu hồ sơ, nhập sinh hiệu và đánh giá phân loại.
+  - Bác sĩ xem bệnh nhân được phân công và tra cứu Patient/Visit mình đã tham
+    gia khám; phạm vi xem các Visit do bác sĩ khác khám còn phải thống nhất.
+  - Người quản lý phân lịch bác sĩ/điều dưỡng, xác nhận và điều phối thay ca.
+    Một người có thể có nhiều vai trò; quyền quản lý cần được cấp rõ ràng,
+    không tự suy ra từ cấp bậc chuyên môn.
+  - Có thể xem lịch cá nhân và đăng ký ca mong muốn. Khi đã xác định người
+    dùng, dự kiến lấy mã nhân viên từ phiên thay vì nhập thủ công khi thao tác.
+    Phải kiểm tra quyền khi thực hiện thao tác, không chỉ ẩn nút giao diện.
+  - Chưa chốt chọn vai trò/mã để **mô phỏng** hay xác thực bằng mã và mật khẩu,
+    cách cấp/quản lý tài khoản, lưu mật khẩu an toàn, các quyền chi tiết và
+    phạm vi dữ liệu. Chọn vai trò/mã không chứng minh danh tính. Nếu bổ sung
+    thư viện xác thực, cần thống nhất theo quy định dự án; không tự thiết kế
+    thuật toán bảo mật. Tra cứu theo bác sĩ là đề xuất, chưa mặc định đã có.
+  Không coi đây là phân quyền đã triển khai hoặc được duyệt thực hiện; chỉ làm
+  khi người dùng yêu cầu riêng và sau khi chốt các điểm còn mở.
 - Tính áp lực hàng đợi: người dùng đã chọn tạm hoãn. Không tự triển khai hoặc
   giả định TriageService hiện cần nó. Công thức, ngưỡng và tích hợp cần chốt
   khi được yêu cầu; [lịch sử kế hoạch cũ](../handoffs/2026-11-03-chuyen-chat.md).

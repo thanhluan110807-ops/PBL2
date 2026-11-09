@@ -4,6 +4,7 @@
 #include "model/DieuDuong.h"
 #include "ui/AdminPanel.h"
 #include "ui/StaffPresenter.h"
+#include "ui/DemoStyle.h"
 #include "service/SchedulerService.h"
 #include "repository/ScheduleFileManager.h"
 #include "repository/StaffFileManager.h"
@@ -31,9 +32,16 @@
 #include <QTimeEdit>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QFrame>
+#include <QGridLayout>
 #include <exception>
 
 namespace {
+const Shift* TimCa(const Schedule& Lich, const std::string& Ma) {
+    for (int I=0; I<Lich.CacCa.KichThuoc(); ++I)
+        if (Lich.CacCa[I].LayMaCaTruc()==Ma) return &Lich.CacCa[I];
+    return nullptr;
+}
 // Adapter: GUI cũ dùng Schedule; mọi thao tác mới đi qua Registry kiểm tra nghiệp vụ.
 std::unique_ptr<ScheduleRegistry> TaoRegistry(const AdminData& D) {
     auto R=std::make_unique<ScheduleRegistry>();
@@ -58,13 +66,28 @@ Shift GanNgay(const Shift& C, const std::string& Tuan) {
     return Shift::TuThoiDiem(C.LayMaCaTruc(),Moc+C.LayPhutBatDau()*60,Moc+C.LayPhutKetThuc()*60,C.SoBacSi,C.SoDieuDuong,C.CanTruongCa);
 }
 QPushButton* Nut(QLayout* Cot, const QString& Ten, const char* Ma) {
-    auto* N = new QPushButton(Ten); N->setObjectName(Ma); Cot->addWidget(N); return N;
+    auto* N = new QPushButton(Ten); N->setObjectName(Ma);
+    N->setCursor(Qt::PointingHandCursor); N->setMinimumHeight(40);
+    Cot->addWidget(N); return N;
 }
 QTableWidget* Bang(QVBoxLayout* Cot, const QStringList& CotTen, const char* Ma) {
     auto* B = new QTableWidget(0, CotTen.size()); B->setObjectName(Ma);
-    B->setHorizontalHeaderLabels(CotTen); B->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    B->setHorizontalHeaderLabels(CotTen);
+    B->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    B->horizontalHeader()->setMinimumSectionSize(80);
+    B->verticalHeader()->hide();
+    B->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+    B->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
     B->setSelectionBehavior(QAbstractItemView::SelectRows); B->setSelectionMode(QAbstractItemView::SingleSelection);
-    B->setEditTriggers(QAbstractItemView::NoEditTriggers); Cot->addWidget(B); return B;
+    B->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    B->setMinimumHeight(180); Cot->addWidget(B); return B;
+}
+void ThemTab(QTabWidget* Tab, QWidget* NoiDung, const QString& Ten) {
+    // Cả tab cuộn dọc để nút cuối trang vẫn tới được khi cửa sổ hẹp.
+    auto* Cuon = new QScrollArea;
+    Cuon->setWidgetResizable(true); Cuon->setWidget(NoiDung);
+    Cuon->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    Tab->addTab(Cuon,Ten);
 }
 void O(QTableWidget* B, int Hang, int Cot, const QString& S) { B->setItem(Hang,Cot,new QTableWidgetItem(S)); }
 QString ThoiDiem(std::time_t T) {
@@ -89,10 +112,37 @@ void GiuTrangThai(const NhanVienYTe* Cu, NhanVienYTe& Moi) {
 }
 AdminPanel::AdminPanel(QWidget* Cha, const QString& TepMacDinh) : QDialog(Cha), DuongDan(TepMacDinh) {
     setWindowTitle("Nhân sự và lịch trực · Phần B"); setObjectName("adminPanel"); resize(1050,760);
+    setStyleSheet(DemoUi::Qss() + QString::fromUtf8(R"(
+QDialog#adminPanel { background:#F6F5FA; }
+QLabel[adminCount="true"] { font-size:25px; font-weight:700; color:#593AB8; }
+QLabel[adminDetail="true"] { background:#F5F4F8; border-radius:9px; padding:12px; }
+QLabel#adminNextStep { color:#514B61; background:#EEE9FD; border-radius:9px; padding:10px; }
+QLabel#adminMessage { color:#514B61; padding:6px; }
+QLabel#adminFileStatus { color:#514B61; padding:6px; }
+QTabWidget::pane { border:1px solid #ECEBF0; border-radius:10px; background:#FDFCFE; }
+QTabBar::tab { padding:10px 14px; min-width:105px; margin-right:3px; color:#514B61; background:#F7F5FA; border:1px solid #ECEBF0; border-top-left-radius:7px; border-top-right-radius:7px; }
+QTabBar::tab:last { min-width:170px; }
+QTabBar::tab:selected { color:#593AB8; background:#FDFCFE; border-bottom:3px solid #6A47EB; font-weight:600; }
+QDateEdit:focus, QTimeEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QCheckBox:focus, QTableWidget:focus { border:2px solid #7050F2; }
+)") );
     auto* Cot = new QVBoxLayout(this);
-    auto* MoTa = new QLabel("Lập lịch một tuần · nghỉ giữa ca 12 giờ, sau ca đêm 24 giờ · tối đa 48 giờ/tuần.\n"
-                           "Điểm mệt mỏi là mô phỏng. Dữ liệu nhân sự/lịch được lưu riêng với bệnh nhân demo.");
+    Cot->setSpacing(12); Cot->setContentsMargins(20,18,20,16);
+    auto* TieuDe = new QLabel("Nhân sự và lịch trực"); TieuDe->setProperty("role","title"); Cot->addWidget(TieuDe);
+    auto* MoTa = new QLabel("Lập lịch theo tuần · nghỉ giữa ca 12 giờ, sau ca đêm 24 giờ · tối đa 48 giờ/tuần.\n"
+                           "Điểm mệt mỏi là mô phỏng. Dữ liệu nhân sự và lịch được lưu riêng.");
     MoTa->setWordWrap(true); Cot->addWidget(MoTa);
+    auto* TongQuan = new QHBoxLayout; Cot->addLayout(TongQuan);
+    auto ThemSo = [TongQuan](const char* Ma, const QString& Ten) {
+        auto* Khung = new QFrame; Khung->setObjectName("card");
+        auto* NoiDung = new QVBoxLayout(Khung); NoiDung->setContentsMargins(14,10,14,10);
+        auto* So = new QLabel("0"); So->setObjectName(Ma); So->setProperty("adminCount",true);
+        NoiDung->addWidget(So); NoiDung->addWidget(new QLabel(Ten)); TongQuan->addWidget(Khung,1);
+        return So;
+    };
+    SoNhanSu=ThemSo("adminStaffCount","Nhân viên");
+    SoCa=ThemSo("adminShiftCount","Ca trực");
+    SoPhanCong=ThemSo("adminAssignmentCount","Chờ xác nhận");
+    BuocTiep = new QLabel; BuocTiep->setObjectName("adminNextStep"); BuocTiep->setWordWrap(true); Cot->addWidget(BuocTiep);
     auto* Hang = new QHBoxLayout; Cot->addLayout(Hang);
     Hang->addWidget(new QLabel("Tuần bắt đầu (thứ Hai):"));
     Tuan = new QDateEdit; Tuan->setObjectName("adminWeek"); Tuan->setCalendarPopup(true);
@@ -113,7 +163,7 @@ AdminPanel::AdminPanel(QWidget* Cha, const QString& TepMacDinh) : QDialog(Cha), 
     auto* Tab = new QTabWidget; Cot->addWidget(Tab,1);
     TaoNhanSu(Tab); TaoCa(Tab); TaoLich(Tab);
     ThongBao = new QLabel; ThongBao->setObjectName("adminMessage"); ThongBao->setWordWrap(true); Cot->addWidget(ThongBao);
-    TrangThaiTep = new QLabel; TrangThaiTep->setWordWrap(true); Cot->addWidget(TrangThaiTep);
+    TrangThaiTep = new QLabel; TrangThaiTep->setObjectName("adminFileStatus"); TrangThaiTep->setWordWrap(true); Cot->addWidget(TrangThaiTep);
     auto* Tep = new QHBoxLayout; Cot->addLayout(Tep);
     auto* Luu = Nut(Tep,"Lưu file…","adminSave"); auto* Doc = Nut(Tep,"Mở file…","adminLoad");
     auto* Dong = Nut(Tep,"Đóng","adminClose");
@@ -135,9 +185,14 @@ void AdminPanel::TaoNhanSu(QTabWidget* Tab) {
     auto* TruongNhap = new QWidget;
     auto* F = new QFormLayout(TruongNhap); F->setRowWrapPolicy(QFormLayout::WrapLongRows);
     auto* Cuon = new QScrollArea; Cuon->setWidgetResizable(true); Cuon->setWidget(TruongNhap);
-    Cuon->setMaximumHeight(310); Cot->addWidget(Cuon);
+    Cuon->setMaximumHeight(290); Cot->addWidget(Cuon);
+    auto ThemMuc=[F](const QString& Ten) {
+        auto* NhanMuc=new QLabel(Ten); NhanMuc->setProperty("role","section"); F->addRow(NhanMuc);
+    };
+    ThemMuc("Thông tin cơ bản");
     MaNV = new QLineEdit; MaNV->setObjectName("staffId"); F->addRow("Mã nhân viên",MaNV);
     TenNV = new QLineEdit; TenNV->setObjectName("staffName"); F->addRow("Họ tên",TenNV);
+    ThemMuc("Chuyên môn và sức tải");
     LoaiNV = new QComboBox; LoaiNV->addItems({"Bác sĩ","Điều dưỡng"}); LoaiNV->setObjectName("staffType"); F->addRow("Loại",LoaiNV);
     CapNV = new QComboBox; CapNV->setObjectName("staffRank"); F->addRow("Cấp bậc",CapNV);
     auto CapNhatCap = [this] {
@@ -151,6 +206,7 @@ void AdminPanel::TaoNhanSu(QTabWidget* Tab) {
     ChuyenKhoa = new QLineEdit; ChuyenKhoa->setObjectName("staffSpecialty"); F->addRow("Chuyên khoa",ChuyenKhoa);
     DiemNen = new QDoubleSpinBox; DiemNen->setRange(0,10000); F->addRow("Điểm mệt mỏi nền",DiemNen);
     connect(LoaiNV,qOverload<int>(&QComboBox::currentIndexChanged),this,[CapNhatCap](int) { CapNhatCap(); }); CapNhatCap();
+    ThemMuc("Nguyện vọng và dự phòng");
     GioMongDau = new QSpinBox; GioMongDau->setRange(0,23); GioMongDau->setValue(7);
     GioMongCuoi = new QSpinBox; GioMongCuoi->setRange(0,23); GioMongCuoi->setValue(15);
     MongCuoiTuan = new QCheckBox("Ưu tiên ca cuối tuần");
@@ -187,8 +243,22 @@ void AdminPanel::TaoNhanSu(QTabWidget* Tab) {
         ThongBao->setText("Đã xóa nhân viên. Hãy xếp lại lịch.");
     });
     BangNhanSu = Bang(Cot,{"Mã","Họ tên","Loại","Giờ đã xếp","Điểm dự kiến","Dự phòng"},"staffTable");
+    ChiTietNhanSu = new QLabel("Chọn nhân viên để xem thông tin và nguyện vọng.");
+    ChiTietNhanSu->setObjectName("adminStaffDetail"); ChiTietNhanSu->setProperty("adminDetail",true);
+    ChiTietNhanSu->setWordWrap(true); Cot->addWidget(ChiTietNhanSu);
+    connect(BangNhanSu,&QTableWidget::itemSelectionChanged,this,[this] {
+        const int I=BangNhanSu->currentRow();
+        if (I>=0 && I<DuLieu.NhanSu->KichThuoc()) {
+            const auto& N=DuLieu.NhanSu->Lay(I); const auto& M=N.LayCaMongMuon();
+            ChiTietNhanSu->setText(StaffPresenter::MoTa(N) + QString("\nNguyện vọng: %1:00–%2:00 · %3 (ưu tiên mềm)")
+                .arg(M.GioBatDau,2,10,QChar('0')).arg(M.GioKetThuc,2,10,QChar('0'))
+                .arg(M.MongMuonCuoiTuan?"ưu tiên cuối tuần":"ưu tiên ngày thường"));
+        } else ChiTietNhanSu->setText("Chọn nhân viên để xem thông tin và nguyện vọng.");
+    });
     auto* Tim = new QLineEdit; Tim->setObjectName("staffSearchDoctor");
-    Tim->setPlaceholderText("Tìm bác sĩ theo tên (phân biệt hoa/thường và dấu)"); Cot->addWidget(Tim);
+    Tim->setPlaceholderText("Nhập tên bác sĩ (phân biệt hoa/thường và dấu)");
+    auto* NhanTim=new QLabel("Tìm bác sĩ theo tên"); NhanTim->setBuddy(Tim);
+    Cot->addWidget(NhanTim); Cot->addWidget(Tim);
     connect(Tim,&QLineEdit::textChanged,this,[this](const QString& Ten) {
         const auto DS=DuLieu.NhanSu->TimBacSiTheoTen(Ten.toStdString());
         for (int I=0;I<DuLieu.NhanSu->KichThuoc();++I) {
@@ -216,10 +286,12 @@ void AdminPanel::TaoNhanSu(QTabWidget* Tab) {
         const auto P=QFileDialog::getOpenFileName(this,"Mở nhân viên",{},"PBL2 (*.pbl2)");
         if (!P.isEmpty()) NapNhanSu(P);
     });
-    Tab->addTab(W,"1. Nhân sự");
+    W->setMinimumHeight(820); ThemTab(Tab,W,"Nhân sự");
 }
 void AdminPanel::TaoCa(QTabWidget* Tab) {
     auto* W = new QWidget; auto* Cot = new QVBoxLayout(W); auto* F = new QFormLayout; Cot->addLayout(F);
+    auto* MoTaCa=new QLabel("Tạo ca theo nhu cầu của bệnh viện. Nếu giờ kết thúc sớm hơn giờ bắt đầu, ca kéo dài sang ngày hôm sau.");
+    MoTaCa->setWordWrap(true); Cot->insertWidget(0,MoTaCa);
     MaCa = new QLineEdit; MaCa->setObjectName("shiftId"); F->addRow("Mã ca",MaCa);
     NgayCa = new QComboBox; NgayCa->addItems({"Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy","Chủ nhật"}); F->addRow("Ngày bắt đầu",NgayCa);
     GioDau = new QTimeEdit(QTime(7,0)); GioCuoi = new QTimeEdit(QTime(15,0));
@@ -228,7 +300,19 @@ void AdminPanel::TaoCa(QTabWidget* Tab) {
     SoDD = new QSpinBox; SoDD->setRange(0,10); SoDD->setValue(1); F->addRow("Số điều dưỡng",SoDD);
     TruongCa = new QCheckBox("Cần một bác sĩ chính/trưởng khoa làm trưởng ca"); TruongCa->setChecked(true); F->addRow(TruongCa);
     auto* Them = Nut(Cot,"Thêm ca (lịch hiện có sẽ cần xếp lại)","shiftAdd"); connect(Them,&QPushButton::clicked,this,[this] { ThemCa(); });
-    BangCa = Bang(Cot,{"Mã ca","Bắt đầu","Kết thúc","Bác sĩ","Điều dưỡng"},"shiftTable");
+    BangCa = Bang(Cot,{"Mã ca","Bắt đầu","Kết thúc","Bác sĩ","Điều dưỡng","Trưởng ca"},"shiftTable");
+    ChiTietCa = new QLabel("Chọn ca để xem thời gian và nhu cầu nhân sự.");
+    ChiTietCa->setObjectName("adminShiftDetail"); ChiTietCa->setProperty("adminDetail",true);
+    ChiTietCa->setWordWrap(true); Cot->addWidget(ChiTietCa);
+    connect(BangCa,&QTableWidget::itemSelectionChanged,this,[this] {
+        const int I=BangCa->currentRow();
+        if (I>=0 && I<DuLieu.Lich.CacCa.KichThuoc()) {
+            const auto& C=DuLieu.Lich.CacCa[I];
+            ChiTietCa->setText(QString("%1 · %2 → %3\nCần %4 bác sĩ, %5 điều dưỡng%6")
+                .arg(QString::fromStdString(C.LayMaCaTruc()),ThoiDiem(C.LayBatDau()),ThoiDiem(C.LayKetThuc()))
+                .arg(C.SoBacSi).arg(C.SoDieuDuong).arg(C.CanTruongCa?" · cần trưởng ca":""));
+        } else ChiTietCa->setText("Chọn ca để xem thời gian và nhu cầu nhân sự.");
+    });
     auto* Xoa = Nut(Cot,"Xóa ca đã chọn (cần xếp lại lịch)","shiftDelete");
     connect(Xoa,&QPushButton::clicked,this,[this] {
         const int I=BangCa->currentRow();
@@ -239,25 +323,43 @@ void AdminPanel::TaoCa(QTabWidget* Tab) {
         for(int J=0;J<DuLieu.Lich.CacCa.KichThuoc();++J) if(J!=I) ConLai.ThemCuoi(DuLieu.Lich.CacCa[J]);
         DuLieu.Lich.CacCa=std::move(ConLai); DuLieu.Lich.PhanCong.XoaHet(); DaSua=true; LamMoi();
     });
-    Tab->addTab(W,"2. Ca trực");
+    W->setMinimumHeight(640); ThemTab(Tab,W,"Ca trực");
 }
 void AdminPanel::TaoLich(QTabWidget* Tab) {
     auto* W = new QWidget; auto* Cot = new QVBoxLayout(W);
-    auto* Giai = Nut(Cot,"Xếp lịch hợp lệ bằng Backtracking","scheduleGenerate");
+    auto* Giai = Nut(Cot,"Đề xuất lịch trực","scheduleGenerate"); Giai->setProperty("primary",true);
     connect(Giai,&QPushButton::clicked,this,[this] { LapLich(); });
-    BangLich = Bang(Cot,{"Ca","Nhân viên","Họ tên","Vai trò","Trạng thái","Mã phân công"},"scheduleTable");
-    auto* Hang = new QHBoxLayout; Cot->addLayout(Hang);
-    auto* Tim = Nut(Hang,"Tìm người thay cho dòng đã chọn","replacementFind");
-    ChonNguoiThay = new QComboBox; ChonNguoiThay->setObjectName("replacementCandidates"); Hang->addWidget(ChonNguoiThay);
-    auto* Thay = Nut(Hang,"Xác nhận thay","replacementApply");
+    BangLich = Bang(Cot,{"Ca","Thời gian ca","Nhân viên","Họ tên","Vai trò","Trạng thái","Mã phân công"},"scheduleTable");
+    ChiTietPhanCong = new QLabel("Chọn phân công để xem ca, vai trò và trạng thái.");
+    ChiTietPhanCong->setObjectName("adminAssignmentDetail"); ChiTietPhanCong->setProperty("adminDetail",true);
+    ChiTietPhanCong->setWordWrap(true); Cot->addWidget(ChiTietPhanCong);
+    connect(BangLich,&QTableWidget::itemSelectionChanged,this,[this] {
+        const int I=BangLich->currentRow();
+        if (I>=0 && I<DuLieu.Lich.PhanCong.KichThuoc() && BangLich->item(I,3) && BangLich->item(I,5)) {
+            const auto& P=DuLieu.Lich.PhanCong[I]; const auto* C=TimCa(DuLieu.Lich,P.MaCa);
+            ChiTietPhanCong->setText(QString("%1 · %2 (%3)\n%4 · %5")
+                .arg(QString::fromStdString(P.MaCa),BangLich->item(I,3)->text(),QString::fromStdString(P.MaNhanVien),
+                     VaiTro(P.VaiTro),BangLich->item(I,5)->text())+
+                (C?QString(" · %1 → %2").arg(ThoiDiem(C->LayBatDau()),ThoiDiem(C->LayKetThuc())):QString()));
+        } else ChiTietPhanCong->setText("Chọn phân công để xem ca, vai trò và trạng thái.");
+    });
+    auto* Hang = new QGridLayout; Cot->addLayout(Hang);
+    auto* Tim = new QPushButton("Tìm người thay cho dòng đã chọn"); Tim->setObjectName("replacementFind");
+    Tim->setCursor(Qt::PointingHandCursor); Tim->setMinimumHeight(40); Hang->addWidget(Tim,0,0,1,2);
+    ChonNguoiThay = new QComboBox; ChonNguoiThay->setObjectName("replacementCandidates"); Hang->addWidget(ChonNguoiThay,1,0);
+    auto* Thay = new QPushButton("Xác nhận thay"); Thay->setObjectName("replacementApply");
+    Thay->setCursor(Qt::PointingHandCursor); Thay->setMinimumHeight(40); Hang->addWidget(Thay,1,1);
     connect(Tim,&QPushButton::clicked,this,[this] { TimThay(); });
     connect(Thay,&QPushButton::clicked,this,[this] { ThayNguoi(); });
     connect(BangLich,&QTableWidget::itemSelectionChanged,this,[this] { ChonNguoiThay->clear(); });
-    auto* TrangThai = new QHBoxLayout; Cot->addLayout(TrangThai);
+    // Hai hàng giữ đủ chỗ cho nút khi hộp thoại thu hẹp.
+    auto* TrangThai = new QGridLayout; Cot->addLayout(TrangThai);
     const QString TenNut[]={"Xác nhận phân công","Hủy phân công…","Ghi nhận bắt đầu","Đề xuất tăng cường…"};
     const char* MaNut[]={"assignmentConfirm","assignmentCancel","assignmentStart","scheduleReinforce"};
     for (int I=0; I<4; ++I) {
-        auto* N=Nut(TrangThai,TenNut[I],MaNut[I]);
+        auto* N=new QPushButton(TenNut[I]); N->setObjectName(MaNut[I]);
+        N->setCursor(Qt::PointingHandCursor); N->setMinimumHeight(40);
+        TrangThai->addWidget(N,I/2,I%2);
         connect(N,&QPushButton::clicked,this,[this,I] { ThaoTacPhanCong(I); });
     }
     auto* TepLich=new QHBoxLayout; Cot->addLayout(TepLich);
@@ -276,11 +378,25 @@ void AdminPanel::TaoLich(QTabWidget* Tab) {
         try { auto R=ScheduleFileManager::DocLichTruc(P.toStdString(),*DuLieu.NhanSu); DuLieu.Lich=ChupLich(*R); DaSua=true; LamMoi(); }
         catch (const My_stdexcept& E) { BaoLoi(E.LayThongBao()); }
     });
-    Tab->addTab(W,"3. Lịch và thay ca");
+    W->setMinimumHeight(610); ThemTab(Tab,W,"Lịch và thay ca");
 }
 void AdminPanel::BaoLoi(const char* Loi) { ThongBao->setText("Lỗi: " + QString::fromUtf8(Loi)); }
 void AdminPanel::LamMoi() {
     if (!TrangThaiTep) return;
+    SoNhanSu->setText(QString::number(DuLieu.NhanSu->KichThuoc()));
+    SoCa->setText(QString::number(DuLieu.Lich.CacCa.KichThuoc()));
+    int ChoXacNhan=0;
+    for (int I=0; I<DuLieu.Lich.PhanCong.KichThuoc(); ++I)
+        if (DuLieu.Lich.PhanCong[I].LayTrangThai()==AssignmentStatus::DuKien) ++ChoXacNhan;
+    SoPhanCong->setText(QString::number(ChoXacNhan));
+    if (DuLieu.NhanSu->KichThuoc()==0)
+        BuocTiep->setText("Bước tiếp theo: thêm hoặc nạp nhân sự.");
+    else if (DuLieu.Lich.CacCa.Rong())
+        BuocTiep->setText("Bước tiếp theo: tạo ca trực theo nhu cầu từng ngày.");
+    else if (DuLieu.Lich.PhanCong.Rong())
+        BuocTiep->setText("Bước tiếp theo: đề xuất lịch rồi kiểm tra từng phân công.");
+    else if (ChoXacNhan>0) BuocTiep->setText("Kiểm tra phân công dự kiến, xác nhận và lưu lịch khi phù hợp.");
+    else BuocTiep->setText("Không còn phân công chờ xác nhận. Kiểm tra lịch và lưu thay đổi khi cần.");
     BangNhanSu->setRowCount(DuLieu.NhanSu->KichThuoc());
     for (int I = 0; I < DuLieu.NhanSu->KichThuoc(); ++I) {
         const auto& N = DuLieu.NhanSu->Lay(I);
@@ -296,22 +412,29 @@ void AdminPanel::LamMoi() {
         const auto& C = DuLieu.Lich.CacCa[I];
         O(BangCa,I,0,QString::fromStdString(C.LayMaCaTruc())); O(BangCa,I,1,ThoiDiem(C.LayBatDau())); O(BangCa,I,2,ThoiDiem(C.LayKetThuc()));
         O(BangCa,I,3,QString::number(C.SoBacSi)); O(BangCa,I,4,QString::number(C.SoDieuDuong));
+        O(BangCa,I,5,C.CanTruongCa ? "Có" : "Không");
     }
     BangLich->setRowCount(DuLieu.Lich.PhanCong.KichThuoc());
     for (int I = 0; I < DuLieu.Lich.PhanCong.KichThuoc(); ++I) {
         const auto& P = DuLieu.Lich.PhanCong[I]; const auto* N = DuLieu.NhanSu->Tim(P.MaNhanVien);
-        O(BangLich,I,0,QString::fromStdString(P.MaCa)); O(BangLich,I,1,QString::fromStdString(P.MaNhanVien));
+        const auto* C=TimCa(DuLieu.Lich,P.MaCa);
+        O(BangLich,I,0,QString::fromStdString(P.MaCa));
+        O(BangLich,I,1,C ? ThoiDiem(C->LayBatDau()) + " → " + ThoiDiem(C->LayKetThuc()) : "Không tìm thấy ca");
+        O(BangLich,I,2,QString::fromStdString(P.MaNhanVien));
         const QString TrangThai[]={"Dự kiến","Đã xác nhận","Đang trực","Đã hủy"};
-        O(BangLich,I,4,TrangThai[static_cast<int>(P.LayTrangThai())]);
-        O(BangLich,I,5,QString::fromStdString(P.LayMaPhanCong()));
-        BangLich->item(I,4)->setToolTip(QString::fromStdString(P.LayLyDoHuy()));
-        O(BangLich,I,2,N ? QString::fromStdString(N->LayHoTen()) : "Không tìm thấy"); O(BangLich,I,3,VaiTro(P.VaiTro));
+        O(BangLich,I,5,TrangThai[static_cast<int>(P.LayTrangThai())]);
+        O(BangLich,I,6,QString::fromStdString(P.LayMaPhanCong()));
+        BangLich->item(I,5)->setToolTip(QString::fromStdString(P.LayLyDoHuy()));
+        O(BangLich,I,3,N ? QString::fromStdString(N->LayHoTen()) : "Không tìm thấy"); O(BangLich,I,4,VaiTro(P.VaiTro));
     }
     if (auto* Tim=findChild<QLineEdit*>("staffSearchDoctor")) {
         Tim->clear();
         for (int I=0;I<BangNhanSu->rowCount();++I) BangNhanSu->setRowHidden(I,false);
     }
     ChonNguoiThay->clear();
+    ChiTietNhanSu->setText("Chọn nhân viên để xem thông tin và nguyện vọng.");
+    ChiTietCa->setText("Chọn ca để xem thời gian và nhu cầu nhân sự.");
+    ChiTietPhanCong->setText("Chọn phân công để xem ca, vai trò và trạng thái.");
     TrangThaiTep->setText((DaSua ? "Chưa lưu · " : "Đã đồng bộ · ") + (DuongDan.isEmpty() ? "Chưa chọn file" : DuongDan));
 }
 void AdminPanel::ThemNhanSu(bool CapNhat) {
@@ -386,7 +509,9 @@ void AdminPanel::TimThay() {
         if (I < 0) { BaoLoi("Hay chon mot dong phan cong"); return; }
         const auto R=TaoRegistry(DuLieu);
         const auto DS=SchedulerService(*DuLieu.NhanSu,*R).TimNguoiThayCa(DuLieu.Lich.PhanCong[I].LayMaPhanCong(),&DuLieu.DuPhong);
-        for (int J=0;J<DS.KichThuoc();++J) ChonNguoiThay->addItem(QString::fromStdString(DS[J]->LayMaDinhDanh()));
+        for (int J=0;J<DS.KichThuoc();++J)
+            ChonNguoiThay->addItem(QString::fromStdString(DS[J]->LayMaDinhDanh()+" · "+DS[J]->LayHoTen()),
+                                  QString::fromStdString(DS[J]->LayMaDinhDanh()));
         ThongBao->setText(QString("Có %1 người cùng cấp bậc/chuyên khoa và đủ điều kiện.").arg(DS.KichThuoc()));
     } catch (const My_stdexcept& E) { BaoLoi(E.LayThongBao()); }
 }
@@ -397,7 +522,7 @@ void AdminPanel::ThayNguoi() {
         auto R=TaoRegistry(DuLieu);
         const auto Cu=DuLieu.Lich.PhanCong[I];
         const auto DS=SchedulerService(*DuLieu.NhanSu,*R).TimNguoiThayCa(Cu.LayMaPhanCong(),&DuLieu.DuPhong);
-        const auto Ma=ChonNguoiThay->currentText().toStdString(); bool Co=false;
+        const auto Ma=ChonNguoiThay->currentData().toString().toStdString(); bool Co=false;
         for (int J=0; J<DS.KichThuoc(); ++J) if (DS[J]->LayMaDinhDanh()==Ma) Co=true;
         if (!Co) { BaoLoi("Nguoi thay khong con du dieu kien"); return; }
         R->HuyPhanCong(Cu.LayMaPhanCong(),"Thay boi "+Ma);

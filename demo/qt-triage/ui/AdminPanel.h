@@ -20,6 +20,8 @@ class AdminPanel : public QDialog {
     bool DaSua = false;
     QLabel *ThongBao;
     QLabel *TrangThaiTep;
+    QLabel *SoNhanSu, *SoCa, *SoPhanCong, *BuocTiep;
+    QLabel *ChiTietNhanSu, *ChiTietCa, *ChiTietPhanCong;
     QDateEdit *Tuan;
     QTableWidget *BangNhanSu, *BangCa, *BangLich;
     QLineEdit *MaNV, *TenNV, *ChuyenKhoa, *MaCa;

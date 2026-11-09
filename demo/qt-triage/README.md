@@ -1,5 +1,12 @@
 # An Tâm — giao diện Qt nối code lõi
 
+Nút **Nhân sự và lịch trực** trong cửa sổ chính mở phần B. Ba tab Nhân sự,
+Ca trực, Lịch và thay ca dùng trực tiếp dữ liệu nhân sự/lịch và `SchedulerService`.
+Các thẻ tổng quan lấy số lượng từ dữ liệu hiện tại; vùng chi tiết hiện thông tin
+người, ca hoặc phân công được chọn. Khi tìm người thay, danh sách hiện tên kèm
+mã nhân viên; thao tác vẫn sử dụng mã. Phần này lưu/mở file riêng, không dùng
+cơ chế tự lưu Patient/Visit.
+
 Demo Qt Widgets/QSS dùng trực tiếp `PatientRegistry`, `TriageService`,
 `VisitSearchService`, `PatientFileManager`, `VisitFileManager` và `SessionFileManager`. Nghiệp vụ và DSA vẫn độc lập Qt.
 

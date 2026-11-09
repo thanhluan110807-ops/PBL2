@@ -13,6 +13,8 @@
 #include <QTemporaryDir>
 #include <QFile>
 #include <QTabWidget>
+#include <QScrollArea>
+#include <QScrollBar>
 #include <cassert>
 int main(int argc, char** argv) {
     QApplication App(argc,argv);
@@ -20,11 +22,27 @@ int main(int argc, char** argv) {
     assert(Tmp.isValid());
     AdminPanel W;
     W.show(); App.processEvents();
+    // Số liệu và hướng dẫn phải đọc được ngay, kể cả khi chưa có dữ liệu.
+    assert(W.findChild<QLabel*>("adminStaffCount")->text()=="0");
+    assert(W.findChild<QLabel*>("adminShiftCount")->text()=="0");
+    assert(W.findChild<QLabel*>("adminAssignmentCount")->text()=="0");
+    assert(W.findChild<QLabel*>("adminNextStep")->text().contains("nhân sự"));
     auto Click = [&](const char* Id) { auto* N = W.findChild<QPushButton*>(Id); assert(N); N->click(); App.processEvents(); };
     Click("adminSeed");
+    assert(W.findChild<QLabel*>("adminStaffCount")->text()=="4");
+    assert(W.findChild<QLabel*>("adminShiftCount")->text()=="2");
     assert(W.findChild<QTableWidget*>("staffTable")->rowCount()==4);
     assert(W.findChild<QTableWidget*>("shiftTable")->rowCount()==2);
+    assert(W.findChild<QTableWidget*>("shiftTable")->item(0,5)->text()=="Có");
     Click("scheduleGenerate");
+    assert(W.findChild<QLabel*>("adminAssignmentCount")->text()=="4");
+    assert(W.findChild<QTableWidget*>("scheduleTable")->item(0,1)->text().contains("→"));
+    W.findChild<QTableWidget*>("staffTable")->selectRow(0);
+    assert(W.findChild<QLabel*>("adminStaffDetail")->text().contains("Nguyễn An"));
+    W.findChild<QTableWidget*>("shiftTable")->selectRow(0);
+    assert(W.findChild<QLabel*>("adminShiftDetail")->text().contains("T2-SANG"));
+    W.findChild<QTableWidget*>("scheduleTable")->selectRow(0);
+    assert(W.findChild<QLabel*>("adminAssignmentDetail")->text().contains("T2-SANG"));
     assert(W.findChild<QTableWidget*>("scheduleTable")->rowCount()==4);
     assert(SchedulerService::LichHopLe(*W.LayDuLieu().NhanSu,W.LayDuLieu().Lich));
     const QString Tep = Tmp.path()+"/kiem-tra.pbl2";
@@ -50,13 +68,17 @@ int main(int argc, char** argv) {
     assert(W.LayDuLieu().NhanSu->KichThuoc()==5);
     W.findChild<QTableWidget*>("scheduleTable")->selectRow(0);
     Click("replacementFind");
-    assert(W.findChild<QComboBox*>("replacementCandidates")->findText("BS03")>=0);
-    W.findChild<QComboBox*>("replacementCandidates")->setCurrentText("BS03");
+    auto* UngVien = W.findChild<QComboBox*>("replacementCandidates");
+    const int ViTri = UngVien->findData("BS03");
+    assert(ViTri>=0);
+    UngVien->setCurrentIndex(ViTri);
+    assert(UngVien->currentText().contains("Du phong"));
     Click("replacementApply");
     assert(W.LayDuLieu().Lich.PhanCong[0].LayTrangThai()==AssignmentStatus::DaHuy);
     const int Cuoi=W.LayDuLieu().Lich.PhanCong.KichThuoc()-1;
     assert(W.LayDuLieu().Lich.PhanCong[Cuoi].MaNhanVien=="BS03");
     assert(W.LayDuLieu().Lich.PhanCong[Cuoi].LayTrangThai()==AssignmentStatus::DaXacNhan);
+    assert(W.findChild<QLabel*>("adminAssignmentCount")->text()=="3");
     assert(W.LuuTep(Tep));
     assert(Doc.NapTep(Tep));
     assert(Doc.LayDuLieu().Lich.PhanCong[Cuoi].MaNhanVien=="BS03");
@@ -66,6 +88,17 @@ int main(int argc, char** argv) {
         assert(W.grab().save(qEnvironmentVariable("PBL2_ADMIN_CAPTURE")));
     }
     W.resize(580,680); App.processEvents();
+    assert(W.width()==580);
+    auto* CacTab=W.findChild<QTabWidget*>();
+    for (int I=0;I<CacTab->count();++I) {
+        auto* Cuon=qobject_cast<QScrollArea*>(CacTab->widget(I));
+        assert(Cuon && Cuon->verticalScrollBar()->maximum()>0);
+    }
+    assert(W.findChild<QTableWidget*>("scheduleTable")->horizontalScrollBar()->maximum()>0);
+    if (!qEnvironmentVariable("PBL2_ADMIN_CAPTURE_NARROW").isEmpty()) {
+        CacTab->setCurrentIndex(2); App.processEvents();
+        assert(W.grab().save(qEnvironmentVariable("PBL2_ADMIN_CAPTURE_NARROW")));
+    }
     W.close(); Doc.close();
     // Cập nhật tên trên GUI không được làm mất số liệu sàng lọc/giờ tuần.
     AdminData Mau;

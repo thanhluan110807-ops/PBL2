@@ -32,7 +32,7 @@ Hệ thống giải quyết hai bài toán:
 
 ## 4. Cấu trúc thư mục
 
-Cấu trúc đích được thống nhất như sau. Các tệp đã có trên `dev` được đặt vào nhóm tương ứng; thư mục chưa có mã được giữ bằng `.gitkeep`. `Vector.h`, `PriorityQueue.h` và các tệp kiểm thử bên dưới là vị trí dự kiến, chưa được tích hợp vào `dev`.
+Cấu trúc đích được thống nhất như sau; sơ đồ chỉ minh họa, không phải danh sách đầy đủ hay báo cáo tiến độ. `Vector.h` và `PriorityQueue.h` đã có trong checkout hợp nhất; kiểm tra Git và code thực tế khi tiếp tục.
 
 ```text
 PBL2/
@@ -179,6 +179,7 @@ Chạy từ thư mục gốc repository theo [hướng dẫn build/test trong RE
 - Khi yêu cầu chưa rõ, hỏi lại thay vì đoán.
 - Làm từng bước nhỏ: viết, build thử, rồi mới sang bước tiếp theo.
 - Giải thích code bằng ngôn ngữ đơn giản, vì sinh viên cần hiểu để bảo vệ đồ án.
+- Khi triển khai hoặc sửa class, người dùng muốn được xem code hai file `.h` và `.cpp` liên quan để kiểm tra; trình bày hoặc trỏ rõ đến các file và phần thay đổi. Template có thể chỉ có header.
 - Không thêm tính năng ngoài phạm vi đề tài.
 - Dùng Qt Widgets cho GUI theo quy định ở mục 2; giữ giải pháp đơn giản, phù hợp trình độ đồ án.
 

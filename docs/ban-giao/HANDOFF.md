@@ -1,4 +1,4 @@
-# Bàn giao PBL2 — 03/11/2026
+# Bàn giao PBL2 — cập nhật 09/11/2026
 
 Đây là bản bàn giao chính; [bản trước](../handoffs/2026-11-03-chuyen-chat.md) là ảnh chụp lịch sử và có thông tin Git cũ.
 
@@ -6,6 +6,116 @@
 tác vụ và kiểm tra Git trước khi làm việc. Đây là ảnh chụp từ phiên hiện tại,
 không thay thế việc đọc code, các chỉ dẫn mới hoặc kiểm chứng mới. Nội dung của
 file chưa commit sẽ không xuất hiện trong một checkout khác chỉ từ commit này.
+
+## Hiện trạng khi chuyển chat — 09/11/2026
+
+Phần này cập nhật và ưu tiên hơn các ảnh chụp cũ bên dưới. Đặc biệt, mục cũ
+“Chưa triển khai trong lõi: ... TriageService”, thứ tự bắt buộc làm Calculator
+trước TriageService, danh sách thay đổi cục bộ và đường dẫn retro không mô tả
+checkout hiện tại. Không coi kết quả test lịch sử là kết quả chạy mới.
+
+### Người dùng đang làm gì
+
+Người dùng đang chuẩn bị trình bày/bảo vệ đồ án, vừa trao đổi về OOP, hàng
+chờ và cách giải thích đọc/ghi, tự lưu, dự phòng file. Chưa có yêu cầu triển
+khai tính năng tiếp theo. Nếu người dùng muốn tiếp tục ôn, có thể giải thích
+luồng tiếp nhận → đánh giá → chờ → khám → cận lâm sàng → quay lại, hoặc đi
+sâu vào cấu trúc dữ liệu và quản lí file. Không tự coi việc này là yêu cầu sửa
+code. Người dùng muốn xem code `.h`/`.cpp` liên quan khi nhờ triển khai class.
+
+### Quyết định nghiệp vụ và phạm vi
+
+- Đồ án C++17 sinh viên năm 2: phân loại cấp cứu, quản lí khám và lịch trực;
+  Qt Widgets cho GUI, DSA tự viết, lưu file. Ưu tiên dễ đọc, dễ giải thích.
+- `Patient` là hồ sơ một người, `Visit` là một lần đến khám, liên kết bằng mã;
+  khám lại sau cận lâm sàng thuộc cùng Visit. Một Patient tối đa một Visit mở.
+  [Thiết kế Registry](../superpowers/specs/2026-11-01-patient-registry-design.md).
+- Có hai hàng ưu tiên lần đầu và quay lại, mức 1 nghiêm trọng nhất đến mức 5.
+  Trong cùng hàng, cùng mức ưu tiên người vào trước. So hai đầu hàng, mức
+  nghiêm trọng hơn được chọn; nếu bằng nhau thì luân phiên giữa hai hàng,
+  lần hòa đầu ưu tiên quay lại. Các lượt không hòa không đổi lượt ưu tiên hòa.
+  Đánh giá lại khi đang chờ giữ nguyên hàng và thời điểm vào hàng; mức/vị trí
+  có thể đổi. Xem [TriageService](../../src/service/TriageService.cpp).
+- Tự lưu Patient/Visit vào bộ file đã chọn sau thao tác, có dự phòng và phục
+  hồi khi ghi gián đoạn; không có nút lưu dữ liệu Patient/Visit riêng. Không
+  khẳng định bảo toàn tuyệt đối khi mất điện. Nhân sự/lịch có cơ chế lưu riêng.
+  Chi tiết: [file phiên](../repository/visit-files.md), [phần B](../PHAN-B.md).
+- Code phần đọc/ghi Patient/Visit theo yêu cầu trước đây không thêm `<memory>`
+  hay class trừu tượng; không suy rộng hạn chế này thành cấm tuyệt đối trên
+  toàn phần B, nơi code đã dùng `unique_ptr`. Quy tắc chung: [CLAUDE.md](../../CLAUDE.md).
+
+### Đã triển khai trong checkout; giới hạn
+
+- Model Patient/Visit, `PatientRegistry`, `TriageService`, DSA, quản lí file và
+  demo Qt nối lõi; có khôi phục hai hàng và trạng thái phiên. Người dùng vẫn
+  nhập mã Patient/Visit thủ công. Xem [demo](../../demo/qt-triage/README.md).
+- `VisitSearchService::TimTheoBenhNhan` hiện kết hợp AND tên, ngày tiếp nhận
+  UTC+7 và mã Visit; kết quả là Visit, không tự gồm Patient chưa có Visit.
+  Đừng nhầm bộ lọc kết hợp hiện có với nâng cấp tra cứu chưa duyệt. Xem
+  [thiết kế](../superpowers/specs/2026-11-04-visit-search-patient-design.md).
+- Sau merge có code nhân sự, lịch trực, mệt mỏi, file và AdminPanel; xem
+  [phần B](../PHAN-B.md). Sự tồn tại của module không chứng minh mọi tích
+  hợp hoặc hành vi trong UML đã hoàn thành; kiểm tra theo yêu cầu cụ thể.
+- Tra cứu bảng băm theo mã trung bình O(1), trường hợp xấu O(n); tìm tên/CCCD
+  hiện duyệt dữ liệu, không nói mọi tìm kiếm là O(1). `Visit` có lịch sử đánh
+  giá, bác sĩ tham gia và cận lâm sàng, không khẳng định có đầy đủ ghi chú khám.
+- Visit CSV ghi v2, đọc v1/v2; thông tin vắng trong v1 không phải lịch sử thực.
+  V2 có thể không tương thích chương trình cũ chỉ đọc v1.
+
+### Đề xuất, chưa triển khai hoặc chưa chốt
+
+- Tính áp lực hàng đợi: người dùng đã chọn tạm hoãn. Không tự triển khai hoặc
+  giả định TriageService hiện cần nó. Công thức, ngưỡng và tích hợp cần chốt
+  khi được yêu cầu; [lịch sử kế hoạch cũ](../handoffs/2026-11-03-chuyen-chat.md).
+- Tự sinh mã Patient/Visit: [chỉ là đề xuất tương lai](../repository/README.md#đề-xuất-tự-sinh-mã-patient-và-visit-trong-tương-lai),
+  chỉ triển khai khi người dùng yêu cầu/duyệt riêng.
+- Các [nâng cấp tra cứu](../repository/README.md#đề-xuất-nâng-cấp-tra-cứu-trong-tương-lai),
+  như tìm theo bác sĩ và các hướng thiết kế mở rộng, chưa được duyệt triển khai.
+  Người dùng yêu cầu tuyệt đối không tự triển khai các đề xuất tương lai.
+- Không mặc định có cảnh báo quá hạn/tái đánh giá tự động chỉ từ thiết kế;
+  kiểm tra code cụ thể trước khi khẳng định. Có thể chủ động đánh giá lại Visit
+  đang chờ theo thao tác hiện có.
+
+### Retro, tài liệu và giới hạn thông tin
+
+Retro từng ghi nhận bỏ sót service/phụ thuộc và nhầm UML mục tiêu với hiện
+trạng. Cách áp dụng còn phù hợp: đọc toàn cảnh, đối chiếu quyết định mới, code,
+build, phụ thuộc và trình bày rõ phần đã có/đề xuất trước khi tư vấn; quy tắc
+trong [AGENTS.md](../../AGENTS.md) và [CLAUDE.md](../../CLAUDE.md). README,
+`CMakeLists.txt`, workflow và `tools/check_project_sources.py` hiện có cơ chế
+kiểm tra/build riêng; không suy ra mọi cải tiến retro cũ đã được áp dụng.
+
+Các đường dẫn từng nêu `docs/ROADMAP.md`, `docs/architecture/README.md`,
+`docs/architecture/target.json`, `docs/development-workflow.md`, kế hoạch
+`2026-11-03-retro-improvements.md` và công cụ kiến trúc không có trong checkout
+đã kiểm tra. Bản ghi đầy đủ retro và bản bàn giao đầu vào trước 02/11 cũng chưa
+tìm thấy; không tự suy diễn. Người dùng từng gửi ảnh UML tổng quan trong chat:
+đó là kiến trúc mục tiêu ngày 03/11, không phải báo cáo tiến độ; ảnh/file ngoài
+repo có thể không hiện diện trong chat mới, cần người dùng cung cấp lại nếu cần.
+[Bản lịch sử](../handoffs/2026-11-03-chuyen-chat.md) có các ảnh chụp cũ.
+
+### Git và kiểm chứng — ảnh chụp trước commit bàn giao
+
+Ngày 09/11, checkout `/workspace/PBL2` ở `dev`, HEAD
+`816cb4ed0a9306fe6a996d922a9e421eef5b013d`, trùng `origin/dev` lưu cục bộ;
+`work` cục bộ `4389bee`, `origin/work` lưu cục bộ `97e0a1b`. Remote origin là
+`https://github.com/thanhluan110807-ops/PBL2.git`. Các ref từ xa là bản lưu
+cục bộ, không chứng minh trạng thái GitHub mới nhất nếu chưa kiểm tra mạng.
+Ảnh chụp này thay đổi sau commit/push; kiểm tra lại branch, status và remote.
+Trước lượt cập nhật tài liệu: không có file tracked/untracked thay đổi theo
+`git status --short`; có các thư mục build và `__pycache__` bị ignore, giữ
+nguyên. Bảo toàn mọi thay đổi và file của người khác, kể cả file bị bỏ qua.
+Thông tin danh sách thay đổi cũ bên dưới chỉ là lịch sử, không khẳng định còn.
+
+Lượt này chỉ đối chiếu tài liệu và code, không chạy build/test; các kết quả
+ở mục merge phía dưới là kiểm tra lịch sử. Không xác nhận CI hiện tại, runtime
+Qt6/Windows hay mất điện vật lý. Khi có yêu cầu code, chạy kiểm tra phù hợp.
+Chỉ commit/push theo yêu cầu; người dùng đã yêu cầu commit/push tài liệu của
+lượt bàn giao hiện tại, không tự mở rộng phạm vi sang công việc khác.
+
+---
+
+## Lịch sử các ảnh chụp trước — đọc cùng phần cập nhật ở trên
 
 ## Lưu ý khi chuyển chat
 

@@ -129,7 +129,7 @@ Mỗi cấu hình thực hiện configure → kiểm tra quy ước nguồn → 
 
 ## Khởi động trong Codex
 
-1. Dùng checkout hiện có; đọc `CLAUDE.md`, README và kiểm tra `git status --short --branch` trước khi sửa.
+1. Dùng checkout hiện có; đọc `AGENTS.md`, `CLAUDE.md`, [bàn giao chính](docs/ban-giao/HANDOFF.md), README và kiểm tra `git status --short --branch` trước khi sửa.
 2. Kích hoạt CMake nếu cần, rồi chạy cấu hình Debug có sanitizer và CTest theo hướng dẫn trên.
 3. Chỉ ghi nhận đạt khi toàn bộ kiểm tra CTest và các header độc lập từ source hiện tại đã đạt. Không cần tiến trình nền.
 

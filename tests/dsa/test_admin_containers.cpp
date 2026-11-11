@@ -3,9 +3,55 @@
 #include "util/My_stdexcept.h"
 #include <cassert>
 #include <utility>
+#include <string>
 // Cố ý cho mọi khóa va chạm để kiểm tra chaining thật sự.
 struct BamTrung { std::size_t operator()(int) const { return 0; } };
+struct GiaTriThu {
+    static int DangSong;
+    static int SoLanSaoChep;
+    int GiaTri;
+    explicit GiaTriThu(int So) : GiaTri(So) { ++DangSong; }
+    GiaTriThu(const GiaTriThu& Khac) : GiaTri(Khac.GiaTri) {
+        if (SoLanSaoChep == 0)
+            throw My_stdexcept(My_stdexcept::LoaiLoi::LoiThucThi, "Loi sao chep thu");
+        if (SoLanSaoChep > 0) --SoLanSaoChep;
+        ++DangSong;
+    }
+    ~GiaTriThu() { --DangSong; }
+};
+int GiaTriThu::DangSong = 0;
+int GiaTriThu::SoLanSaoChep = -1;
+
+void KiemTraSaoChepLoi() {
+    LinkedList<GiaTriThu> Nguon, Dich;
+    Nguon.Themcuoi(GiaTriThu(1)); Nguon.Themcuoi(GiaTriThu(2));
+    Dich.Themcuoi(GiaTriThu(9));
+    const int SoBanDau = GiaTriThu::DangSong;
+    GiaTriThu::SoLanSaoChep = 1;
+    bool CoLoi = false;
+    try { Dich = Nguon; } catch (const My_stdexcept&) { CoLoi = true; }
+    GiaTriThu::SoLanSaoChep = -1;
+    assert(CoLoi && GiaTriThu::DangSong == SoBanDau);
+    assert(Dich.Kichthuoc() == 1 && Dich.Dau().GiaTri == 9);
+    assert(Nguon.Kichthuoc() == 2 && Nguon.Cuoi().GiaTri == 2);
+}
+
+void KiemTraThemKhiRehash() {
+    const std::string GiaTri = "GiaTriDaiDeKhongNamTrongSmallStringOptimization";
+    HashTable<std::string, std::string> Bang(2);
+    Bang.Them("A", GiaTri);
+    assert(Bang.Them("B", Bang.Lay("A")));
+    assert(Bang.Lay("B") == GiaTri && Bang.Lay("A") == GiaTri);
+    HashTable<std::string, std::string> BangKhac(2);
+    BangKhac.Them("A", GiaTri);
+    assert(BangKhac.Them(BangKhac.Lay("A"), BangKhac.Lay("A")));
+    assert(BangKhac.Lay(GiaTri) == GiaTri);
+}
+
 int main() {
+    KiemTraThemKhiRehash();
+    KiemTraSaoChepLoi();
+    assert(GiaTriThu::DangSong == 0);
     LinkedList<int> L;
     assert(!L.Xoadau());
     L.Themcuoi(1); L.Themcuoi(2); L.Themcuoi(3);
@@ -28,4 +74,19 @@ int main() {
     int So=0; const auto& Const=N;
     Const.Duyet([&](const int&,const int&){++So;}); assert(So==97);
     H=H; assert(H.Kichthuoc()==100);
+    LinkedList<int> Dich;
+    Dich.Themcuoi(99); Dich=M;
+    Dich.Dau()=7; assert(M.Dau()==2);
+    Dich=std::move(M); assert(M.Rong() && Dich.Cuoi()==4);
+    assert(Dich.Xoadau() && Dich.Xoadau() && Dich.Rong());
+    Dich.Themdau(8); assert(Dich.Dau()==8 && Dich.Cuoi()==8);
+    assert(Dich.Xoagiatri(8) && Dich.Rong());
+    Dich.Themcuoi(10); assert(Dich.Dau()==10 && Dich.Cuoi()==10);
+    HashTable<int,int,BamTrung> DichBang;
+    DichBang=H; DichBang.Lay(1)=99; assert(H.Lay(1)==2);
+    DichBang=std::move(N); assert(N.Rong() && DichBang.Lay(3)==777);
+    N.Them(1,8); assert(N.Lay(1)==8);
+    DichBang.Xoahet(); assert(DichBang.Rong());
+    DichBang.Them(1,9); assert(!DichBang.Them(1,10));
+    assert(DichBang.Kichthuoc()==1 && DichBang.Lay(1)==10);
 }

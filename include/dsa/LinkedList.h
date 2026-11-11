@@ -244,4 +244,8 @@ public:
     }
 };
 
+// Ghi chu tu ban header cu, giu lai de doi chieu; khong phai dependency hien tai.
+// nullptr
+// std::out_of_range (chỉ là lớp ngoại lệ, không phải container STL)
+
 #endif // LinkedList_h

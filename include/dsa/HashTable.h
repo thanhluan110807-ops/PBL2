@@ -173,11 +173,12 @@ public:
             e->value = value;
             return false;
         }
+        Entry PhanTuMoi(key, value);
         if (static_cast<double>(count + 1) / capacity > Nguongtai()) {
             Rehash(capacity * 2);
-            idx = Chiso(key);                   // dung lượng đổi -> phải tính lại chỉ số
+            idx = Chiso(PhanTuMoi.key);          // dung lượng đổi -> phải tính lại chỉ số
         }
-        buckets[idx].Themcuoi(Entry(key, value));
+        buckets[idx].Themcuoi(PhanTuMoi);
         count++;
         return true;
     }
@@ -259,5 +260,8 @@ public:
         return maxLen;
     }
 };
+
+// Ghi chu tu ban header cu, giu lai de doi chieu; khong phai dependency hien tai.
+// std::size_t
 
 #endif // HashTable_h

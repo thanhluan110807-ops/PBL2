@@ -37,7 +37,7 @@ CTest đã đặt `QT_QPA_PLATFORM=offscreen` cho các test widget.
 1. Khởi động: chọn CSV hoặc bấm **Bắt đầu rỗng**. Có file hư cấu
    [patients.csv](data/patients.csv) đúng lược đồ v1. CSV lỗi sẽ báo lỗi và giữ
    hộp thoại để chọn lại; đóng hộp thoại thì thoát. Có thể chọn thêm Visit CSV để khôi phục lần khám/hàng chờ. Nếu chưa có Visit, tạo visit.csv cạnh Patient. Lần sau tự mở lại bộ đã chọn. Không nạp lại CSV giữa phiên.
-2. Tiếp nhận: nhập mã Patient và mã Visit riêng, hoặc tìm tên/CCCD/mã rồi chọn
+2. Tiếp nhận: hệ thống tự cấp mã Patient mới dạng BN001 và mã Visit dạng LK001; hoặc tìm tên/CCCD/mã rồi chọn
    hồ sơ cũ. Chỉ khi chọn **Chọn hồ sơ đã có** mới hiện tìm kiếm và danh sách
    bệnh nhân. Chọn người sẽ điền thông tin đã có vào ô xám chỉ đọc; ô trắng
    cho phép bổ sung mục còn thiếu. Phần bổ sung được lưu vào cùng hồ sơ khi
@@ -130,3 +130,13 @@ sao lưu trước. Muốn giữ file mẫu trong Git sạch, sao chép mẫu ra 
 chọn bản sao. Không sửa CSV bên ngoài khi ứng dụng đang chạy.
 
 Sau khi hợp nhất dev/work, Visit ghi CSV v2 để giữ thời điểm/vai trò bác sĩ, vẫn đọc được v1. Xem [định dạng Visit](../../docs/repository/visit-files.md).
+
+## Tự động cấp mã khi tiếp nhận
+
+Hồ sơ mới nhận mã BN001, BN002...; mỗi lần khám mới nhận LK001, LK002...
+Hồ sơ cũ giữ nguyên mã. Hai ô mã chỉ đọc; mã được cấp lúc bấm tiếp nhận.
+Registry tìm số lớn nhất trong từng dãy hiện có, kể cả Visit đã đóng/hủy;
+sau khi nạp CSV hoặc mở lại ứng dụng, tiếp tục từ dữ liệu đó. API nhập mã
+trực tiếp vẫn dùng cho nạp file và các tích hợp cũ. Mã khác định dạng được giữ nguyên.
+Mã chỉ duy nhất trong bộ dữ liệu hiện tại: phục hồi bản sao cũ hoặc xóa lịch sử
+có thể khiến mã từng cấp trong phần dữ liệu đã mất được dùng lại. Không có bộ đếm ngoài file.

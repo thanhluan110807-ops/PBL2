@@ -3,7 +3,7 @@
 `PatientRegistry` sở hữu hồ sơ Patient và Visit trong bộ nhớ. Patient đại diện
 một người bệnh có mã dùng xuyên suốt; Visit đại diện một lần khám có mã riêng.
 Registry không tự đọc/ghi file; `PatientFileManager` đọc/ghi Patient CSV. `VisitFileManager` đọc/ghi Visit
-và hàng chờ; [hướng dẫn lưu phiên](visit-files.md). Chưa tự sinh mã hoặc gộp hồ sơ. Các mã do bên gọi cung cấp.
+và hàng chờ; [hướng dẫn lưu phiên](visit-files.md). GUI đã tự sinh mã Patient/Visit qua Registry; chưa tự gộp hồ sơ. API nhận mã trực tiếp vẫn phục vụ nạp dữ liệu.
 
 ## Đọc hồ sơ Patient từ CSV
 
@@ -246,7 +246,11 @@ Code thử đang có trong workspace được ghi nhận riêng ở mục “Tra
 theo tên và ngày (bản thử phần lõi)”. Bảo toàn code thử, không tự hoàn tác hoặc
 coi đó là bản đã được chốt. Chưa commit hoặc push khi cập nhật đề xuất này.
 
-## Đề xuất tự sinh mã Patient và Visit trong tương lai
+## Tự sinh mã Patient và Visit
+
+Đã triển khai theo yêu cầu mới: `TaoMaBenhNhan()` và `TaoMaLanKham()` đọc số lớn nhất trong Registry, trả mã tiếp theo; GUI gọi khi tiếp nhận. Không giữ chỗ mã khi xem trước. Hai dãy BN/LK độc lập, tối thiểu ba chữ số; hết miền unsigned long long sẽ báo lỗi. API nhận mã cũ và định dạng file giữ nguyên. Xem demo/qt-triage/README.md để biết giới hạn phục hồi bản cũ.
+
+### Lịch sử đề xuất (trước triển khai)
 
 Cập nhật ngày 04/11/2026. **Theo yêu cầu người dùng: chỉ ghi nhận vào đề xuất
 tương lai, chưa triển khai.** Chỉ thực hiện khi người dùng yêu cầu/duyệt riêng;

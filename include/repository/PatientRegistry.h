@@ -28,6 +28,9 @@ private:
     bool CoLanKhamDangMo(const std::string& MaBenhNhan) const;
 
 public:
+    // Tiep tuc hai day ma tu du lieu hien co; xem truoc khong giu cho ma.
+    std::string TaoMaBenhNhan() const;
+    std::string TaoMaLanKham() const;
     PatientRegistry() = default;
     ~PatientRegistry();
     // Không sao chép/chuyển chủ sở hữu để tránh hai Registry cùng delete một hồ sơ.

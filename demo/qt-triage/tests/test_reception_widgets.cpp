@@ -69,11 +69,11 @@ int main(int argc,char** argv) {
             assert(Tim<QLineEdit>(H,Ma)->isEnabled() && !Tim<QLineEdit>(H,Ma)->isReadOnly());
         Chup(H,"PBL2_RECEPTION_EXISTING");
         // Đổi chế độ/người không được mang dữ liệu hồ sơ trước sang hồ sơ mới.
-        Nhap(H,"MaLanKham","V-NEW"); CheDo->setCurrentIndex(0);
+        Nhap(H,"MaLanKham","LK001"); CheDo->setCurrentIndex(0);
         assert(!Tim<QListWidget>(H,"chonHoSo")->isVisible());
         assert(Tim<QLineEdit>(H,"MaBenhNhan")->text().isEmpty());
         assert(Tim<QLineEdit>(H,"HoTen")->text().isEmpty() && !Tim<QLineEdit>(H,"HoTen")->isReadOnly());
-        assert(Tim<QLineEdit>(H,"MaLanKham")->text()=="V-NEW");
+        assert(Tim<QLineEdit>(H,"MaLanKham")->text()=="LK001");
         CheDo->setCurrentIndex(1); Chon(H,"B");
         assert(Tim<QLineEdit>(H,"HoTen")->text()=="Trần Bình");
         assert(Tim<QLineEdit>(H,"DiUng")->text().isEmpty() && !Tim<QLineEdit>(H,"DiUng")->isReadOnly());
@@ -85,18 +85,18 @@ int main(int argc,char** argv) {
 
     QTimer::singleShot(0,[&] {
         auto* H=Hop(); Tim<QComboBox>(H,"cheDo")->setCurrentIndex(1); Chon(H,"A");
-        Nhap(H,"MaLanKham","V-NEW"); Nhap(H,"TrieuChung","Khám lại");
+        Nhap(H,"MaLanKham","LK001"); Nhap(H,"TrieuChung","Khám lại");
         Nhap(H,"NgaySinh","31/02/2000"); Bam(H,"luu");
         assert(!Tim<QLabel>(H,"loiTong")->text().isEmpty() && !Cu->CoNgaySinh());
         Nhap(H,"NgaySinh",""); Nhap(H,"CanCuoc","999"); Nhap(H,"TienSu","Hen"); Bam(H,"luu");
-        assert(R.TimLanKham("V-NEW")==nullptr && Cu->LayTienSuBenh().empty());
+        assert(R.TimLanKham("LK001")==nullptr && Cu->LayTienSuBenh().empty());
         Nhap(H,"CanCuoc","001"); Bam(H,"luu");
     });
     W.MoTiepNhan();
     assert(R.SoBenhNhan()==3 && R.TimBenhNhan("A")==Cu);
     assert(Cu->LaySoCanCuoc()=="001" && Cu->LayTienSuBenh()=="Hen");
     assert(Cu->LayHoTen()=="Nguyễn An" && Cu->LayThongTinDiUng()=="Penicillin" && Cu->LayTuoiUocLuong()==30);
-    assert(R.TimLanKham("V-NEW")->LayMaBenhNhan()=="A" && R.TimLanKham("V-OLD")->LayTrangThai()==VisitStatus::DaHuy);
+    assert(R.TimLanKham("LK001")->LayMaBenhNhan()=="A" && R.TimLanKham("V-OLD")->LayTrangThai()==VisitStatus::DaHuy);
     TrangThaiHangCho Hang; auto* Doc=SessionFileManager().DocBoFile(TepPatient,TepVisit,Hang);
     assert(Doc->TimBenhNhan("A")->LaySoCanCuoc()=="001" && Doc->TimBenhNhan("A")->LayTienSuBenh()=="Hen"); delete Doc;
 
@@ -110,7 +110,7 @@ int main(int argc,char** argv) {
         assert(Tim<QComboBox>(H,"GioiTinh")->isEnabled());
         assert(Tim<QLineEdit>(H,"HoTen")->text().isEmpty() && !Tim<QLineEdit>(H,"HoTen")->isReadOnly());
         Nhap(H,"HoTen","Ngọc"); Nhap(H,"Tuoi","41"); Tim<QComboBox>(H,"GioiTinh")->setCurrentIndex(1);
-        Nhap(H,"MaLanKham","V-C");
+        Nhap(H,"MaLanKham","LK002");
         H->resize(496,752); Chup(H,"PBL2_RECEPTION_NARROW");
         assert(Tim<QScrollArea>(H,"dialogScroll")->horizontalScrollBar()->maximum()==0);
         Bam(H,"luu");
@@ -118,5 +118,18 @@ int main(int argc,char** argv) {
     W.MoTiepNhan();
     assert(R.TimBenhNhan("C")==VoDanh && VoDanh->LayHoTen()=="Ngọc");
     assert(VoDanh->LayTuoiUocLuong()==41 && VoDanh->LayGioiTinh()==Gender::Nu && !VoDanh->CoNgaySinh());
-    assert(R.TimLanKham("V-C")->LayMaBenhNhan()=="C");
+    assert(R.TimLanKham("LK002")->LayMaBenhNhan()=="C");
+    T.Huy("LK001");
+    QTimer::singleShot(0,[&] {
+        auto* H=Hop(); Tim<QComboBox>(H,"cheDo")->setCurrentIndex(1); Chon(H,"A");
+        assert(Tim<QLineEdit>(H,"MaBenhNhan")->text()=="A");
+        assert(Tim<QLineEdit>(H,"MaLanKham")->isReadOnly());
+        Nhap(H,"TrieuChung","Khám lần tiếp theo"); Bam(H,"luu");
+    });
+    W.MoTiepNhan();
+    assert(R.SoBenhNhan()==3 && R.TimBenhNhan("A")==Cu);
+    assert(R.TimLanKham("LK003")->LayMaBenhNhan()=="A");
+    auto* TaiNap=SessionFileManager().DocBoFile(TepPatient,TepVisit,Hang);
+    assert(TaiNap->TimLanKham("LK003")->LayMaBenhNhan()=="A");
+    assert(TaiNap->TaoMaLanKham()=="LK004"); delete TaiNap;
 }

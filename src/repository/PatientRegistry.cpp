@@ -1,6 +1,7 @@
 #include "repository/PatientRegistry.h"
 
 #include <ctime>
+#include <limits>
 #include <string>
 
 #include "dsa/HashTable.h"
@@ -299,3 +300,31 @@ Vector<const Patient*> PatientRegistry::LayDanhSachBenhNhan() const {
     });
     return KetQua;
 }
+
+namespace {
+// Quet ma da luu, bo qua ma cu khac dinh dang va khong dung so luong ho so.
+template<class T> std::string MaTiepTheo(const HashTable<std::string, T*>& Bang, const std::string& TienTo) {
+    unsigned long long LonNhat = 0;
+    const auto GioiHan = std::numeric_limits<unsigned long long>::max();
+    Bang.Duyet([&](const std::string& Ma, T* const&) {
+        if (Ma.size() <= TienTo.size() || Ma.compare(0, TienTo.size(), TienTo) != 0) return;
+        for (auto I = TienTo.size(); I < Ma.size(); ++I)
+            if (Ma[I] < '0' || Ma[I] > '9') return;
+        unsigned long long So = 0;
+        for (auto I = TienTo.size(); I < Ma.size(); ++I) {
+            const unsigned int ChuSo = Ma[I] - '0';
+            if (So > (GioiHan - ChuSo) / 10)
+                throw My_stdexcept(My_stdexcept::LoaiLoi::NgoaiPhamVi, "Ma vuot gioi han cap so");
+            So = So * 10 + ChuSo;
+        }
+        if (So > LonNhat) LonNhat = So;
+    });
+    if (LonNhat == GioiHan)
+        throw My_stdexcept(My_stdexcept::LoaiLoi::NgoaiPhamVi, "Da het ma de cap");
+    std::string So = std::to_string(LonNhat + 1);
+    while (So.size() < 3) So = "0" + So;
+    return TienTo + So;
+}
+}
+std::string PatientRegistry::TaoMaBenhNhan() const { return MaTiepTheo(DanhSachBenhNhan, "BN"); }
+std::string PatientRegistry::TaoMaLanKham() const { return MaTiepTheo(DanhSachLanKham, "LK"); }

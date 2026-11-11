@@ -160,7 +160,7 @@ QListWidget#chonHoSo::item:selected { background:#EEE9FA; color:#593AB8; }
     DanhSach->setMaximumHeight(160); CotChon->addWidget(DanhSach);
     K.Form->addRow(VungChon);
     auto* HuongDan=Nhan("", "muted"); HuongDan->setWordWrap(true); K.Form->addRow(HuongDan);
-    auto *Ma = K.Truong("MaBenhNhan", "Mã bệnh nhân mới *");
+    auto *Ma = K.Truong("MaBenhNhan", "Mã bệnh nhân (tự động)");
     auto *Ten = K.Truong("HoTen", "Họ tên (để trống nếu chưa rõ)");
     auto *Gioi = TaoGioiTinh(K);
     auto *Sinh = K.Truong("NgaySinh", "Ngày sinh dd/MM/yyyy");
@@ -168,7 +168,9 @@ QListWidget#chonHoSo::item:selected { background:#EEE9FA; color:#593AB8; }
     auto *Cccd = K.Truong("CanCuoc", "CCCD");
     auto *DiUng = K.Truong("DiUng", "Dị ứng");
     auto *TienSu = K.Truong("TienSu", "Tiền sử bệnh");
-    auto *MaLuot = K.Truong("MaLanKham", "Mã lần khám *");
+    auto *MaLuot = K.Truong("MaLanKham", "Mã lần khám (tự động)");
+    Ma->setReadOnly(true); Ma->setPlaceholderText("Tự cấp khi tiếp nhận");
+    MaLuot->setReadOnly(true); MaLuot->setPlaceholderText("Tự cấp khi tiếp nhận");
     auto *TrieuChung = K.Truong("TrieuChung", "Triệu chứng / lý do khám *");
     K.VanBan("Trước khi đánh giá cần có ngày sinh hoặc tuổi ước lượng.");
     auto *Luu = K.Luu("Tiếp nhận và mở lần khám");
@@ -182,6 +184,7 @@ QListWidget#chonHoSo::item:selected { background:#EEE9FA; color:#593AB8; }
             O->setToolTip(!Moi && DaBiet ? "Thông tin đã có trong hồ sơ; được giữ nguyên khi tiếp nhận lại." : "");
         };
         Dat(Ma,P ? Chu(P->LayMaDinhDanh()) : "",P!=nullptr);
+        Ma->setReadOnly(true);
         Dat(Ten,P ? Chu(P->LayHoTen()) : "",P && !P->LayHoTen().empty());
         Dat(Sinh,P ? NgaySinh(*P) : "",P && P->CoNgaySinh());
         Dat(Tuoi,P && P->CoTuoiUocLuong() ? QString::number(P->LayTuoiUocLuong()) : "",
@@ -193,7 +196,7 @@ QListWidget#chonHoSo::item:selected { background:#EEE9FA; color:#593AB8; }
         Gioi->setCurrentIndex(static_cast<int>(P ? P->LayGioiTinh() : Gender::ChuaXacDinh));
         Gioi->setEnabled(Moi || (P && P->LayGioiTinh()==Gender::ChuaXacDinh));
         Gioi->setToolTip(!Moi && P && !Gioi->isEnabled() ? "Giới tính đã có trong hồ sơ." : "");
-        static_cast<QLabel*>(K.Form->labelForField(Ma))->setText(Moi ? "Mã bệnh nhân mới *" : "Mã bệnh nhân");
+        static_cast<QLabel*>(K.Form->labelForField(Ma))->setText(Moi ? "Mã bệnh nhân (tự động)" : "Mã bệnh nhân");
         Luu->setEnabled(Moi || P!=nullptr);
         K.Loi->clear(); K.Loi->hide();
     };
@@ -232,8 +235,8 @@ QListWidget#chonHoSo::item:selected { background:#EEE9FA; color:#593AB8; }
     };
     connect(Luu, &QPushButton::clicked, &K.Hop, [&] {
         try {
-            if (Doc(MaLuot).empty() || Doc(TrieuChung).empty()) BaoLoi("Nhap ma lan kham va trieu chung");
-            if (Registry.TimLanKham(Doc(MaLuot))) BaoLoi("Ma lan kham da ton tai");
+            if (Doc(TrieuChung).empty()) BaoLoi("Nhap trieu chung");
+            const std::string MaLanMoi = Registry.TaoMaLanKham();
             std::string MaChon;
             if (CheDo->currentIndex() == 1) {
                 if (!DanhSach->currentItem()) BaoLoi("Chon dung ho so benh nhan truoc");
@@ -242,7 +245,7 @@ QListWidget#chonHoSo::item:selected { background:#EEE9FA; color:#593AB8; }
                 if (!DanhDauThayDoi()) { K.Hop.accept(); return; }
                 DienThongTin();
             } else {
-                Patient P=DocHoSo(Doc(Ma));
+                Patient P=DocHoSo(Registry.TaoMaBenhNhan());
                 Registry.ThemBenhNhan(P); MaChon = P.LayMaDinhDanh();
                 if (!DanhDauThayDoi()) { K.Hop.accept(); return; }
                 // Nếu bước tạo Visit thất bại, hồ sơ vẫn còn và lần thử lại dùng hồ sơ đó.
@@ -251,7 +254,7 @@ QListWidget#chonHoSo::item:selected { background:#EEE9FA; color:#593AB8; }
                     if (DanhSach->item(I)->data(Qt::UserRole).toString() == Chu(MaChon))
                         DanhSach->setCurrentRow(I);
             }
-            DichVu.TiepNhan(Doc(MaLuot), MaChon, std::time(nullptr), Doc(TrieuChung));
+            DichVu.TiepNhan(MaLanMoi, MaChon, std::time(nullptr), Doc(TrieuChung));
             DanhDauThayDoi();
             K.Hop.accept();
         } catch (const My_stdexcept &E) { K.BaoLoi(E); }

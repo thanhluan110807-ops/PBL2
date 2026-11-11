@@ -39,28 +39,29 @@ int main(int So,char** Args) {
     assert(!W.findChild<QPushButton*>("luuDuLieu"));
     // Tiếp nhận thật qua GUI, không bấm bất kỳ nút lưu nào.
     QTimer::singleShot(0,[] {
-        Nhap("MaBenhNhan","P1"); Nhap("HoTen","Nguyễn An"); Nhap("Tuoi","30");
-        Nhap("MaLanKham","V1"); Nhap("TrieuChung","Khám");
+        Nhap("HoTen","Nguyễn An"); Nhap("Tuoi","30");
+        Nhap("TrieuChung","Khám");
         Hop()->findChild<QPushButton*>("luu")->click();
     });
     W.MoTiepNhan(); assert(!W.isWindowModified());
     TrangThaiHangCho Hang;
     PatientRegistry* Moi=SessionFileManager().DocBoFile(TepPatient,TepVisit,Hang);
-    assert(Moi && Moi->SoBenhNhan()==1 && Moi->SoLanKham()==1); delete Moi;
+    assert(Moi && Moi->SoBenhNhan()==1 && Moi->SoLanKham()==1);
+    assert(Moi->TaoMaBenhNhan()=="BN002" && Moi->TaoMaLanKham()=="LK002"); delete Moi;
     QTimer::singleShot(0,[] {
         Nhap("Mach","80"); Nhap("HuyetAp","120"); Nhap("NhipTho","18");
         Nhap("SpO2","98"); Nhap("GCS","15"); Nhap("MaDieuDuong","DD1");
         Hop()->findChild<QPushButton*>("luu")->click();
     });
-    W.MoDanhGia("V1"); assert(!W.isWindowModified());
+    W.MoDanhGia("LK001"); assert(!W.isWindowModified());
     // Mở lại không cần tự tìm bản lưu hoặc chọn file.
     Moi=DemoUi::KhoiDongTuDong(TepPatient,TepVisit,Hang);
-    assert(Moi && Moi->TimLanKham("V1")->SoDanhGia()==1);
+    assert(Moi && Moi->TimLanKham("LK001")->SoDanhGia()==1);
     { TriageService Tai(*Moi); Tai.KhoiPhucHangCho(Hang); assert(Tai.SoDangCho()==1); }
     delete Moi;
     W.findChild<QLineEdit*>("maBacSi")->setText("BS1"); W.findChild<QPushButton*>("goiTiep")->click();
     Moi=SessionFileManager().DocBoFile(TepPatient,TepVisit,Hang);
-    assert(Moi->TimLanKham("V1")->LayTrangThai()==VisitStatus::DangKham); delete Moi;
+    assert(Moi->TimLanKham("LK001")->LayTrangThai()==VisitStatus::DangKham); delete Moi;
     // Chặn I/O sau thao tác: không báo đã lưu, không nhận thêm thay đổi, không cho đóng mất dữ liệu.
     namespace Fs=std::filesystem;
     Fs::rename(Fs::u8path(Goc),Fs::u8path(Goc+"-giu"));

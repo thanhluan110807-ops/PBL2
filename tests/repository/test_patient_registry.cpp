@@ -309,6 +309,23 @@ void KiemTraBoSungThongTinConThieu() {
 }
 
 int main() {
+    {
+        PatientRegistry TuDong;
+        assert(TuDong.TaoMaBenhNhan() == "BN001");
+        assert(TuDong.TaoMaLanKham() == "LK001");
+        TuDong.ThemBenhNhan("BN009"); TuDong.ThemBenhNhan("MaCu");
+        assert(TuDong.TaoMaBenhNhan() == "BN010");
+        TuDong.ThemBenhNhan("BN999");
+        assert(TuDong.TaoMaBenhNhan() == "BN1000");
+        TuDong.ThemLanKham("LK099", "MaCu", 1, "Kham");
+        assert(TuDong.TaoMaLanKham() == "LK100");
+        assert(TuDong.TaoMaLanKham() == "LK100");
+        TuDong.ThemBenhNhan("BN18446744073709551615");
+        bool HetMa = false;
+        try { TuDong.TaoMaBenhNhan(); } catch (const My_stdexcept&) { HetMa = true; }
+        assert(HetMa);
+    }
+
     KiemTraBoSungThongTinConThieu();
     KiemTraDanhSachBenhNhan();
     KiemTraHoSoVaDanhTinh();

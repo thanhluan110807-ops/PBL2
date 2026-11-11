@@ -1,3 +1,4 @@
+#include "util/My_stdexcept.h"
 #include <QPixmap>
 #include <QString>
 #include <QWidget>
@@ -99,8 +100,8 @@ int main(int SoThamSo, char** ThamSo) {
     assert(!W.findChild<QPushButton*>("tienGio"));
     QTimer::singleShot(0, [&] {
         auto* H = Hop();
-        Nhap(H, "MaBenhNhan", "BN1"); Nhap(H, "HoTen", "Nguyễn An");
-        Nhap(H, "Tuoi", "30"); Nhap(H, "MaLanKham", "LK1");
+        assert(Tim<QLineEdit>(H,"MaBenhNhan")->isReadOnly()); Nhap(H, "HoTen", "Nguyễn An");
+        Nhap(H, "Tuoi", "30"); assert(Tim<QLineEdit>(H,"MaLanKham")->isReadOnly());
         Nhap(H, "TrieuChung", "Đau đầu"); Bam(H, "luu");
     });
     W.MoTiepNhan();
@@ -129,25 +130,25 @@ int main(int SoThamSo, char** ThamSo) {
         Nhap(H, "NhipTho", "18"); Nhap(H, "SpO2", "98"); Nhap(H, "GCS", "15");
         Nhap(H, "MaDieuDuong", "DD1"); Bam(H, "luu");
         assert(!Tim<QLabel>(H, "loiTong")->text().isEmpty());
-        assert(R.TimLanKham("LK1")->SoDanhGia() == 0);
+        assert(R.TimLanKham("LK001")->SoDanhGia() == 0);
         Nhap(H, "Mach", "80"); Bam(H, "luu");
     });
-    W.MoDanhGia("LK1");
+    W.MoDanhGia("LK001");
     assert(T.SoDangCho() == 1);
-    assert(R.TimLanKham("LK1")->LayDanhGiaGanNhat().LayMuc() == 5);
+    assert(R.TimLanKham("LK001")->LayDanhGiaGanNhat().LayMuc() == 5);
     assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 1);
     Nhap(&W, "maBacSi", "BS1"); Bam(&W, "goiTiep");
-    assert(R.TimLanKham("LK1")->LayTrangThai() == VisitStatus::DangKham);
+    assert(R.TimLanKham("LK001")->LayTrangThai() == VisitStatus::DangKham);
     QTimer::singleShot(0, [&] {
         auto* H = Hop(); Nhap(H, "NoiDung", "Xét nghiệm");
         Nhap(H, "MaBacSi", "BS2"); Bam(H, "luu");
         assert(!Tim<QLabel>(H, "loiTong")->text().isEmpty());
         Nhap(H, "MaBacSi", "BS1"); Bam(H, "luu");
     });
-    W.MoCanLamSang("LK1", false);
-    assert(R.TimLanKham("LK1")->LayTrangThai() == VisitStatus::ChoCanLamSang);
+    W.MoCanLamSang("LK001", false);
+    assert(R.TimLanKham("LK001")->LayTrangThai() == VisitStatus::ChoCanLamSang);
     QTimer::singleShot(0, [&] { Nhap(Hop(), "NoiDung", "Bình thường"); Bam(Hop(), "luu"); });
-    W.MoCanLamSang("LK1", true);
+    W.MoCanLamSang("LK001", true);
     assert(T.SoDangCho() == 1);
     Patient P("BN2", "Bình", Gender::Nam); P.DatTuoiUocLuong(30); R.ThemBenhNhan(P);
     T.TiepNhan("LK2", "BN2", std::time(nullptr), "Khám");
@@ -157,13 +158,13 @@ int main(int SoThamSo, char** ThamSo) {
     assert(W.grab().save("demo-core-workflow.png"));
     // Lọc không tiêu thụ lượt hòa: lần đầu vẫn nhường quay lại ở lần hòa đầu tiên.
     Bam(&W, "locLuong1"); Bam(&W, "goiTiep");
-    assert(R.TimLanKham("LK1")->LayTrangThai() == VisitStatus::DangKham);
+    assert(R.TimLanKham("LK001")->LayTrangThai() == VisitStatus::DangKham);
     assert(R.TimLanKham("LK2")->LayTrangThai() == VisitStatus::ChoKhamLanDau);
     Bam(&W, "nav3"); Nhap(&W, "timHang", "nguyễn");
     assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 1);
     Nhap(&W, "maLanKhamLoc", "LK2");
     assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 0);
-    Nhap(&W, "maLanKhamLoc", "LK1");
+    Nhap(&W, "maLanKhamLoc", "LK001");
     assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 1);
     // KPI phải mở cả nhóm chờ khám, bỏ bộ lọc chính xác LK1 của tra cứu trước.
     Nhap(&W, "ngayLoc", "01/01/2000"); Bam(&W, "xemKpi1");
@@ -174,9 +175,13 @@ int main(int SoThamSo, char** ThamSo) {
     R.ThemBenhNhan("BN3", "Chưa khám"); Bam(&W, "nav4");
     assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 3);
     // Trùng mã Visit phải bị chặn trước khi tạo Patient mới.
+    bool TrungMa = false;
+    try { R.ThemLanKham("LK001", "BN001", std::time(nullptr), "Khám"); }
+    catch (const My_stdexcept&) { TrungMa = true; }
+    assert(TrungMa);
     QTimer::singleShot(0, [&] {
         auto *H = Hop(); Nhap(H, "MaBenhNhan", "BN_KHONG_TAO");
-        Nhap(H, "MaLanKham", "LK1"); Nhap(H, "TrieuChung", "Khám"); Bam(H, "luu");
+        Nhap(H, "MaLanKham", "LK001"); Nhap(H, "TrieuChung", ""); Bam(H, "luu");
         assert(!Tim<QLabel>(H, "loiTong")->text().isEmpty());
         assert(R.TimBenhNhan("BN_KHONG_TAO") == nullptr); Bam(H, "dongHop");
     });
@@ -184,7 +189,7 @@ int main(int SoThamSo, char** ThamSo) {
     // Chọn hồ sơ đã có và đang khám: không mở thêm Visit.
     QTimer::singleShot(0, [&] {
         auto *H = Hop(); Tim<QComboBox>(H, "cheDo")->setCurrentIndex(1);
-        Nhap(H, "timHoSo", "BN1"); auto *L = Tim<QListWidget>(H, "chonHoSo");
+        Nhap(H, "timHoSo", "BN001"); auto *L = Tim<QListWidget>(H, "chonHoSo");
         assert(L->count() == 1); L->setCurrentRow(0);
         Nhap(H, "MaLanKham", "LK_KHONG_TAO"); Nhap(H, "TrieuChung", "Khám"); Bam(H, "luu");
         assert(R.TimLanKham("LK_KHONG_TAO") == nullptr);
@@ -192,16 +197,16 @@ int main(int SoThamSo, char** ThamSo) {
     });
     W.MoTiepNhan();
     // Đổi danh tính qua Registry giữ nguyên địa chỉ hồ sơ và lịch sử.
-    const Patient *Cu = R.TimBenhNhan("BN1");
+    const Patient *Cu = R.TimBenhNhan("BN001");
     QTimer::singleShot(0, [&] {
         auto *H = Hop(); Bam(H,"suaThongTin"); Nhap(H, "HoTen", "Nguyễn An mới");
         Nhap(H, "NgaySinh", "01/01/1996"); Nhap(H, "CanCuoc", "001"); Bam(H, "luu");
         Bam(H,"dongHop");
     });
-    W.MoHoSo("BN1"); assert(R.TimBenhNhan("BN1") == Cu);
-    assert(Cu->LayHoTen() == "Nguyễn An mới" && R.TimLanKham("LK1")->SoDanhGia() == 1);
+    W.MoHoSo("BN001"); assert(R.TimBenhNhan("BN001") == Cu);
+    assert(Cu->LayHoTen() == "Nguyễn An mới" && R.TimLanKham("LK001")->SoDanhGia() == 1);
     Bam(&W, "nav3"); Nhap(&W, "timHang", "an mới");
-    const QString Ngay = QDateTime::fromSecsSinceEpoch(R.TimLanKham("LK1")->LayThoiDiemTiepNhan(), QTimeZone(0))
+    const QString Ngay = QDateTime::fromSecsSinceEpoch(R.TimLanKham("LK001")->LayThoiDiemTiepNhan(), QTimeZone(0))
         .addSecs(7*3600).toString("dd/MM/yyyy");
     Nhap(&W, "ngayLoc", Ngay); assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 1);
     Nhap(&W, "ngayLoc", "31/02/2026"); assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 0);
@@ -212,9 +217,9 @@ int main(int SoThamSo, char** ThamSo) {
         assert(!Hop()->findChild<QPushButton*>("danhGia"));
         assert(Hop()->findChild<QPushButton*>("chuyenCls")); Bam(Hop(), "dongHop");
     });
-    W.MoChiTiet("LK1");
-    QTimer::singleShot(0, [] { Bam(Hop(), "xacNhanDong"); }); W.XacNhanDong("LK1", false);
-    assert(R.TimLanKham("LK1")->LayTrangThai() == VisitStatus::DaKetThuc);
+    W.MoChiTiet("LK001");
+    QTimer::singleShot(0, [] { Bam(Hop(), "xacNhanDong"); }); W.XacNhanDong("LK001", false);
+    assert(R.TimLanKham("LK001")->LayTrangThai() == VisitStatus::DaKetThuc);
     QTimer::singleShot(0, [] { static_cast<QDialog*>(Hop())->reject(); }); W.XacNhanDong("LK2", true);
     assert(T.SoDangCho() == 1);
     QTimer::singleShot(0, [] { Bam(Hop(), "xacNhanDong"); }); W.XacNhanDong("LK2", true);

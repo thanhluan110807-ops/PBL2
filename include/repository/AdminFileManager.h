@@ -15,6 +15,7 @@ struct AdminData {
 };
 class AdminFileManager {
 public:
+    // Đường dẫn .csv dùng các cột CSV; .pbl2/.txt cũ tiếp tục giữ định dạng cũ.
     static void Luu(const std::string& DuongDan, const AdminData& DuLieu);
     static AdminData Doc(const std::string& DuongDan);
 };

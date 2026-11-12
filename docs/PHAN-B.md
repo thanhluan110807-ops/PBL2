@@ -29,7 +29,7 @@ Giữ nguyên tên class và cấu trúc dự án; chú thích đầu file ghi *
 
 ## Lưu và nạp dữ liệu trên giao diện
 
-Theo yêu cầu cập nhật, phần B hiện trong vùng nội dung chính của ứng dụng. Khi mở, chương trình tự nạp `nhan-su-lich.pbl2` từ thư mục dữ liệu ứng dụng. Nút **Lưu thay đổi** màu xanh lưu trực tiếp vào nguồn đã liên kết, gồm nhân sự, tuần, ca trực, phân công và dự phòng; người dùng không cần chọn file. Nút được bật khi dữ liệu đã thay đổi. Ghi lỗi giữ thay đổi trong RAM để lưu lại. Nếu nguồn có sẵn không đọc được, báo lỗi và chặn chỉnh sửa/lưu đè cho đến khi dữ liệu được khôi phục. Đóng ứng dụng khi còn thay đổi chưa lưu vẫn có cảnh báo.
+Theo yêu cầu cập nhật, phần B hiện trong vùng nội dung chính của ứng dụng. Khi mở, chương trình ưu tiên `nhan-su-lich.csv` cạnh Patient CSV đã liên kết; nếu không có thì bộ cũ tiếp tục dùng `nhan-su-lich.pbl2` từ thư mục dữ liệu ứng dụng. Nút **Lưu thay đổi** màu xanh lưu trực tiếp vào nguồn đã liên kết, gồm nhân sự, tuần, ca trực, phân công và dự phòng; người dùng không cần chọn file. Nút được bật khi dữ liệu đã thay đổi. Ghi lỗi giữ thay đổi trong RAM để lưu lại. Nếu nguồn có sẵn không đọc được, báo lỗi và chặn chỉnh sửa/lưu đè cho đến khi dữ liệu được khôi phục. Đóng ứng dụng khi còn thay đổi chưa lưu vẫn có cảnh báo.
 
 Các nút **Lưu/Mở file**, **Xuất/Mở file nhân viên** và **Xuất/Mở file lịch riêng** đã được bỏ khỏi giao diện. Các API của `StaffFileManager`, `ScheduleFileManager`, `AdminPanel::LuuNhanSu/NapNhanSu` vẫn phục vụ code và kiểm thử. Khi nạp nhân viên qua API, chương trình kiểm tra liên kết ca, phân công và dự phòng trước khi thay dữ liệu; lỗi giữ nguyên dữ liệu hiện tại. Xuất riêng nhân viên không được coi là đã lưu toàn bộ snapshot.
 
@@ -39,6 +39,26 @@ Nếu đọc thẳng vào registry đang dùng, lỗi ở dòng cuối có thể
 
 Lỗi parse được ghi số dòng vật lý (header là dòng 1) và đường dẫn file. Lỗi liên kết PC trong file lịch ghi dòng PC gốc dù kiểm tra sau khi đọc hết file. Lỗi kiểm tra toàn snapshot có thể báo vị trí cuối file. File trắng giữa các bản ghi được bỏ qua; dòng khác trắng sau END bị từ chối. Lưu ra file tạm cùng thư mục rồi thay thế sau khi ghi/đóng thành công để bảo toàn file cũ khi ghi lỗi.
 
-Mỗi API đọc file cần đúng loại header tương ứng. Định dạng hiện chưa hỗ trợ CSV/Excel và không bỏ qua bản ghi lỗi. Tệp dùng UTF-8; ca dùng thời điểm Unix, giờ Việt Nam UTC+7. Các module tương ứng hai lớp StaffFileManager và ScheduleFileManager trong UML.
+Mỗi API đọc file cần đúng loại header tương ứng. Các file nhân viên/lịch riêng vẫn dùng định dạng văn bản cũ; snapshot chung `AdminFileManager` hỗ trợ thêm CSV bên dưới. Không bỏ qua bản ghi lỗi. Tệp dùng UTF-8; ca dùng thời điểm Unix, giờ Việt Nam UTC+7. Các module tương ứng hai lớp StaffFileManager và ScheduleFileManager trong UML.
+
+## CSV nhân sự và lịch trực
+
+`AdminFileManager` đọc/ghi đường dẫn có đuôi `.csv` bằng CSV UTF-8; các đường dẫn
+`.pbl2`/`.txt` tiếp tục đọc/ghi định dạng cũ. Dòng đầu là
+`PBL2_ADMIN_CSV,1,YYYY-MM-DD`, ngày phải là thứ Hai. Mỗi dòng có loại và các
+cột riêng, dùng quy tắc ngoặc kép như CSV Patient/Visit, không gói dòng văn bản
+cũ vào một ô. Dòng `END` kết thúc file; dữ liệu sau đó bị từ chối.
+
+| Loại | Các cột sau loại |
+|---|---|
+| `NV` | loại nhân viên, mã, họ tên, cấp bậc, kinh nghiệm, điểm nền, chuyên khoa, giờ mong muốn đầu/cuối, mong cuối tuần, điểm hiện tại, giờ làm tuần, số ca đêm/cuối tuần tháng, vừa trực đêm, nội trú, đang sàng lọc, giờ sàng lọc liên tục, giới tính, có ngày sinh, ngày/tháng/năm sinh, theo đồng hồ, bắt đầu sàng lọc, mốc đồng hồ |
+| `CA` | mã ca, bắt đầu/kết thúc Unix giây, số bác sĩ, số điều dưỡng, cần trưởng ca |
+| `PC` | mã phân công, mã nhân viên, mã ca, vai trò, trạng thái, thời điểm bắt đầu, lý do hủy |
+| `DP` | mã nhân viên dự phòng |
+
+Các enum/cờ lưu bằng số như snapshot v4 hiện có; bộ đọc kiểm tra giới hạn,
+liên kết, giờ nghỉ, mệt mỏi và tính hợp lệ của phân công. CSV thiếu cột, có giá
+trị sai hoặc bị cắt ngang sẽ báo lỗi, không thay dữ liệu đang dùng. Lưu CSV
+vẫn ghi file tạm rồi thay file đích sau khi ghi/đóng thành công.
 
 Kiểm thử Linux sau bổ sung: **17/17** khi bật Qt; **14/14** core với ASan/UBSan. Chưa kiểm thử Windows.

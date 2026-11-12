@@ -9,6 +9,7 @@
 #include <fstream>
 #include <limits>
 #include <chrono>
+#include <string>
 
 template<class F> void PhaiLoi(F Ham) {
     bool Loi = false;
@@ -91,6 +92,26 @@ int main() {
     assert(Doc.NhanSu->KichThuoc() == 4 && Doc.NhanSu->Tim("B1")->LayHoTen() == B.LayHoTen());
     assert(SchedulerService::LichHopLe(*Doc.NhanSu, Doc.Lich));
     assert(Doc.Lich.PhanCong.KichThuoc() == 4 && Doc.DuPhong.Co("B2"));
+    // CSV phải có cột thật, đọc lại được dấu phẩy/ngoặc kép và lưu đúng nguồn cũ.
+    const auto TepCsv = (ThuMuc / "nhan-su-lich.csv").string();
+    AdminFileManager::Luu(TepCsv,D);
+    { std::ifstream Vao(TepCsv); std::string Dau; std::getline(Vao,Dau);
+      assert(Dau == "PBL2_ADMIN_CSV,1,2026-11-02"); }
+    auto Csv = AdminFileManager::Doc(TepCsv);
+    assert(Csv.NhanSu->KichThuoc()==4 && Csv.Lich.PhanCong.KichThuoc()==4 && Csv.DuPhong.Co("B2"));
+    Csv.NhanSu->CapNhat(BacSi("B1","Nguyễn, \"An\"",CapBac::BacSiChinh,8,"Cấp cứu"));
+    AdminFileManager::Luu(TepCsv,Csv);
+    assert(AdminFileManager::Doc(TepCsv).NhanSu->Tim("B1")->LayHoTen()=="Nguyễn, \"An\"");
+    const auto HongCsv = (ThuMuc / "hong.csv").string();
+    for (const auto* NoiDung : {
+        "PBL2_ADMIN_CSV,99,2026-11-02\nEND\n",
+        "PBL2_ADMIN_CSV,1,2026-11-02\n",
+        "PBL2_ADMIN_CSV,1,2026-11-02\nPC,thieu-cot\nEND\n",
+        "PBL2_ADMIN_CSV,1,2026-11-02\nCA,C1,\"100 200\",300,1,1,1\nEND\n",
+        "PBL2_ADMIN_CSV,1,2026-11-02\nEND\nDP,B1\n"}) {
+        { std::ofstream Ra(HongCsv); Ra << NoiDung; }
+        PhaiLoi([&] { AdminFileManager::Doc(HongCsv); });
+    }
     D.TuanBatDau = "2026-11-03";
     PhaiLoi([&] { AdminFileManager::Luu(Tep,D); });
     assert(AdminFileManager::Doc(Tep).TuanBatDau == "2026-11-02");

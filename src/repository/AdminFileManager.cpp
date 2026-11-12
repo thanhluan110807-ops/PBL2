@@ -7,11 +7,15 @@
 #include "service/SchedulerService.h"
 #include "model/Date.h"
 #include "util/My_stdexcept.h"
+#include "util/CsvFile.h"
+#include "dsa/Vector.h"
 #include <fstream>
+#include <ostream>
 #include <sstream>
 #include <iomanip>
 #include <filesystem>
 #include <chrono>
+#include <string>
 #ifdef _WIN32
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -52,6 +56,57 @@ void KiemTra(const AdminData& D) {
     for (int I = 0; I < D.Lich.CacCa.KichThuoc(); ++I) KiemTraChuoi(D.Lich.CacCa[I].LayMaCaTruc());
     D.DuPhong.Duyet([&](const std::string& Ma) { if (!D.NhanSu->Tim(Ma)) Loi("Ma du phong khong ton tai"); });
 }
+
+bool LaTepCsv(const std::string& DuongDan) {
+    return std::filesystem::path(DuongDan).extension() == ".csv";
+}
+
+// CSV dùng các cột riêng; tận dụng bộ đọc nghiệp vụ cũ để không lặp luật kiểm tra.
+bool LaCotChuoi(const std::string& Loai, int Cot) {
+    if (Loai == "NV") return Cot == 2 || Cot == 3 || Cot == 7;
+    if (Loai == "CA" || Loai == "DP") return Cot == 1;
+    return Loai == "PC" && (Cot == 1 || Cot == 2 || Cot == 3 || Cot == 7);
+}
+
+std::string ChuyenDongCsv(const Vector<std::string>& CacO) {
+    if (CacO.KichThuoc() == 1 && CacO[0].empty()) return "";
+    const auto& Loai = CacO[0];
+    if (Loai == "PBL2_ADMIN_CSV") {
+        if (CacO.KichThuoc() != 3 || CacO[1] != "1" || !TuanHopLe(CacO[2]))
+            Loi("Tieu de CSV nhan su/lich khong hop le");
+        return "PBL2_ADMIN 4 " + CacO[2];
+    }
+    const int SoCot = Loai == "NV" ? 27 : Loai == "CA" ? 7 : Loai == "PC" ? 8 :
+                      Loai == "DP" ? 2 : Loai == "END" ? 1 : 0;
+    if (!SoCot || CacO.KichThuoc() != SoCot) Loi("Loai dong hoac so cot CSV nhan su/lich sai");
+    std::ostringstream Dong; Dong << Loai;
+    for (int I = 1; I < SoCot; ++I) {
+        KiemTraChuoi(CacO[I]);
+        Dong << ' ';
+        if (LaCotChuoi(Loai,I)) Dong << std::quoted(CacO[I]);
+        else {
+            // Một ô số chỉ được tạo một giá trị, không chen thêm cột vào bộ đọc cũ.
+            if (CacO[I].empty() || CacO[I].find_first_not_of("0123456789+-.eE") != std::string::npos)
+                Loi("Cot so CSV nhan su/lich khong hop le");
+            Dong << CacO[I];
+        }
+    }
+    return Dong.str();
+}
+
+void GhiCsv(std::ostream& Tep, const std::string& NoiDung) {
+    std::istringstream CacDong(NoiDung);
+    std::string Dong;
+    while (std::getline(CacDong,Dong)) {
+        std::istringstream CacTu(Dong);
+        Vector<std::string> CacO;
+        std::string Tu;
+        // std::quoted đọc nguyên tên/lý do có khoảng trắng, dấu phẩy và ngoặc kép.
+        while (CacTu >> std::quoted(Tu)) CacO.ThemCuoi(Tu);
+        if (CacO[0] == "PBL2_ADMIN") { CacO[0] = "PBL2_ADMIN_CSV"; CacO[1] = "1"; }
+        CsvFile::GhiBanGhi(Tep,CacO);
+    }
+}
 }
 void AdminFileManager::Luu(const std::string& DuongDan, const AdminData& D) {
     KiemTra(D);
@@ -61,12 +116,16 @@ void AdminFileManager::Luu(const std::string& DuongDan, const AdminData& D) {
     try {
         std::ofstream Tep(Tam, std::ios::binary | std::ios::trunc);
         if (!Tep) Loi("Khong tao duoc file tam");
-        Tep << "PBL2_ADMIN 4 " << D.TuanBatDau << '\n' << std::setprecision(17);
-        for (int I = 0; I < D.NhanSu->KichThuoc(); ++I) StaffFileManager::GhiDong(Tep,D.NhanSu->Lay(I));
-        for (int I=0; I<D.Lich.CacCa.KichThuoc(); ++I) ScheduleFileManager::GhiCa(Tep,D.Lich.CacCa[I]);
-        for (int I=0; I<D.Lich.PhanCong.KichThuoc(); ++I) ScheduleFileManager::GhiPhanCong(Tep,D.Lich.PhanCong[I]);
-        D.DuPhong.Duyet([&](const std::string& Ma) { Tep << "DP " << std::quoted(Ma) << '\n'; });
-        Tep << "END\n";
+        std::ostringstream NoiDung;
+        NoiDung << "PBL2_ADMIN 4 " << D.TuanBatDau << '\n' << std::setprecision(17);
+        for (int I = 0; I < D.NhanSu->KichThuoc(); ++I) StaffFileManager::GhiDong(NoiDung,D.NhanSu->Lay(I));
+        for (int I=0; I<D.Lich.CacCa.KichThuoc(); ++I) ScheduleFileManager::GhiCa(NoiDung,D.Lich.CacCa[I]);
+        for (int I=0; I<D.Lich.PhanCong.KichThuoc(); ++I) ScheduleFileManager::GhiPhanCong(NoiDung,D.Lich.PhanCong[I]);
+        D.DuPhong.Duyet([&](const std::string& Ma) { NoiDung << "DP " << std::quoted(Ma) << '\n'; });
+        NoiDung << "END\n";
+        if (!NoiDung) Loi("Khong tao duoc day du ban chup de luu");
+        if (LaTepCsv(DuongDan)) GhiCsv(Tep,NoiDung.str());
+        else Tep << NoiDung.str();
         Tep.flush();
         if (!Tep) Loi("Khong ghi duoc day du du lieu");
         Tep.close();
@@ -87,17 +146,27 @@ AdminData AdminFileManager::Doc(const std::string& DuongDan) {
     try {
     std::ifstream Tep(DuongDan, std::ios::binary);
     if (!Tep) Loi("Khong mo duoc file");
+    const bool Csv = LaTepCsv(DuongDan);
+    int DongCsv = 1;
+    CsvFile::BoQuaBom(Tep);
     AdminData D;
     std::string Dong, Loai;
-    if (!std::getline(Tep, Dong) || Dong.size()>8192) Loi("File rong");
+    auto DocDong = [&] {
+        if (!Csv) return static_cast<bool>(std::getline(Tep,Dong));
+        Vector<std::string> CacO;
+        if (!CsvFile::DocBanGhi(Tep,CacO,DongCsv,DongHienTai)) return false;
+        Dong = ChuyenDongCsv(CacO);
+        return true;
+    };
+    if (!DocDong() || Dong.size()>8192) Loi("File rong");
     std::istringstream Dau(Dong);
     int PhienBan = 0;
     if (!(Dau >> Loai >> PhienBan >> D.TuanBatDau) || Loai != "PBL2_ADMIN" || (PhienBan != 1 && PhienBan != 2 && PhienBan != 3 && PhienBan != 4)) Loi("Sai dinh dang hoac phien ban");
     HetDong(Dau);
     bool DaKetThuc = false;
     int SoDong = 0;
-    while (std::getline(Tep, Dong)) {
-        ++DongHienTai;
+    while (DocDong()) {
+        if (!Csv) ++DongHienTai;
         if (++SoDong > 800 || Dong.size() > 8192) Loi("File vuot gioi han");
         if (!Dong.empty() && Dong.back() == '\r') Dong.pop_back();
         if (Dong.empty()) continue;

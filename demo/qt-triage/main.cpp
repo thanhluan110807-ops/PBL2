@@ -33,10 +33,18 @@ int main(int SoThamSo, char *ThamSo[]) {
             return 1;
         }
         std::string TepPatient,TepVisit;
-        const bool CoBoFile = !UngDung.arguments().contains("--chon-du-lieu") &&
+        const bool ChonLai = UngDung.arguments().contains("--chon-du-lieu");
+        const bool DungMau = UngDung.arguments().contains("--du-lieu-mau");
+        const bool CoBoFile = !ChonLai && !DungMau &&
             DemoUi::DocBoFileGanNhat(ThuMucCauHinh.toStdString(),TepPatient,TepVisit);
         TrangThaiHangCho HangCho;
-        if (CoBoFile)
+        if (DungMau || (!ChonLai && !CoBoFile)) {
+            // Liên kết thẳng bộ CSV cố định. Lần sau đọc lại chính các file đã sửa.
+            const QDir ThuMucMau(QString::fromUtf8(PBL2_SAMPLE_DATA_DIR));
+            TepPatient = ThuMucMau.filePath("patient.csv").toStdString();
+            TepVisit = ThuMucMau.filePath("visit.csv").toStdString();
+            Registry = DemoUi::KhoiDongTuDong(TepPatient,TepVisit,HangCho);
+        } else if (CoBoFile)
             Registry = DemoUi::KhoiDongTuDong(TepPatient,TepVisit,HangCho);
         else Registry = DemoUi::ChonDuLieu(nullptr, &HangCho, &TepPatient, &TepVisit);
         if (Registry == nullptr) return 0;

@@ -15,17 +15,26 @@ nguyên mã trong lịch sử cũ. Khi phát triển đăng nhập với vai tr�
 sẽ lấy mã từ tài khoản đang đăng nhập để gắn vào từng đánh giá mới. Đăng nhập
 vẫn là phần làm sau, chưa triển khai trong thay đổi này.
 
-**Bộ demo hư cấu 12/11/2026:** `demo/qt-triage/data/demo-day-du/` có Patient,
-Visit/hàng chờ và snapshot nhân sự/lịch trực. Chạy trong WSL/Linux bằng
-`python3 demo/qt-triage/chay_demo_mau.py [duong-dan-binary]` để tự nạp một bản
-sao riêng, không đổi dữ liệu/cấu hình đang dùng. Có 16 Patient, 17 Visit,
-8 chờ khám, 20 nhân viên, 14 ca, 49 bản ghi phân công; hai ca Chủ nhật còn
-trống cho thao tác đề xuất thêm 8 phân công. Mốc ngày cố định 12/11 và tuần
-09–15/11/2026. Xem [hướng dẫn/kịch bản](../../demo/qt-triage/data/demo-day-du/README.md).
-Đã kiểm tra khởi động thật qua script, hiển thị, đề xuất/thay ca và lưu/đọc lại
-trên Qt5 Linux offscreen; chưa kiểm chứng trực tiếp Windows/WSLg của người dùng.
-Script nhận thêm `build-qt-wsl`, in rõ binary được mở và yêu cầu chỉ định đường
-dẫn khi có nhiều bản build; bản trước có thể tự chọn nhầm binary mô phỏng cũ.
+**Quyết định mới nhất về CSV demo — 12/11/2026:** người dùng yêu cầu file cố
+định, mở lại dùng cùng nguồn và sửa thì ghi vào nguồn đó, không dùng script
+Python/phiên tạm. Đã bỏ script chạy mẫu; thư mục
+`demo/qt-triage/data/demo-day-du/` có ba file `patient.csv`, `visit.csv`,
+`nhan-su-lich.csv`. Chạy binary C++ với `--du-lieu-mau` một lần để liên kết;
+lần sau mở bình thường tự dùng lại. Lần đầu chưa có cấu hình cũng tự liên kết
+bộ mẫu; bộ cũ tiếp tục được giữ cho đến khi người dùng chọn đổi. Không chép
+hoặc đặt lại CSV khi mở/build. Patient/Visit tự lưu; nhân sự/lịch ghi khi bấm
+**Lưu thay đổi**. GUI tự tìm CSV nhân sự cạnh Patient, bộ cũ không có CSV đó
+tiếp tục dùng `.pbl2` trong thư mục dữ liệu ứng dụng. AdminFileManager hỗ trợ
+CSV có cột riêng và vẫn tương thích file văn bản cũ. Ban đầu có 16 Patient,
+17 Visit, 8 chờ khám, 20 nhân viên, 14 ca, 49 bản ghi phân công; hai ca Chủ
+nhật trống để đề xuất thêm 8 phân công. Mốc ngày 12/11, tuần 09–15/11/2026.
+Xem [hướng dẫn](../../demo/qt-triage/data/demo-day-du/README.md) và
+[định dạng CSV](../PHAN-B.md#csv-nhân-sự-và-lịch-trực). Không xem kết quả kiểm
+thử của script cũ là kiểm chứng cho luồng CSV cố định này.
+Kiểm chứng mới: build Qt5/Linux và CTest 30/30 đạt; thử qua các lần chạy tiến
+trình độc lập gồm giữ bộ cũ, chọn CSV mẫu, sửa/lưu đánh giá và lịch, mở lại vẫn
+giữ dữ liệu, lần đầu chưa có cấu hình tự liên kết. Kiểm tra thực hiện trên bản
+sao cố định dành riêng cho test; chưa kiểm chứng trực tiếp Windows/WSLg.
 
 Phần này cập nhật và ưu tiên hơn các ảnh chụp cũ bên dưới. Đặc biệt, mục cũ
 “Chưa triển khai trong lõi: ... TriageService”, thứ tự bắt buộc làm Calculator

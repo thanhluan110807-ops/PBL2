@@ -1,6 +1,9 @@
 #include "ui/DemoWindow.h"
 #include "ui/DemoStartup.h"
 #include "repository/SessionFileManager.h"
+#include "repository/AdminFileManager.h"
+#include "model/BacSi.h"
+#include "ui/AdminPanel.h"
 #include "repository/PatientRegistry.h"
 #include "service/TriageService.h"
 #include "service/VisitSearchService.h"
@@ -35,7 +38,14 @@ int main(int So,char** Args) {
     assert(DemoUi::DocBoFileGanNhat(ThuMuc.path().toStdString(),NhoP,NhoV));
     assert(NhoP==TepPatient && NhoV==TepVisit);
     PatientRegistry R; TriageService T(R); VisitSearchService S(R);
+    AdminData NhanSu;
+    NhanSu.NhanSu->Them(BacSi("BS1","Bác sĩ mẫu",CapBac::BacSiChinh,8,"Cấp cứu"));
+    const std::string TepNhanSu=Goc+"/nhan-su-lich.csv";
+    AdminFileManager::Luu(TepNhanSu,NhanSu);
     DemoWindow W(R,T,S,TepPatient,TepVisit); W.show(); A.processEvents();
+    // Cùng bộ Patient/Visit: tự liên kết CSV nhân sự cạnh đó, không nạp nguồn khác.
+    auto* QuanTri=W.findChild<AdminPanel*>("adminPanel"); assert(QuanTri);
+    assert(QuanTri->LayDuLieu().NhanSu->KichThuoc()==1);
     assert(!W.findChild<QPushButton*>("luuDuLieu"));
     // Tiếp nhận thật qua GUI, không bấm bất kỳ nút lưu nào.
     QTimer::singleShot(0,[] {

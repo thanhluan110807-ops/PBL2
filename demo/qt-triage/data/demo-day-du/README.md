@@ -4,39 +4,33 @@ Toàn bộ họ tên, CCCD, sinh hiệu, kết quả và phân công là **dữ 
 Mốc trình diễn cố định: **12/11/2026**, lịch tuần **09–15/11/2026**, giờ UTC+7.
 Sinh hiệu chỉ phục vụ luật phân loại mô phỏng trong đồ án.
 
-## Mở chương trình với dữ liệu sẵn trong WSL
+## Mở chương trình và liên kết CSV cố định
 
-Từ thư mục gốc repository, sau khi build Qt demo:
-
-```bash
-python3 demo/qt-triage/chay_demo_mau.py
-```
-
-Script tìm binary trong `build-qt-wsl`, `build-qt-demo`, `build-demo` và `build`.
-Chỉ tự chọn khi tìm được đúng một bản chạy được. Nếu có nhiều bản, script báo
-các đường dẫn để bạn chỉ định bản vừa build, tránh mở nhầm binary cũ. Đường dẫn
-thực thi được in rõ trước khi mở cửa sổ. Với thư mục `build-qt-wsl`, chạy:
+Chạy trực tiếp chương trình C++ đã build, không dùng script Python. Trong WSL,
+nếu thư mục build của bạn là `build-qt-wsl`, chạy từ gốc repository:
 
 ```bash
-python3 demo/qt-triage/chay_demo_mau.py ./build-qt-wsl/demo/qt-triage/pbl2_qt_demo
+cmake -S . -B build-qt-wsl -DPBL2_BUILD_QT_DEMO=ON
+cmake --build build-qt-wsl --target pbl2_qt_demo --parallel 2
+./build-qt-wsl/demo/qt-triage/pbl2_qt_demo --du-lieu-mau
 ```
 
-Nếu dùng thư mục build khác, truyền đường dẫn chương trình Linux đã build:
+`--du-lieu-mau` dùng một lần để chuyển liên kết từ bộ cũ sang ba CSV ở ngay
+thư mục này. Chương trình nhớ đường dẫn; những lần sau chỉ mở bình thường:
 
 ```bash
-python3 demo/qt-triage/chay_demo_mau.py ./build-cua-ban/demo/qt-triage/pbl2_qt_demo
+./build-qt-wsl/demo/qt-triage/pbl2_qt_demo
 ```
 
-Chương trình tự mở màn hình chính với dữ liệu sẵn, không cần chọn file hoặc bấm
-nạp mẫu. Cần Python 3 (thư viện chuẩn), WSLg/desktop Linux hoạt động và bản build
-hiện tại có hỗ trợ mã điều dưỡng rỗng. Script không build chương trình.
+Lần đầu chưa có cấu hình liên kết, chương trình tự dùng bộ CSV này. Nếu đã có
+bộ cũ, vẫn giữ liên kết cũ đến khi bạn chọn `--du-lieu-mau` hoặc
+`--chon-du-lieu`. Chọn dữ liệu mẫu không ghi đè dữ liệu của bộ cũ.
 
-Mỗi lần chạy tạo bản sao mới dưới `/tmp/pbl2-demo-*`, dùng cấu hình và dữ liệu
-riêng qua `XDG_CONFIG_HOME`/`XDG_DATA_HOME`. File đang dùng bình thường và file
-mẫu gốc được giữ nguyên. Khi thử thao tác, Patient/Visit tự lưu vào **bản sao**;
-nhân sự/lịch lưu khi bấm **Lưu thay đổi**. Bản sao còn sau khi đóng, nhưng hệ thống
-có thể dọn `/tmp`; lần chạy script tiếp theo bắt đầu lại từ mẫu ban đầu.
-Mở binary theo cách thường vẫn dùng bộ dữ liệu bình thường trước đó.
+**Sửa và lưu vào chính ba CSV này**, không tạo phiên tạm hoặc chép lại dữ liệu
+mẫu mỗi lần mở. Patient/Visit tự lưu sau thao tác; nhân sự/lịch ghi khi bấm nút
+xanh **Lưu thay đổi**. Đóng và mở lại vẫn giữ các thay đổi đã lưu. Chạy lại
+`--du-lieu-mau` cũng chỉ đọc dữ liệu hiện tại, không đặt lại về mẫu ban đầu.
+Không chạy đồng thời nhiều chương trình cùng sửa một bộ file.
 
 ## Các file
 
@@ -44,11 +38,12 @@ Mở binary theo cách thường vẫn dùng bộ dữ liệu bình thường tr
 |---|---|
 | [patient.csv](patient.csv) | 16 bệnh nhân, có danh tính đầy đủ và hồ sơ vô danh có tuổi ước lượng |
 | [visit.csv](visit.csv) | 17 lượt khám, lịch sử đánh giá, bác sĩ khám, cận lâm sàng và trạng thái hai hàng chờ |
-| [nhan-su-lich.pbl2](nhan-su-lich.pbl2) | 10 bác sĩ, 10 điều dưỡng, 14 ca, 49 bản ghi phân công và 4 nhân viên dự phòng |
+| [nhan-su-lich.csv](nhan-su-lich.csv) | 10 bác sĩ, 10 điều dưỡng, 14 ca, 49 bản ghi phân công và 4 nhân viên dự phòng |
 
-Hai CSV phải được nạp cùng nhau. `nhan-su-lich.pbl2` dùng định dạng Admin v4,
-được đặt tại đúng thư mục dữ liệu ứng dụng bởi script. Không chép mẫu đè lên
-file thật. Các mã bác sĩ/điều dưỡng trong lịch sử đều có trong danh sách nhân sự;
+Patient/Visit phải được nạp cùng nhau. Giao diện tự liên kết `nhan-su-lich.csv`
+nằm cạnh Patient CSV. File nhân sự/lịch là CSV thật với từng cột riêng, tiêu đề
+`PBL2_ADMIN_CSV,1,2026-11-09`; xem [định dạng](../../../../docs/PHAN-B.md#csv-nhân-sự-và-lịch-trực).
+Các mã bác sĩ/điều dưỡng trong lịch sử đều có trong danh sách nhân sự;
 đánh giá mới để trống mã điều dưỡng theo giai đoạn chưa có đăng nhập.
 
 ## Kịch bản trình diễn gợi ý
@@ -83,4 +78,4 @@ file thật. Các mã bác sĩ/điều dưỡng trong lịch sử đều có tro
 Ban đầu 49 bản ghi phân công gồm **8 dự kiến, 36 đã xác nhận, 4 đang trực,
 1 đã hủy**. Nhân viên dự phòng là BS09, BS10, DD09, DD10. Các mốc đang trực
 là trạng thái của kịch bản cố định, không phải chấm công theo ngày mở ứng dụng.
-Mỗi lần muốn trình diễn lại từ đầu, đóng chương trình và chạy lại script.
+Các số lượng và thứ tự trên mô tả dữ liệu ban đầu, sẽ đổi khi bạn thao tác.

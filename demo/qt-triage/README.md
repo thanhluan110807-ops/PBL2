@@ -4,8 +4,9 @@ Mục **Nhân sự và lịch trực** trong thanh điều hướng mở phần 
 Ca trực, Lịch và thay ca dùng trực tiếp dữ liệu nhân sự/lịch và `SchedulerService`.
 Các thẻ tổng quan lấy số lượng từ dữ liệu hiện tại; vùng chi tiết hiện thông tin
 người, ca hoặc phân công được chọn. Khi tìm người thay, danh sách hiện tên kèm
-mã nhân viên; thao tác vẫn sử dụng mã. Phần này tự nạp file `nhan-su-lich.pbl2`
-trong thư mục dữ liệu ứng dụng; nút **Lưu thay đổi** màu xanh ghi thẳng vào file
+mã nhân viên; thao tác vẫn sử dụng mã. Phần này tự nạp `nhan-su-lich.csv` cạnh
+Patient CSV nếu có; bộ cũ tiếp tục dùng `nhan-su-lich.pbl2` trong thư mục dữ liệu
+ứng dụng nếu chưa liên kết CSV. Nút **Lưu thay đổi** màu xanh ghi thẳng vào file
 đó, lưu chung nhân sự, ca trực, phân công và dự phòng. Không có hộp chọn file
 hay nút nhập/xuất riêng trong các tab. Nút lưu được bật khi có thay đổi; ghi lỗi
 giữ dữ liệu để lưu lại, còn nguồn có sẵn bị lỗi đọc sẽ chặn lưu đè.
@@ -34,20 +35,22 @@ CTest đã đặt `QT_QPA_PLATFORM=offscreen` cho các test widget.
 
 ## Demo với dữ liệu có sẵn
 
-Trong WSL/Linux, sau khi build, chạy:
+Trong WSL, sau khi build vào `build-qt-wsl`, liên kết bộ CSV mẫu một lần:
 
 ```bash
-python3 demo/qt-triage/chay_demo_mau.py
+./build-qt-wsl/demo/qt-triage/pbl2_qt_demo --du-lieu-mau
 ```
 
 Tự mở 16 hồ sơ, 17 lượt khám (8 đang chờ), 10 bác sĩ, 10 điều dưỡng và lịch
-trực có sẵn. Mỗi lần chạy dùng một bản sao riêng, giữ nguyên dữ liệu thường
-và mẫu gốc. Xem [bộ demo đầy đủ và kịch bản trình diễn](data/demo-day-du/README.md)
-để biết ngày mẫu, mã dùng thử, cách đề xuất/thay ca và truyền binary tùy chọn.
+trực có sẵn. Sửa và lưu trực tiếp vào ba CSV cố định; lần sau mở chương trình
+bình thường tự dùng lại bộ đã liên kết và giữ thay đổi, không cần Python hay
+tạo phiên tạm. Lần đầu chưa có cấu hình cũng tự dùng bộ này. Xem
+[bộ CSV và kịch bản trình diễn](data/demo-day-du/README.md) để biết chi tiết.
 
 ## Luồng dùng thử
 
-1. Khởi động: chọn CSV hoặc bấm **Bắt đầu rỗng**. Có file hư cấu
+1. Khởi động: tự dùng bộ file đã nhớ, hoặc bộ CSV mẫu nếu chưa có cấu hình.
+   Chạy `--chon-du-lieu` để chọn CSV khác hoặc bấm **Bắt đầu rỗng**. Có file hư cấu
    [patients.csv](data/patients.csv) đúng lược đồ v1. CSV lỗi sẽ báo lỗi và giữ
    hộp thoại để chọn lại; đóng hộp thoại thì thoát. Có thể chọn thêm Visit CSV để khôi phục lần khám/hàng chờ. Nếu chưa có Visit, tạo visit.csv cạnh Patient. Lần sau tự mở lại bộ đã chọn. Không nạp lại CSV giữa phiên.
 2. Tiếp nhận: hệ thống tự cấp mã Patient mới dạng BN001 và mã Visit dạng LK001; hoặc tìm tên/CCCD/mã rồi chọn

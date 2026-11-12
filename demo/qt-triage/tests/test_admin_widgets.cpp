@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
     QTemporaryDir Tmp;
     assert(Tmp.isValid());
     qputenv("XDG_DATA_HOME",Tmp.path().toUtf8());
-    const QString Tep = Tmp.path()+"/du-lieu/nhan-su-lich.pbl2";
+    const QString Tep = Tmp.path()+"/du-lieu/nhan-su-lich.csv";
     AdminPanel W(nullptr,Tep);
     W.show(); App.processEvents();
     auto* NutLuu=W.findChild<QPushButton*>("adminSave");

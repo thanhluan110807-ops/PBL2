@@ -24,6 +24,8 @@ trống cho thao tác đề xuất thêm 8 phân công. Mốc ngày cố định
 09–15/11/2026. Xem [hướng dẫn/kịch bản](../../demo/qt-triage/data/demo-day-du/README.md).
 Đã kiểm tra khởi động thật qua script, hiển thị, đề xuất/thay ca và lưu/đọc lại
 trên Qt5 Linux offscreen; chưa kiểm chứng trực tiếp Windows/WSLg của người dùng.
+Script nhận thêm `build-qt-wsl`, in rõ binary được mở và yêu cầu chỉ định đường
+dẫn khi có nhiều bản build; bản trước có thể tự chọn nhầm binary mô phỏng cũ.
 
 Phần này cập nhật và ưu tiên hơn các ảnh chụp cũ bên dưới. Đặc biệt, mục cũ
 “Chưa triển khai trong lõi: ... TriageService”, thứ tự bắt buộc làm Calculator

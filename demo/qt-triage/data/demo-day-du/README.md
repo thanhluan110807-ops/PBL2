@@ -12,7 +12,15 @@ Từ thư mục gốc repository, sau khi build Qt demo:
 python3 demo/qt-triage/chay_demo_mau.py
 ```
 
-Script tìm binary trong `build-qt-demo`, `build-demo`, rồi `build`.
+Script tìm binary trong `build-qt-wsl`, `build-qt-demo`, `build-demo` và `build`.
+Chỉ tự chọn khi tìm được đúng một bản chạy được. Nếu có nhiều bản, script báo
+các đường dẫn để bạn chỉ định bản vừa build, tránh mở nhầm binary cũ. Đường dẫn
+thực thi được in rõ trước khi mở cửa sổ. Với thư mục `build-qt-wsl`, chạy:
+
+```bash
+python3 demo/qt-triage/chay_demo_mau.py ./build-qt-wsl/demo/qt-triage/pbl2_qt_demo
+```
+
 Nếu dùng thư mục build khác, truyền đường dẫn chương trình Linux đã build:
 
 ```bash

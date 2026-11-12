@@ -73,7 +73,7 @@ void KiemTraLichSuDanhGia(const BanChupLanKham& BanChup) {
     for (int I = 0; I < BanChup.DanhGia.KichThuoc(); ++I) {
         const TriageAssessment& DanhGia = BanChup.DanhGia[I];
         // Ô mặc định của Vector không phải đánh giá thật và không được nạp.
-        if (DanhGia.LayMaDieuDuong().empty() || DanhGia.LayMuc() < 1 ||
+        if (DanhGia.LayMuc() < 1 ||
             DanhGia.LayMuc() > 5 || DanhGia.LayThoiDiemDanhGia() < ThoiDiemTruoc)
             BaoLoi("Lich su danh gia khong hop le");
         // Tuổi và nguồn tuổi thuộc thời điểm đánh giá, không tính lại từ Patient.
@@ -174,7 +174,8 @@ TriageAssessment::TriageAssessment() : SinhHieu(0,0,0,0,3), Muc(0), Tuoi(0), Tuo
 TriageAssessment::TriageAssessment(const VitalSigns& SinhHieu, int Tuoi, bool TuoiUocLuong,
                                    std::time_t ThoiDiemDanhGia, const std::string& MaDieuDuong)
     : SinhHieu(SinhHieu), Muc(0), Tuoi(Tuoi), TuoiUocLuong(TuoiUocLuong), ThoiDiemDanhGia(ThoiDiemDanhGia), MaDieuDuong(MaDieuDuong) {
-    if (Tuoi < 0 || Tuoi > 150 || MaDieuDuong.empty()) BaoLoi("Du lieu danh gia khong hop le");
+    // Mã rỗng nghĩa là chưa xác định người đánh giá khi chưa có đăng nhập.
+    if (Tuoi < 0 || Tuoi > 150) BaoLoi("Du lieu danh gia khong hop le");
     Muc = TinhMuc(SinhHieu, Tuoi);
 }
 BanGhiCanLamSang::BanGhiCanLamSang(const std::string& ChiDinh,

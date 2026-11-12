@@ -53,6 +53,7 @@ public:
     TriageService& operator=(const TriageService&) = delete;
     const Visit& TiepNhan(const std::string& MaLanKham, const std::string& MaBenhNhan,
                           std::time_t ThoiDiem, const std::string& TrieuChung);
+    // Chấp nhận mã điều dưỡng rỗng trong giai đoạn chưa có đăng nhập.
     void DanhGia(const std::string& MaLanKham, const VitalSigns& SinhHieu,
                  std::time_t ThoiDiem, const std::string& MaDieuDuong);
     const Visit& GoiTiep(const std::string& MaBacSi);

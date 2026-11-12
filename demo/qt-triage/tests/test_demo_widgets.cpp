@@ -120,7 +120,8 @@ int main(int SoThamSo, char** ThamSo) {
         assert(Tim<QScrollArea>(H,"dialogScroll")->horizontalScrollBar()->maximum()==0);
         if (!qEnvironmentVariable("PBL2_VITAL_GUIDE_NARROW").isEmpty())
             assert(H->grab().save(qEnvironmentVariable("PBL2_VITAL_GUIDE_NARROW")));
-        for (const auto* Ma : {"Mach","HuyetAp","NhipTho","SpO2","GCS","MaDieuDuong"}) {
+        assert(!H->findChild<QLineEdit*>("MaDieuDuong"));
+        for (const auto* Ma : {"Mach","HuyetAp","NhipTho","SpO2","GCS"}) {
             auto* O=Tim<QLineEdit>(H,Ma);
             auto* GoiY=Tim<QLabel>(H,qPrintable(QString(Ma)+"Hint"));
             assert(GoiY->y()>=O->y()+O->height());
@@ -128,7 +129,7 @@ int main(int SoThamSo, char** ThamSo) {
         H->resize(KichThuocCu); UngDung.processEvents();
         Nhap(H, "Mach", "sai"); Nhap(H, "HuyetAp", "120");
         Nhap(H, "NhipTho", "18"); Nhap(H, "SpO2", "98"); Nhap(H, "GCS", "15");
-        Nhap(H, "MaDieuDuong", "DD1"); Bam(H, "luu");
+        Bam(H, "luu");
         assert(!Tim<QLabel>(H, "loiTong")->text().isEmpty());
         assert(R.TimLanKham("LK001")->SoDanhGia() == 0);
         Nhap(H, "Mach", "80"); Bam(H, "luu");
@@ -136,6 +137,7 @@ int main(int SoThamSo, char** ThamSo) {
     W.MoDanhGia("LK001");
     assert(T.SoDangCho() == 1);
     assert(R.TimLanKham("LK001")->LayDanhGiaGanNhat().LayMuc() == 5);
+    assert(R.TimLanKham("LK001")->LayDanhGiaGanNhat().LayMaDieuDuong().empty());
     assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 1);
     Nhap(&W, "maBacSi", "BS1"); Bam(&W, "goiTiep");
     assert(R.TimLanKham("LK001")->LayTrangThai() == VisitStatus::DangKham);

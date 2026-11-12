@@ -43,6 +43,11 @@ bằng dấu chấm phẩy vì nội dung văn bản có thể chứa ký tự �
 | `HANGCHO` | mã Visit, epoch vào hàng, số thứ tự vào hàng |
 | `KETTHUC` | số bản ghi từ META đến trước KETTHUC, không tính dòng tiêu đề |
 
+Mã điều dưỡng trong `DANHGIA` được để rỗng trong giai đoạn chưa có đăng nhập.
+Rỗng nghĩa là chưa xác định người đánh giá; không tự điền mã giả hoặc gán lại
+người cho lịch sử. Mã đã có trong file cũ vẫn giữ nguyên. Bản chương trình cũ
+còn bắt buộc mã điều dưỡng sẽ từ chối đọc đánh giá có mã rỗng.
+
 Mỗi dòng lịch sử đứng sau VISIT của nó. Giữ nguyên thứ tự đánh giá, phân công,
 tham gia, CLS. META xuất hiện đúng một lần ở đầu. KETTHUC xuất hiện đúng một
 lần ở cuối để phát hiện file ghi dở; không chấp nhận dữ liệu đi sau nó. Ví dụ:

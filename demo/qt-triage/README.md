@@ -46,7 +46,10 @@ CTest đã đặt `QT_QPA_PLATFORM=offscreen` cho các test widget.
    Hồ sơ cùng tên không tự gộp. Mã hoặc CCCD trùng bị từ chối; mỗi Patient chỉ
    có một Visit đang mở. Patient mới có thể chưa rõ tên/tuổi.
 3. Đánh giá: mở chi tiết Visit ở trang **Tiếp nhận**, nhập mạch, huyết áp tâm
-   thu, nhịp thở, SpO₂, GCS và mã điều dưỡng. Patient cần ngày sinh hoặc tuổi
+   thu, nhịp thở, SpO₂ và GCS. Tạm bỏ nhập mã điều dưỡng khi chưa có đăng nhập;
+   đánh giá mới lưu mã rỗng, lịch sử đã có mã vẫn giữ nguyên. Khi triển khai
+   đăng nhập theo vai trò, mã sẽ lấy từ tài khoản điều dưỡng đang đăng nhập.
+   Patient cần ngày sinh hoặc tuổi
    ước lượng. Dòng chữ nhỏ ngay dưới từng ô ghi khoảng giá trị nhập hợp lệ,
    đơn vị và cách nhập số thập phân cho SpO₂. Chữ nội dung 18px, tiêu đề 24px;
    hướng dẫn 14px. Mức cấp cứu được lõi tự tính;

@@ -50,13 +50,17 @@ int main(int So,char** Args) {
     assert(Moi->TaoMaBenhNhan()=="BN002" && Moi->TaoMaLanKham()=="LK002"); delete Moi;
     QTimer::singleShot(0,[] {
         Nhap("Mach","80"); Nhap("HuyetAp","120"); Nhap("NhipTho","18");
-        Nhap("SpO2","98"); Nhap("GCS","15"); Nhap("MaDieuDuong","DD1");
-        Hop()->findChild<QPushButton*>("luu")->click();
+        Nhap("SpO2","98"); Nhap("GCS","15");
+        auto* H=Hop();
+        H->findChild<QPushButton*>("luu")->click();
+        assert(!H->isVisible());
     });
     W.MoDanhGia("LK001"); assert(!W.isWindowModified());
     // Mở lại không cần tự tìm bản lưu hoặc chọn file.
     Moi=DemoUi::KhoiDongTuDong(TepPatient,TepVisit,Hang);
     assert(Moi && Moi->TimLanKham("LK001")->SoDanhGia()==1);
+    // Chưa đăng nhập: đánh giá vẫn được lưu/đọc lại, không gán mã người giả.
+    assert(Moi->TimLanKham("LK001")->LayDanhGiaGanNhat().LayMaDieuDuong().empty());
     { TriageService Tai(*Moi); Tai.KhoiPhucHangCho(Hang); assert(Tai.SoDangCho()==1); }
     delete Moi;
     W.findChild<QLineEdit*>("maBacSi")->setText("BS1"); W.findChild<QPushButton*>("goiTiep")->click();

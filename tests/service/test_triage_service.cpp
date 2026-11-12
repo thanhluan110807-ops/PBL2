@@ -109,11 +109,15 @@ void KiemTraDoiMucVaGiuLuotKhiMotHangRong() {
 void KiemTraLoiKhongMatHang() {
     PatientRegistry Registry;
     TriageService Service(Registry);
-    Registry.ThemBenhNhan("BN", "A", Gender::Nam, Date{1,1,2000});
+    Registry.ThemBenhNhan("BN", "A", Gender::Nam);
     Service.TiepNhan("LK", "BN", 1767225600, "Dau");
+    // Thiếu tuổi vẫn phải gỡ mục chờ đã cấp phát khi đánh giá thất bại.
     PhaiLoi([&] { Service.DanhGia("LK", VitalSigns(75,120,16,98,15), 1767225601, ""); });
     assert(Service.SoDangCho() == 0);
-    Service.DanhGia("LK", VitalSigns(75,120,16,98,15), 1767225601, "DD");
+    Registry.BoSungDanhTinh("BN", "", "A", Gender::Nam, Date{1,1,2000});
+    // Có tuổi thì được đánh giá khi chưa xác định điều dưỡng đăng nhập.
+    Service.DanhGia("LK", VitalSigns(75,120,16,98,15), 1767225601, "");
+    assert(Registry.TimLanKham("LK")->LayDanhGiaGanNhat().LayMaDieuDuong().empty());
     assert(Service.GoiTiep("BS").LayMaLanKham() == "LK");
     Service.ChuyenCanLamSang("LK", "XN", "BS");
     PhaiLoi([&] { Service.QuayLai("LK", "", 1767225602); });

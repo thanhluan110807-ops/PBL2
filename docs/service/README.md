@@ -12,7 +12,8 @@ lỗi khi phát hiện lệch; chưa có chức năng tự phục hồi sau thao
 
 1. Tạo hoặc tìm Patient qua Registry, sau đó gọi `TiepNhan` với mã Visit, mã
    Patient, thời điểm tiếp nhận và triệu chứng. Registry kiểm tra mã và Visit mở.
-2. Gọi `DanhGia` với sinh hiệu, thời điểm và mã điều dưỡng. Lần đánh giá đầu
+2. Gọi `DanhGia` với sinh hiệu, thời điểm và mã điều dưỡng (được để rỗng khi
+   chưa có đăng nhập; không tự gán mã giả). Lần đánh giá đầu
    đưa Visit vào hàng lần đầu; đánh giá lại cập nhật mức nhưng giữ thời điểm và
    thứ tự vào hàng. Model hiện yêu cầu có ngày sinh hoặc tuổi ước lượng.
 3. `LayDanhSachCho` trả danh sách Visit chỉ đọc theo thứ tự dự kiến; xem bao

@@ -9,6 +9,12 @@ file chưa commit sẽ không xuất hiện trong một checkout khác chỉ t�
 
 ## Hiện trạng khi chuyển chat — 09/11/2026
 
+**Cập nhật 12/11/2026:** theo yêu cầu người dùng, tạm bỏ ô nhập mã điều dưỡng
+trong đánh giá sinh hiệu. Đánh giá mới lưu mã rỗng và vẫn đọc lại được; giữ
+nguyên mã trong lịch sử cũ. Khi phát triển đăng nhập với vai trò điều dưỡng,
+sẽ lấy mã từ tài khoản đang đăng nhập để gắn vào từng đánh giá mới. Đăng nhập
+vẫn là phần làm sau, chưa triển khai trong thay đổi này.
+
 Phần này cập nhật và ưu tiên hơn các ảnh chụp cũ bên dưới. Đặc biệt, mục cũ
 “Chưa triển khai trong lõi: ... TriageService”, thứ tự bắt buộc làm Calculator
 trước TriageService, danh sách thay đổi cục bộ và đường dẫn retro không mô tả

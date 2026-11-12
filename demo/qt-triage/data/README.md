@@ -34,7 +34,7 @@ Trang **Hồ sơ bệnh nhân** phải có 30 hồ sơ. Hàng chờ và danh sá
 ## Thử phân loại 5 mức
 
 Tiếp nhận từng hồ sơ BN001–BN005 bằng chế độ **Chọn hồ sơ đã có**, dùng các
-mã Visit TEST001–TEST005. Nhập triệu chứng thử tùy ý và mã điều dưỡng DD_TEST.
+mã Visit TEST001–TEST005. Nhập triệu chứng thử tùy ý; không cần mã điều dưỡng.
 Nhập các bộ số đo dưới đây trong hộp **Đánh giá**. Đây là đầu vào thử luật
 mô phỏng hiện tại trong code, không phải hướng dẫn y tế.
 

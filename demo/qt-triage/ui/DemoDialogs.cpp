@@ -275,7 +275,6 @@ void DemoWindow::MoDanhGia(const std::string &MaLanKham) {
     auto *Tho = K.Truong("NhipTho", "Nhịp thở (lần/phút)", "", "Hợp lệ: 0–120 lần/phút, số nguyên.");
     auto *Spo = K.Truong("SpO2", "SpO₂ (%)", "", "Hợp lệ: 0–100% (ví dụ 98,5 hoặc 98.5).");
     auto *Gcs = K.Truong("GCS", "GCS (3–15)", "", "Hợp lệ: 3–15 điểm, số nguyên.");
-    auto *Dd = K.Truong("MaDieuDuong", "Mã điều dưỡng *", "", "Bắt buộc nhập mã điều dưỡng đánh giá.");
     const Patient *P = Registry.TimBenhNhan(V->LayMaBenhNhan());
     if (!P->CoNgaySinh() && !P->CoTuoiUocLuong())
         K.VanBan("Hồ sơ chưa có tuổi. Hãy bổ sung danh tính với ngày sinh trước khi đánh giá.");
@@ -285,7 +284,8 @@ void DemoWindow::MoDanhGia(const std::string &MaLanKham) {
             bool HopLe = false; const double S = QString(Spo->text()).replace(',', '.').toDouble(&HopLe);
             if (!HopLe) BaoLoi("SpO2 phai la so hop le");
             const VitalSigns SoDo(DocSo(Mach), DocSo(Ha), DocSo(Tho), S, DocSo(Gcs));
-            DichVu.DanhGia(MaLanKham, SoDo, std::time(nullptr), Doc(Dd));
+            // Chưa có đăng nhập nên để trống; sau này lấy mã từ phiên điều dưỡng.
+            DichVu.DanhGia(MaLanKham, SoDo, std::time(nullptr), "");
             DanhDauThayDoi();
             K.Hop.accept();
         } catch (const My_stdexcept &E) { K.BaoLoi(E); }

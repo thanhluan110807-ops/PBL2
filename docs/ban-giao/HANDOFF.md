@@ -35,9 +35,13 @@ Kiểm chứng mới: build Qt5/Linux và CTest 30/30 đạt; thử qua các l�
 trình độc lập gồm giữ bộ cũ, chọn CSV mẫu, sửa/lưu đánh giá và lịch, mở lại vẫn
 giữ dữ liệu, lần đầu chưa có cấu hình tự liên kết. Kiểm tra thực hiện trên bản
 sao cố định dành riêng cho test; chưa kiểm chứng trực tiếp Windows/WSLg.
-Theo yêu cầu tiếp theo, đã chuyển nguyên nội dung CSV từ thư mục demo vào
-`data/` gốc và cập nhật đường dẫn build; chạy lại `--du-lieu-mau` một lần nếu
-cấu hình đang nhớ vị trí cũ. Không chép lại hoặc đặt lại nội dung khi build.
+**Đính chính mới nhất:** người dùng yêu cầu sao chép, không di chuyển. Ba CSV
+gốc tại `demo/qt-triage/data/demo-day-du/` được khôi phục đúng nội dung commit
+`be2300f`, để không đụng vào chỉnh sửa cục bộ của người dùng khi pull từ commit
+đó. `data/` là bản sao làm việc riêng; đường dẫn build vẫn trỏ đến `data/`.
+Nếu đã sửa bộ cũ, dùng `cp .../*.csv data/` một lần khi ứng dụng đã đóng,
+rồi liên kết `--du-lieu-mau`; không cần stash/pop. Không sao chép lại mỗi lần mở
+hoặc build; các thay đổi sau đó ghi vào `data/` và bộ gốc được giữ nguyên.
 
 Phần này cập nhật và ưu tiên hơn các ảnh chụp cũ bên dưới. Đặc biệt, mục cũ
 “Chưa triển khai trong lõi: ... TriageService”, thứ tự bắt buộc làm Calculator

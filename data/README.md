@@ -3,7 +3,8 @@
 Toàn bộ họ tên, CCCD, sinh hiệu, kết quả và phân công là **dữ liệu hư cấu**.
 Mốc trình diễn cố định: **12/11/2026**, lịch tuần **09–15/11/2026**, giờ UTC+7.
 Sinh hiệu chỉ phục vụ luật phân loại mô phỏng trong đồ án.
-Ba file được lưu trực tiếp trong **data/** ở gốc repository.
+Ba file trong **data/** là bản sao riêng. Bộ gốc ở
+`demo/qt-triage/data/demo-day-du/` vẫn được giữ lại, không di chuyển hoặc xóa.
 
 ## Mở chương trình và liên kết CSV cố định
 
@@ -26,8 +27,16 @@ thư mục này. Chương trình nhớ đường dẫn; những lần sau chỉ 
 Lần đầu chưa có cấu hình liên kết, chương trình tự dùng bộ CSV này. Nếu đã có
 bộ cũ, vẫn giữ liên kết cũ đến khi bạn chọn `--du-lieu-mau` hoặc
 `--chon-du-lieu`. Chọn dữ liệu mẫu không ghi đè dữ liệu của bộ cũ.
-Nếu trước đó đã liên kết thư mục `demo/qt-triage/data/demo-day-du/`, sau khi
-chuyển file sang `data/` hãy chạy lại `--du-lieu-mau` một lần để nhớ đường dẫn mới.
+Nếu bạn đã sửa CSV trong thư mục gốc cũ, đóng ứng dụng rồi sao chép các CSV
+hiện tại sang `data/` trước khi liên kết, để giữ cả những thay đổi vừa nhập:
+
+```bash
+cp demo/qt-triage/data/demo-day-du/*.csv data/
+./build-qt-wsl/demo/qt-triage/pbl2_qt_demo --du-lieu-mau
+```
+
+Lệnh `cp` giữ nguyên nguồn, chỉ cập nhật bản sao làm việc trong `data/`.
+Chỉ cần thực hiện khi muốn lấy dữ liệu từ bộ cũ; lần sau mở bình thường.
 
 **Sửa và lưu vào chính ba CSV này**, không tạo phiên tạm hoặc chép lại dữ liệu
 mẫu mỗi lần mở. Patient/Visit tự lưu sau thao tác; nhân sự/lịch ghi khi bấm nút

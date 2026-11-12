@@ -32,6 +32,19 @@ Nếu CMake chưa tìm thấy Qt, thêm `-DCMAKE_PREFIX_PATH=<thu-muc-kit-Qt>` k
 configure. Python chỉ cần khi `BUILD_TESTING=ON`. Để chạy test không có desktop,
 CTest đã đặt `QT_QPA_PLATFORM=offscreen` cho các test widget.
 
+## Demo với dữ liệu có sẵn
+
+Trong WSL/Linux, sau khi build, chạy:
+
+```bash
+python3 demo/qt-triage/chay_demo_mau.py
+```
+
+Tự mở 16 hồ sơ, 17 lượt khám (8 đang chờ), 10 bác sĩ, 10 điều dưỡng và lịch
+trực có sẵn. Mỗi lần chạy dùng một bản sao riêng, giữ nguyên dữ liệu thường
+và mẫu gốc. Xem [bộ demo đầy đủ và kịch bản trình diễn](data/demo-day-du/README.md)
+để biết ngày mẫu, mã dùng thử, cách đề xuất/thay ca và truyền binary tùy chọn.
+
 ## Luồng dùng thử
 
 1. Khởi động: chọn CSV hoặc bấm **Bắt đầu rỗng**. Có file hư cấu

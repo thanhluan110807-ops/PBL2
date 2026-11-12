@@ -1,5 +1,9 @@
 # Bộ dữ liệu kiểm tra Patient
 
+Muốn mở sẵn cả bác sĩ/điều dưỡng, lịch phân công và hàng chờ, dùng
+[bộ demo đầy đủ](demo-day-du/README.md) và lệnh chạy riêng được hướng dẫn tại đó.
+Các file ở ngay thư mục này vẫn là bộ kiểm tra Patient cũ.
+
 [patient.csv](patient.csv) có 30 hồ sơ hoàn toàn hư cấu. CCCD là chuỗi giả để
 thử định dạng và tính duy nhất, không phải thông tin của người thật. File dùng
 UTF-8 và lược đồ v1; `patients.csv` là bộ mẫu nhỏ cũ được giữ nguyên.

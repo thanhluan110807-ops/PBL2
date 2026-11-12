@@ -15,6 +15,16 @@ nguyên mã trong lịch sử cũ. Khi phát triển đăng nhập với vai tr�
 sẽ lấy mã từ tài khoản đang đăng nhập để gắn vào từng đánh giá mới. Đăng nhập
 vẫn là phần làm sau, chưa triển khai trong thay đổi này.
 
+**Bộ demo hư cấu 12/11/2026:** `demo/qt-triage/data/demo-day-du/` có Patient,
+Visit/hàng chờ và snapshot nhân sự/lịch trực. Chạy trong WSL/Linux bằng
+`python3 demo/qt-triage/chay_demo_mau.py [duong-dan-binary]` để tự nạp một bản
+sao riêng, không đổi dữ liệu/cấu hình đang dùng. Có 16 Patient, 17 Visit,
+8 chờ khám, 20 nhân viên, 14 ca, 49 bản ghi phân công; hai ca Chủ nhật còn
+trống cho thao tác đề xuất thêm 8 phân công. Mốc ngày cố định 12/11 và tuần
+09–15/11/2026. Xem [hướng dẫn/kịch bản](../../demo/qt-triage/data/demo-day-du/README.md).
+Đã kiểm tra khởi động thật qua script, hiển thị, đề xuất/thay ca và lưu/đọc lại
+trên Qt5 Linux offscreen; chưa kiểm chứng trực tiếp Windows/WSLg của người dùng.
+
 Phần này cập nhật và ưu tiên hơn các ảnh chụp cũ bên dưới. Đặc biệt, mục cũ
 “Chưa triển khai trong lõi: ... TriageService”, thứ tự bắt buộc làm Calculator
 trước TriageService, danh sách thay đổi cục bộ và đường dẫn retro không mô tả

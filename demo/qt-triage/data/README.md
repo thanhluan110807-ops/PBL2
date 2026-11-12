@@ -1,7 +1,7 @@
 # Bộ dữ liệu kiểm tra Patient
 
 Muốn mở sẵn cả bác sĩ/điều dưỡng, lịch phân công và hàng chờ, dùng
-[bộ ba CSV cố định](demo-day-du/README.md) và liên kết một lần theo hướng dẫn tại đó.
+[bộ ba CSV cố định tại data/ gốc dự án](../../../data/README.md) và liên kết một lần theo hướng dẫn tại đó.
 Các file ở ngay thư mục này vẫn là bộ kiểm tra Patient cũ.
 
 [patient.csv](patient.csv) có 30 hồ sơ hoàn toàn hư cấu. CCCD là chuỗi giả để

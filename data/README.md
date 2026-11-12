@@ -3,6 +3,7 @@
 Toàn bộ họ tên, CCCD, sinh hiệu, kết quả và phân công là **dữ liệu hư cấu**.
 Mốc trình diễn cố định: **12/11/2026**, lịch tuần **09–15/11/2026**, giờ UTC+7.
 Sinh hiệu chỉ phục vụ luật phân loại mô phỏng trong đồ án.
+Ba file được lưu trực tiếp trong **data/** ở gốc repository.
 
 ## Mở chương trình và liên kết CSV cố định
 
@@ -25,6 +26,8 @@ thư mục này. Chương trình nhớ đường dẫn; những lần sau chỉ 
 Lần đầu chưa có cấu hình liên kết, chương trình tự dùng bộ CSV này. Nếu đã có
 bộ cũ, vẫn giữ liên kết cũ đến khi bạn chọn `--du-lieu-mau` hoặc
 `--chon-du-lieu`. Chọn dữ liệu mẫu không ghi đè dữ liệu của bộ cũ.
+Nếu trước đó đã liên kết thư mục `demo/qt-triage/data/demo-day-du/`, sau khi
+chuyển file sang `data/` hãy chạy lại `--du-lieu-mau` một lần để nhớ đường dẫn mới.
 
 **Sửa và lưu vào chính ba CSV này**, không tạo phiên tạm hoặc chép lại dữ liệu
 mẫu mỗi lần mở. Patient/Visit tự lưu sau thao tác; nhân sự/lịch ghi khi bấm nút
@@ -42,7 +45,7 @@ Không chạy đồng thời nhiều chương trình cùng sửa một bộ file
 
 Patient/Visit phải được nạp cùng nhau. Giao diện tự liên kết `nhan-su-lich.csv`
 nằm cạnh Patient CSV. File nhân sự/lịch là CSV thật với từng cột riêng, tiêu đề
-`PBL2_ADMIN_CSV,1,2026-11-09`; xem [định dạng](../../../../docs/PHAN-B.md#csv-nhân-sự-và-lịch-trực).
+`PBL2_ADMIN_CSV,1,2026-11-09`; xem [định dạng](../docs/PHAN-B.md#csv-nhân-sự-và-lịch-trực).
 Các mã bác sĩ/điều dưỡng trong lịch sử đều có trong danh sách nhân sự;
 đánh giá mới để trống mã điều dưỡng theo giai đoạn chưa có đăng nhập.
 

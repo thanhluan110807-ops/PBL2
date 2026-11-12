@@ -45,7 +45,7 @@ Tự mở 16 hồ sơ, 17 lượt khám (8 đang chờ), 10 bác sĩ, 10 điều
 trực có sẵn. Sửa và lưu trực tiếp vào ba CSV cố định; lần sau mở chương trình
 bình thường tự dùng lại bộ đã liên kết và giữ thay đổi, không cần Python hay
 tạo phiên tạm. Lần đầu chưa có cấu hình cũng tự dùng bộ này. Xem
-[bộ CSV và kịch bản trình diễn](data/demo-day-du/README.md) để biết chi tiết.
+[bộ CSV trong data/ và kịch bản trình diễn](../../data/README.md) để biết chi tiết.
 
 ## Luồng dùng thử
 

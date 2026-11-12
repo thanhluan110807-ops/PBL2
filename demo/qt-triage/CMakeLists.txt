@@ -13,7 +13,7 @@ add_executable(pbl2_qt_demo main.cpp)
 target_link_libraries(pbl2_qt_demo PRIVATE pbl2_demo_ui)
 # CSV là nguồn cố định, không sao chép/đặt lại khi build hoặc mở chương trình.
 target_compile_definitions(pbl2_qt_demo PRIVATE
-    PBL2_SAMPLE_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/data/demo-day-du")
+    PBL2_SAMPLE_DATA_DIR="${PROJECT_SOURCE_DIR}/data")
 
 if(BUILD_TESTING)
     add_executable(test_demo_widgets tests/test_demo_widgets.cpp)

@@ -18,7 +18,7 @@ vẫn là phần làm sau, chưa triển khai trong thay đổi này.
 **Quyết định mới nhất về CSV demo — 12/11/2026:** người dùng yêu cầu file cố
 định, mở lại dùng cùng nguồn và sửa thì ghi vào nguồn đó, không dùng script
 Python/phiên tạm. Đã bỏ script chạy mẫu; thư mục
-`demo/qt-triage/data/demo-day-du/` có ba file `patient.csv`, `visit.csv`,
+`data/` ở gốc repository có ba file `patient.csv`, `visit.csv`,
 `nhan-su-lich.csv`. Chạy binary C++ với `--du-lieu-mau` một lần để liên kết;
 lần sau mở bình thường tự dùng lại. Lần đầu chưa có cấu hình cũng tự liên kết
 bộ mẫu; bộ cũ tiếp tục được giữ cho đến khi người dùng chọn đổi. Không chép
@@ -28,13 +28,16 @@ tiếp tục dùng `.pbl2` trong thư mục dữ liệu ứng dụng. AdminFileM
 CSV có cột riêng và vẫn tương thích file văn bản cũ. Ban đầu có 16 Patient,
 17 Visit, 8 chờ khám, 20 nhân viên, 14 ca, 49 bản ghi phân công; hai ca Chủ
 nhật trống để đề xuất thêm 8 phân công. Mốc ngày 12/11, tuần 09–15/11/2026.
-Xem [hướng dẫn](../../demo/qt-triage/data/demo-day-du/README.md) và
+Xem [hướng dẫn](../../data/README.md) và
 [định dạng CSV](../PHAN-B.md#csv-nhân-sự-và-lịch-trực). Không xem kết quả kiểm
 thử của script cũ là kiểm chứng cho luồng CSV cố định này.
 Kiểm chứng mới: build Qt5/Linux và CTest 30/30 đạt; thử qua các lần chạy tiến
 trình độc lập gồm giữ bộ cũ, chọn CSV mẫu, sửa/lưu đánh giá và lịch, mở lại vẫn
 giữ dữ liệu, lần đầu chưa có cấu hình tự liên kết. Kiểm tra thực hiện trên bản
 sao cố định dành riêng cho test; chưa kiểm chứng trực tiếp Windows/WSLg.
+Theo yêu cầu tiếp theo, đã chuyển nguyên nội dung CSV từ thư mục demo vào
+`data/` gốc và cập nhật đường dẫn build; chạy lại `--du-lieu-mau` một lần nếu
+cấu hình đang nhớ vị trí cũ. Không chép lại hoặc đặt lại nội dung khi build.
 
 Phần này cập nhật và ưu tiên hơn các ảnh chụp cũ bên dưới. Đặc biệt, mục cũ
 “Chưa triển khai trong lõi: ... TriageService”, thứ tự bắt buộc làm Calculator

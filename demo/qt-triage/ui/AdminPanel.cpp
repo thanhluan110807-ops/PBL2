@@ -359,15 +359,15 @@ void AdminPanel::TaoNhanSu() {
         } else ChiTietNhanSu->setText("Chọn nhân viên để xem thông tin và nguyện vọng.");
     });
     auto* Tim = new QLineEdit; Tim->setObjectName("staffSearchEmployee");
-    Tim->setPlaceholderText("Tìm nhân viên theo tên (phân biệt hoa/thường và dấu)");
+    Tim->setPlaceholderText("Tìm nhân viên theo tên (có dấu hoặc không dấu)");
     Tim->setAccessibleName("Tìm nhân viên theo tên");
     DanhSach->insertWidget(0,Tim);
     connect(Tim,&QLineEdit::textChanged,this,[this](const QString& Ten) {
-        // Lọc theo họ tên chung của bác sĩ và điều dưỡng.
-        const auto TuKhoa=Ten.trimmed().toStdString();
+        // Chuẩn hóa cả từ khóa và họ tên, giữ nguyên tên hiển thị.
+        const auto TuKhoa = DemoUi::ChuanHoa(Ten.trimmed());
         for (int I=0;I<DuLieu.NhanSu->KichThuoc();++I) {
-            const auto& HoTen=DuLieu.NhanSu->Lay(I).LayHoTen();
-            BangNhanSu->setRowHidden(I,HoTen.find(TuKhoa)==std::string::npos);
+            const auto HoTen = DemoUi::Chu(DuLieu.NhanSu->Lay(I).LayHoTen());
+            BangNhanSu->setRowHidden(I,!DemoUi::ChuanHoa(HoTen).contains(TuKhoa));
         }
     });
     auto* HangSL=new QHBoxLayout; DanhSach->addLayout(HangSL);

@@ -122,13 +122,18 @@ int main(int argc, char** argv) {
     AdminPanel Sua(nullptr,TepSua);
     Sua.findChild<QTableWidget*>("staffTable")->selectRow(0);
     Sua.findChild<QPushButton*>("staffEditSelect")->click();
-    Sua.findChild<QLineEdit*>("staffName")->setText("Lan moi");
+    Sua.findChild<QLineEdit*>("staffName")->setText(QString::fromUtf8("Đặng Lan"));
     Sua.findChild<QPushButton*>("staffUpdate")->click();
     const auto* DDSo=static_cast<const DieuDuong*>(Sua.LayDuLieu().NhanSu->Tim("D"));
-    assert(DDSo && DDSo->LayHoTen()=="Lan moi" && DDSo->LayGioLamTuan()==8);
+    assert(DDSo && DDSo->LayHoTen()=="Đặng Lan" && DDSo->LayGioLamTuan()==8);
     assert(DDSo->DangSangLoc() && DDSo->CanXoayTuaSangLoc());
     assert(DDSo->LayNgaySinh().Nam==2000);
     assert(!Sua.findChild<QTableWidget*>("staffTable")->item(0,1)->toolTip().isEmpty());
+    auto* TimTenSua=Sua.findChild<QLineEdit*>("staffSearchEmployee");
+    TimTenSua->setText("khong khop");
+    assert(Sua.findChild<QTableWidget*>("staffTable")->isRowHidden(0));
+    TimTenSua->setText("dang lan");
+    assert(!Sua.findChild<QTableWidget*>("staffTable")->isRowHidden(0));
     assert(Sua.LuuTep(TepSua)); Sua.close();
     // Kiểm tra luồng đồng hồ thật và tìm tên trên các nút mới.
     AdminPanel DongHo;
@@ -136,9 +141,11 @@ int main(int argc, char** argv) {
     auto* BangNV=DongHo.findChild<QTableWidget*>("staffTable");
     auto* TimNhanVien=DongHo.findChild<QLineEdit*>("staffSearchEmployee");
     assert(TimNhanVien && TimNhanVien->accessibleName()=="Tìm nhân viên theo tên");
-    TimNhanVien->setText(QString::fromUtf8("Nguyễn"));
-    assert(!BangNV->isRowHidden(0) && BangNV->isRowHidden(2));
-    TimNhanVien->setText(QString::fromUtf8("Lê"));
+    for (const auto* TuKhoa : {"Nguyễn", "nguyen", "NGUYỄN"}) {
+        TimNhanVien->setText(QString::fromUtf8(TuKhoa));
+        assert(!BangNV->isRowHidden(0) && BangNV->isRowHidden(2));
+    }
+    TimNhanVien->setText("LE");
     assert(BangNV->isRowHidden(0) && !BangNV->isRowHidden(2) && BangNV->isRowHidden(3));
     TimNhanVien->clear();
     assert(!BangNV->isRowHidden(0) && !BangNV->isRowHidden(2));

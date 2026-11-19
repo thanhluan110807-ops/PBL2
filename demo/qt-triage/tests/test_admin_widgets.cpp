@@ -134,10 +134,14 @@ int main(int argc, char** argv) {
     AdminPanel DongHo;
     DongHo.findChild<QPushButton*>("adminSeed")->click();
     auto* BangNV=DongHo.findChild<QTableWidget*>("staffTable");
-    auto* TimBS=DongHo.findChild<QLineEdit*>("staffSearchDoctor");
-    TimBS->setText(QString::fromUtf8("Nguyễn An"));
+    auto* TimNhanVien=DongHo.findChild<QLineEdit*>("staffSearchEmployee");
+    assert(TimNhanVien && TimNhanVien->accessibleName()=="Tìm nhân viên theo tên");
+    TimNhanVien->setText(QString::fromUtf8("Nguyễn"));
     assert(!BangNV->isRowHidden(0) && BangNV->isRowHidden(2));
-    TimBS->clear();
+    TimNhanVien->setText(QString::fromUtf8("Lê"));
+    assert(BangNV->isRowHidden(0) && !BangNV->isRowHidden(2) && BangNV->isRowHidden(3));
+    TimNhanVien->clear();
+    assert(!BangNV->isRowHidden(0) && !BangNV->isRowHidden(2));
     BangNV->selectRow(2);
     const auto* DiaChi=DongHo.LayDuLieu().NhanSu->Tim("DD01");
     DongHo.findChild<QPushButton*>("staffTriageStart")->click();

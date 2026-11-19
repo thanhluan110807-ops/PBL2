@@ -358,16 +358,16 @@ void AdminPanel::TaoNhanSu() {
                 .arg(M.MongMuonCuoiTuan?"ưu tiên cuối tuần":"ưu tiên ngày thường"));
         } else ChiTietNhanSu->setText("Chọn nhân viên để xem thông tin và nguyện vọng.");
     });
-    auto* Tim = new QLineEdit; Tim->setObjectName("staffSearchDoctor");
-    Tim->setPlaceholderText("Nhập tên bác sĩ (phân biệt hoa/thường và dấu)");
-    Tim->setAccessibleName("Tìm bác sĩ theo tên");
+    auto* Tim = new QLineEdit; Tim->setObjectName("staffSearchEmployee");
+    Tim->setPlaceholderText("Tìm nhân viên theo tên (phân biệt hoa/thường và dấu)");
+    Tim->setAccessibleName("Tìm nhân viên theo tên");
     DanhSach->insertWidget(0,Tim);
     connect(Tim,&QLineEdit::textChanged,this,[this](const QString& Ten) {
-        const auto DS=DuLieu.NhanSu->TimBacSiTheoTen(Ten.toStdString());
+        // Lọc theo họ tên chung của bác sĩ và điều dưỡng.
+        const auto TuKhoa=Ten.trimmed().toStdString();
         for (int I=0;I<DuLieu.NhanSu->KichThuoc();++I) {
-            bool Hien=Ten.isEmpty();
-            for (int J=0;J<DS.KichThuoc();++J) if (DS[J]->LayMaDinhDanh()==DuLieu.NhanSu->Lay(I).LayMaDinhDanh()) Hien=true;
-            BangNhanSu->setRowHidden(I,!Hien);
+            const auto& HoTen=DuLieu.NhanSu->Lay(I).LayHoTen();
+            BangNhanSu->setRowHidden(I,HoTen.find(TuKhoa)==std::string::npos);
         }
     });
     auto* HangSL=new QHBoxLayout; DanhSach->addLayout(HangSL);
@@ -543,7 +543,7 @@ void AdminPanel::LamMoi() {
         BangLich->item(I,5)->setToolTip(QString::fromStdString(P.LayLyDoHuy()));
         O(BangLich,I,3,N ? QString::fromStdString(N->LayHoTen()) : "Không tìm thấy"); O(BangLich,I,4,VaiTro(P.VaiTro));
     }
-    if (auto* Tim=findChild<QLineEdit*>("staffSearchDoctor")) {
+    if (auto* Tim=findChild<QLineEdit*>("staffSearchEmployee")) {
         Tim->clear();
         for (int I=0;I<BangNhanSu->rowCount();++I) BangNhanSu->setRowHidden(I,false);
     }

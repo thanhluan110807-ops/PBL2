@@ -15,6 +15,9 @@ class QCloseEvent;
 class QFormLayout;
 class QResizeEvent;
 class QPushButton;
+class QStackedWidget;
+class QTabWidget;
+class QBoxLayout;
 
 // Widget chỉ thu thập đầu vào và hiển thị; mọi quyết định lịch nằm trong service.
 class AdminPanel : public QDialog {
@@ -25,6 +28,12 @@ class AdminPanel : public QDialog {
     bool LoiTepLienKet = false;
     QPushButton* NutLuu;
     QLabel *ThongBao;
+    QLabel *TieuDe;
+    QWidget *ChonTuan;
+    QPushButton *NutNapMau;
+    QStackedWidget *CacTrang = nullptr;
+    QTabWidget *CacTab = nullptr;
+    QBoxLayout *BoCucTieuDe = nullptr, *BoCucNhanSu = nullptr, *BoCucCa = nullptr;
     QLabel *TrangThaiTep;
     QLabel *SoNhanSu, *SoCa, *SoPhanCong, *BuocTiep;
     QLabel *ChiTietNhanSu, *ChiTietCa, *ChiTietPhanCong;
@@ -37,9 +46,10 @@ class AdminPanel : public QDialog {
     QTimeEdit *GioDau, *GioCuoi;
     QCheckBox *TruongCa, *MongCuoiTuan, *DangKyDuPhong;
     QFormLayout *BieuMauNhanSu = nullptr, *BieuMauCa = nullptr;
-    void TaoNhanSu(class QTabWidget* Tab);
-    void TaoCa(class QTabWidget* Tab);
-    void TaoLich(class QTabWidget* Tab);
+    void ThemTrang(QWidget* NoiDung, const QString& Ten);
+    void TaoNhanSu();
+    void TaoCa();
+    void TaoLich();
     void LamMoi();
     void BaoLoi(const char* Loi);
     void ThemNhanSu(bool CapNhat = false);
@@ -57,6 +67,7 @@ protected:
     void resizeEvent(QResizeEvent* SuKien) override;
 public:
     explicit AdminPanel(QWidget* Cha = nullptr, const QString& TepMacDinh = QString(), bool TrongTrangChinh = false);
+    void ChonTrang(int ChiSo, const QString& Ten);
     bool ChoPhepDong();
     bool LuuNhanSu(const QString& Tep);
     bool NapNhanSu(const QString& Tep);

@@ -57,7 +57,7 @@ int main(int SoThamSo, char** ThamSo) {
     W.show(); UngDung.processEvents();
     assert(!W.findChild<QLineEdit*>("timChung"));
     // Nhân sự/lịch là trang trong cửa sổ chính, không mở hộp thoại riêng.
-    Bam(&W,"openAdmin");
+    Bam(&W,"nav5");
     auto* Trang=W.findChild<QStackedWidget*>("mainPages");
     auto* QuanTri=W.findChild<AdminPanel*>("adminPanel");
     assert(Trang && QuanTri && Trang->currentWidget()==QuanTri);
@@ -70,13 +70,37 @@ int main(int SoThamSo, char** ThamSo) {
         assert(Tim<QPushButton>(&W,qPrintable(QString("nav%1").arg(I)))->isVisible());
     Bam(QuanTri,"adminSeed");
     assert(Tim<QTableWidget>(QuanTri,"staffTable")->rowCount()==4);
+    auto* CacMucQuanTri=Tim<QStackedWidget>(QuanTri,"adminPages");
+    W.resize(1440,768);
+    Tim<QTableWidget>(QuanTri,"staffTable")->selectRow(0);
+    const char* NhanTrangQuanTri[] = {"Nhân sự","Ca trực","Lịch và thay ca"};
+    const char* BangQuanTri[] = {"staffTable","shiftTable","scheduleTable"};
+    for (int I=0; I<3; ++I) {
+        auto* NutTrang=Tim<QPushButton>(&W,qPrintable(QString("nav%1").arg(I+5)));
+        assert(NutTrang->isVisible() && NutTrang->text()==NhanTrangQuanTri[I]);
+        NutTrang->click();
+        UngDung.processEvents();
+        assert(NutTrang->isChecked() && CacMucQuanTri->currentIndex()==I);
+        assert(Tim<QLabel>(QuanTri,"adminTitle")->text()==NhanTrangQuanTri[I]);
+        for (int J=0; J<3; ++J)
+            assert(Tim<QTableWidget>(QuanTri,BangQuanTri[J])->isVisible()==(I==J));
+        auto* CuonTrang=qobject_cast<QScrollArea*>(CacMucQuanTri->currentWidget());
+        assert(CuonTrang && CuonTrang->verticalScrollBar()->maximum()==0);
+    }
+    assert(Tim<QTableWidget>(QuanTri,"shiftTable")->rowCount()>0);
+    Bam(QuanTri,"scheduleGenerate");
+    assert(Tim<QTableWidget>(QuanTri,"scheduleTable")->rowCount()>0);
+    assert(Tim<QPushButton>(QuanTri,"adminSave")->isEnabled());
+    Bam(&W,"nav5");
+    W.resize(1440,980);
+
     if (!qEnvironmentVariable("PBL2_MAIN_ADMIN_CAPTURE").isEmpty()) {
         UngDung.processEvents();
         assert(W.grab().save(qEnvironmentVariable("PBL2_MAIN_ADMIN_CAPTURE")));
     }
     Bam(&W,"nav4");
     assert(Trang->currentWidget()!=QuanTri);
-    Bam(&W,"openAdmin");
+    Bam(&W,"nav5");
     assert(Tim<QTableWidget>(QuanTri,"staffTable")->rowCount()==4);
     QTimer::singleShot(0, [] {
         auto* H=qobject_cast<QMessageBox*>(QApplication::activeModalWidget());
@@ -229,12 +253,15 @@ int main(int SoThamSo, char** ThamSo) {
     Bam(&W, "nav4");
     W.resize(520, 800); UngDung.processEvents();
     assert(Tim<QScrollArea>(&W, "mainScroll")->horizontalScrollBar()->maximum() == 0);
-    QTimer::singleShot(0, [] {
-        for (auto* N : Hop()->findChildren<QPushButton*>("chonTrang"))
-            if (N->text()=="Nhân sự và lịch trực") { N->click(); return; }
-        assert(false);
-    });
-    Bam(&W,"menu"); UngDung.processEvents();
+    for (int I=2; I>=0; --I) {
+        QTimer::singleShot(0, [&, I] {
+            for (auto* N : Hop()->findChildren<QPushButton*>("chonTrang"))
+                if (N->text()==NhanTrangQuanTri[I]) { N->click(); return; }
+            assert(false);
+        });
+        Bam(&W,"menu"); UngDung.processEvents();
+        assert(CacMucQuanTri->currentIndex()==I);
+    }
     assert(W.width()==520 && Trang->currentWidget()==QuanTri);
     auto* OMa=Tim<QLineEdit>(QuanTri,"staffId");
     auto* NapMau=Tim<QPushButton>(QuanTri,"adminSeed");

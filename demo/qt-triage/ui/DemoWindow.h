@@ -31,7 +31,9 @@ class DemoWindow : public QMainWindow {
     QLineEdit *MaLanKhamLoc;
     QLineEdit *NgayLoc;
     QFrame *ThanhBen = nullptr;
-    QPushButton *DieuHuong[6]{};
+    static constexpr int TrangNhanSu = 5;
+    static constexpr int SoTrang = 8;
+    QPushButton *DieuHuong[SoTrang]{};
     QLabel *TieuDe;
     QLabel *MoTa;
     QLabel *KhuVuc;

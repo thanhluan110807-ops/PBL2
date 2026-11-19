@@ -76,12 +76,13 @@ void DemoWindow::TaoThanhBen(QHBoxLayout *Khung) {
     Cot->addSpacing(32);
     Cot->addWidget(Nhan("KHÔNG GIAN LÀM VIỆC", "muted"));
     Cot->addSpacing(8);
-    const char *NhanNut[] = {"Tổng quan", "Tiếp nhận", "Hàng chờ", "Lượt khám", "Hồ sơ bệnh nhân", "Nhân sự và lịch trực"};
-    const char *Icon[] = {"grid", "plus", "list", "list", "users", "users"};
+    const char *NhanNut[SoTrang] = {"Tổng quan", "Tiếp nhận", "Hàng chờ", "Lượt khám", "Hồ sơ bệnh nhân",
+                                 "Nhân sự", "Ca trực", "Lịch và thay ca"};
+    const char *Icon[SoTrang] = {"grid", "plus", "list", "list", "users", "users", "list", "list"};
     auto *Nhom = new QButtonGroup(this);
     Nhom->setExclusive(true);
-    for (int ViTri = 0; ViTri < 6; ++ViTri) {
-        auto *NutMoi = Nut(NhanNut[ViTri], ViTri == 5 ? "openAdmin" : qPrintable(QString("nav%1").arg(ViTri)));
+    for (int ViTri = 0; ViTri < SoTrang; ++ViTri) {
+        auto *NutMoi = Nut(NhanNut[ViTri], qPrintable(QString("nav%1").arg(ViTri)));
         NutMoi->setProperty("nav", true);
         NutMoi->setCheckable(true);
         NutMoi->setIcon(BieuTuong(Icon[ViTri]));
@@ -127,7 +128,7 @@ void DemoWindow::TaoGiaoDien() {
         Hop.setWindowTitle("Điều hướng");
         auto *CotMenu = new QVBoxLayout(&Hop);
         int Dich = -1;
-        for (int I = 0; I < 6; ++I) {
+        for (int I = 0; I < SoTrang; ++I) {
             auto *N = Nut(DieuHuong[I]->text(), "chonTrang");
             CotMenu->addWidget(N);
             connect(N, &QPushButton::clicked, &Hop, [&, I] {
@@ -341,7 +342,7 @@ void DemoWindow::TaoNoiDung(QVBoxLayout *Khung) {
 
 void DemoWindow::ChuyenTrang(int ChiSo) {
     Trang = ChiSo;
-    if (Trang == 5) { LamMoi(); return; }
+    if (Trang >= TrangNhanSu) { LamMoi(); return; }
     LocKpi = -1;
     TimHang->clear();
     MaLanKhamLoc->clear();
@@ -350,9 +351,10 @@ void DemoWindow::ChuyenTrang(int ChiSo) {
     LamMoi();
 }
 void DemoWindow::LamMoi() {
-    if (Trang == 5) {
-        KhuVuc->setText("Nhân sự và lịch trực");
-        DieuHuong[5]->setChecked(true);
+    if (Trang >= TrangNhanSu) {
+        KhuVuc->setText(DieuHuong[Trang]->text());
+        DieuHuong[Trang]->setChecked(true);
+        QuanTri->ChonTrang(Trang - TrangNhanSu, KhuVuc->text());
         CacTrang->setCurrentWidget(QuanTri);
         return;
     }

@@ -87,7 +87,43 @@ int main(int SoThamSo, char** ThamSo) {
         auto* CuonTrang=qobject_cast<QScrollArea*>(CacMucQuanTri->currentWidget());
         assert(CuonTrang && CuonTrang->verticalScrollBar()->maximum()==0);
     }
-    assert(Tim<QTableWidget>(QuanTri,"shiftTable")->rowCount()>0);
+    // Danh sách mở trước; người dùng chủ động mở và hủy biểu mẫu.
+    Bam(&W,"nav5");
+    auto* MaNhanVien=Tim<QLineEdit>(QuanTri,"staffId");
+    auto* BangNhanVien=Tim<QTableWidget>(QuanTri,"staffTable");
+    assert(!MaNhanVien->isVisible());
+    Bam(QuanTri,"staffOpenAdd");
+    UngDung.processEvents();
+    assert(MaNhanVien->isVisible() && !MaNhanVien->isReadOnly() && MaNhanVien->text().isEmpty());
+    assert(MaNhanVien->mapTo(&W,QPoint()).x()<BangNhanVien->mapTo(&W,QPoint()).x());
+    MaNhanVien->setText("BO-QUA");
+    Bam(QuanTri,"staffCancel");
+    assert(!MaNhanVien->isVisible() && BangNhanVien->rowCount()==4);
+    Bam(QuanTri,"staffOpenAdd");
+    assert(MaNhanVien->text().isEmpty());
+    Bam(QuanTri,"staffCancel");
+    BangNhanVien->selectRow(0);
+    Bam(QuanTri,"staffEditSelect");
+    assert(MaNhanVien->isVisible() && MaNhanVien->isReadOnly() && MaNhanVien->text()=="BS01");
+    assert(Tim<QPushButton>(QuanTri,"staffUpdate")->isVisible());
+    Bam(QuanTri,"staffCancel");
+
+    Bam(&W,"nav6");
+    auto* MaCaMoi=Tim<QLineEdit>(QuanTri,"shiftId");
+    auto* BangCaTruc=Tim<QTableWidget>(QuanTri,"shiftTable");
+    assert(!MaCaMoi->isVisible() && BangCaTruc->rowCount()==2);
+    Bam(QuanTri,"shiftOpenAdd");
+    assert(MaCaMoi->isVisible() && MaCaMoi->text().isEmpty());
+    MaCaMoi->setText("BO-QUA");
+    Bam(QuanTri,"shiftCancel");
+    assert(!MaCaMoi->isVisible() && BangCaTruc->rowCount()==2);
+    Bam(QuanTri,"shiftOpenAdd");
+    assert(MaCaMoi->text().isEmpty());
+    MaCaMoi->setText("T4-THEM");
+    Tim<QComboBox>(QuanTri,"shiftDay")->setCurrentIndex(2);
+    Bam(QuanTri,"shiftAdd");
+    assert(!MaCaMoi->isVisible() && BangCaTruc->rowCount()==3);
+    Bam(&W,"nav7");
     Bam(QuanTri,"scheduleGenerate");
     assert(Tim<QTableWidget>(QuanTri,"scheduleTable")->rowCount()>0);
     assert(Tim<QPushButton>(QuanTri,"adminSave")->isEnabled());
@@ -263,11 +299,15 @@ int main(int SoThamSo, char** ThamSo) {
         assert(CacMucQuanTri->currentIndex()==I);
     }
     assert(W.width()==520 && Trang->currentWidget()==QuanTri);
+    Bam(QuanTri,"staffOpenAdd");
+    UngDung.processEvents();
     auto* OMa=Tim<QLineEdit>(QuanTri,"staffId");
+    assert(OMa->isVisible());
     auto* NapMau=Tim<QPushButton>(QuanTri,"adminSeed");
     if (!qEnvironmentVariable("PBL2_MAIN_ADMIN_NARROW").isEmpty())
         assert(W.grab().save(qEnvironmentVariable("PBL2_MAIN_ADMIN_NARROW")));
-    assert(OMa->mapTo(&W,QPoint(OMa->width(),0)).x()<=W.width());
+    auto* CuonNhanSu=qobject_cast<QScrollArea*>(CacMucQuanTri->currentWidget());
+    assert(CuonNhanSu && CuonNhanSu->widget()->width()==CuonNhanSu->viewport()->width());
     assert(NapMau->mapTo(&W,QPoint(NapMau->width(),0)).x()<=W.width());
     Bam(&W,"nav4");
     assert(W.grab().save("demo-core-narrow.png"));

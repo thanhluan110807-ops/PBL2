@@ -58,12 +58,14 @@ int main(int argc, char** argv) {
     assert(QFile::exists(Tep) && !NutLuu->isEnabled());
     AdminPanel Doc(nullptr,Tep);
     assert(Doc.findChild<QTableWidget*>("scheduleTable")->rowCount()==4);
+    Click("staffOpenAdd");
     W.findChild<QLineEdit*>("staffId")->setText("BS01");
     W.findChild<QLineEdit*>("staffName")->setText("Trung ma");
     W.findChild<QLineEdit*>("staffSpecialty")->setText("Noi");
     Click("staffAdd");
     assert(W.LayDuLieu().NhanSu->KichThuoc()==4);
     assert(W.findChild<QLabel*>("adminMessage")->text().contains("Trung ma"));
+    assert(W.findChild<QLineEdit*>("staffId")->isVisible());
     const QString Hong=Tmp.path()+"/hong.pbl2";
     { QFile F(Hong); assert(F.open(QIODevice::WriteOnly)); F.write("khong hop le"); }
     assert(!W.NapTep(Hong));
@@ -75,6 +77,7 @@ int main(int argc, char** argv) {
     W.findChild<QComboBox*>("staffRank")->setCurrentIndex(1);
     Click("staffAdd");
     assert(W.LayDuLieu().NhanSu->KichThuoc()==5);
+    assert(!W.findChild<QLineEdit*>("staffId")->isVisible());
     W.findChild<QTableWidget*>("scheduleTable")->selectRow(0);
     Click("replacementFind");
     auto* UngVien = W.findChild<QComboBox*>("replacementCandidates");
@@ -100,10 +103,8 @@ int main(int argc, char** argv) {
     W.resize(580,680); App.processEvents();
     assert(W.width()==580);
     auto* CacTab=W.findChild<QTabWidget*>();
-    for (int I=0;I<CacTab->count();++I) {
-        auto* Cuon=qobject_cast<QScrollArea*>(CacTab->widget(I));
-        assert(Cuon && Cuon->verticalScrollBar()->maximum()>0);
-    }
+    auto* Cuon=qobject_cast<QScrollArea*>(CacTab->widget(2));
+    assert(Cuon && Cuon->verticalScrollBar()->maximum()>0);
     assert(W.findChild<QTableWidget*>("scheduleTable")->horizontalScrollBar()->maximum()>0);
     if (!qEnvironmentVariable("PBL2_ADMIN_CAPTURE_NARROW").isEmpty()) {
         CacTab->setCurrentIndex(2); App.processEvents();

@@ -30,6 +30,7 @@ class AdminPanel : public QDialog {
     QLabel *ThongBao;
     QLabel *TieuDe;
     QWidget *ChonTuan;
+    QWidget *KhungNhapNhanSu, *KhungNhapCa;
     QPushButton *NutNapMau;
     QStackedWidget *CacTrang = nullptr;
     QTabWidget *CacTab = nullptr;

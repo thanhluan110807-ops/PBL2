@@ -49,8 +49,8 @@ tạo phiên tạm. Lần đầu chưa có cấu hình cũng tự dùng bộ nà
 ## Chọn vai trò
 
 Khi mở An Tâm, chọn **Điều dưỡng**, **Bác sĩ** hoặc **Quản lý**. Điều dưỡng và
-bác sĩ chọn thêm nhân viên đã có trong danh sách. Nếu bộ dữ liệu chưa có nhân
-sự, vào **Quản lý → Nhân sự** để thêm hoặc nạp mẫu rồi lưu. Nút **Đổi vai trò**
+bác sĩ nhập mã nhân viên hoặc chọn từ danh sách của vai trò đó. Nếu bộ dữ liệu
+chưa có nhân sự, vào **Quản lý → Nhân sự** để thêm hoặc nạp mẫu rồi lưu. Nút **Đổi vai trò**
 ở thanh đầu chuyển vai trò ngay trong cùng phiên. Nếu quản lý còn thay đổi,
 ứng dụng yêu cầu lưu hoặc hủy chuyển vai trò.
 

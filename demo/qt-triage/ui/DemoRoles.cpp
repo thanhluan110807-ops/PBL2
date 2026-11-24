@@ -11,14 +11,17 @@
 #include "repository/StaffRegistry.h"
 #include <QButtonGroup>
 #include <QComboBox>
+#include <QCompleter>
 #include <QDate>
 #include <QDateTime>
 #include <QDialog>
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 #include <QPushButton>
 #include <QScrollArea>
+#include <QSignalBlocker>
 #include <QStackedWidget>
 #include <QStatusBar>
 #include <QString>
@@ -47,6 +50,26 @@ QVBoxLayout* ThemThe(QVBoxLayout* Cot) {
     Cot->addWidget(The);
     return NoiDung;
 }
+
+int TimNhanVienDaNhap(const QComboBox& DanhSach) {
+    const QString TuKhoa = DanhSach.currentText().trimmed();
+    const int DongDangChon = DanhSach.currentIndex();
+    if (DongDangChon >= 0 && TuKhoa == DanhSach.itemText(DongDangChon)) return DongDangChon;
+
+    const int DongDungMa = DanhSach.findData(TuKhoa);
+    if (DongDungMa >= 0) return DongDungMa;
+    const int DongGoiY = DanhSach.findText(TuKhoa);
+    if (DongGoiY >= 0) return DongGoiY;
+
+    // Cho phép nhập thường hoặc hoa nếu chỉ có một mã khớp trong vai trò này.
+    int DongKhop = -1;
+    for (int I = 0; I < DanhSach.count(); ++I) {
+        if (DanhSach.itemData(I).toString().compare(TuKhoa, Qt::CaseInsensitive) != 0) continue;
+        if (DongKhop >= 0) return -1;
+        DongKhop = I;
+    }
+    return DongKhop;
+}
 }
 
 bool DemoWindow::ChonVaiTro() {
@@ -74,13 +97,19 @@ bool DemoWindow::ChonVaiTro() {
         HangVaiTro->addWidget(NutVaiTro, 1);
     }
 
-    auto* NhanNhanVien = ThemNhan(Cot, "Nhân viên", "section");
+    auto* NhanNhanVien = ThemNhan(Cot, "Mã nhân viên", "section");
     auto* ChonNhanVien = new QComboBox;
     ChonNhanVien->setObjectName("chonNhanVienVaiTro");
+    ChonNhanVien->setEditable(true);
+    ChonNhanVien->setInsertPolicy(QComboBox::NoInsert);
     ChonNhanVien->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLengthWithIcon);
-    NhanNhanVien->setBuddy(ChonNhanVien);
+    ChonNhanVien->completer()->setCompletionMode(QCompleter::PopupCompletion);
+    auto* NhapMa = ChonNhanVien->lineEdit();
+    NhapMa->setPlaceholderText("Nhập mã hoặc chọn trong danh sách");
+    NhapMa->setAccessibleName("Mã nhân viên");
+    NhanNhanVien->setBuddy(NhapMa);
     Cot->addWidget(ChonNhanVien);
-    auto* HuongDan = ThemNhan(Cot, "Chưa có nhân viên cho vai trò này. Hãy vào Quản lý để thêm nhân sự.", "muted");
+    auto* HuongDan = ThemNhan(Cot, "", "muted");
     auto* Chan = new QHBoxLayout;
     Cot->addLayout(Chan);
     auto* Dong = Nut("Hủy", "huyChonVaiTro");
@@ -90,55 +119,70 @@ bool DemoWindow::ChonVaiTro() {
     Chan->addWidget(Vao);
     Vao->setDefault(true);
     connect(Dong, &QPushButton::clicked, &Hop, &QDialog::reject);
-    connect(Vao, &QPushButton::clicked, &Hop, &QDialog::accept);
+    connect(Vao, &QPushButton::clicked, &Hop, [&] { if (Vao->isEnabled()) Hop.accept(); });
 
     const auto CapNhatNutVao = [&] {
         const auto VaiTroChon = static_cast<VaiTro>(NhomVaiTro.checkedId());
-        Vao->setEnabled(VaiTroChon == VaiTro::QuanLy || ChonNhanVien->currentIndex() > 0);
+        const bool CanChonNguoi = VaiTroChon == VaiTro::BacSi || VaiTroChon == VaiTro::DieuDuong;
+        const int ViTri = TimNhanVienDaNhap(*ChonNhanVien);
+        Vao->setEnabled(VaiTroChon == VaiTro::QuanLy || (CanChonNguoi && ViTri >= 0));
+        QString ThongBao;
+        if (CanChonNguoi) {
+            if (ChonNhanVien->count() == 0)
+                ThongBao = "Chưa có nhân viên cho vai trò này. Hãy vào Quản lý để thêm nhân sự.";
+            else if (ViTri >= 0 && ChonNhanVien->currentText() != ChonNhanVien->itemText(ViTri))
+                ThongBao = ChonNhanVien->itemText(ViTri);
+            else if (ViTri < 0 && !ChonNhanVien->currentText().trimmed().isEmpty())
+                ThongBao = "Hãy nhập đầy đủ mã nhân viên thuộc vai trò đang chọn.";
+        }
+        HuongDan->setText(ThongBao);
+        HuongDan->setVisible(!ThongBao.isEmpty());
     };
     // Chỉ dùng mã nhân viên thật trong dữ liệu hiện tại để gắn đúng lịch và lượt khám.
     const auto NapNhanVien = [&] {
+        const QSignalBlocker ChanTinHieu(ChonNhanVien);
         const int MaVaiTro = NhomVaiTro.checkedId();
         const auto VaiTroChon = static_cast<VaiTro>(MaVaiTro);
         const bool CanChonNguoi = VaiTroChon == VaiTro::BacSi || VaiTroChon == VaiTro::DieuDuong;
         ChonNhanVien->clear();
         if (CanChonNguoi) {
-            ChonNhanVien->addItem("Chọn tên nhân viên");
             const auto Loai = VaiTroChon == VaiTro::BacSi ? StaffType::BacSi : StaffType::DieuDuong;
             const auto& NhanSu = *QuanTri->LayDuLieu().NhanSu;
             for (int I = 0; I < NhanSu.KichThuoc(); ++I) {
                 const auto& Nguoi = NhanSu.Lay(I);
                 if (Nguoi.LayLoaiNhanVien() != Loai) continue;
                 const QString Ma = Chu(Nguoi.LayMaDinhDanh());
-                ChonNhanVien->addItem(Chu(Nguoi.LayHoTen()) + " · " + Ma, Ma);
+                ChonNhanVien->addItem(Ma + " · " + Chu(Nguoi.LayHoTen()), Ma);
             }
-            if (VaiTroChon == VaiTroHienTai) {
-                const int ViTri = ChonNhanVien->findData(Chu(MaNhanVien));
-                if (ViTri > 0) ChonNhanVien->setCurrentIndex(ViTri);
-            }
+            const int ViTriCu = VaiTroChon == VaiTroHienTai ? ChonNhanVien->findData(Chu(MaNhanVien)) : -1;
+            ChonNhanVien->setCurrentIndex(ViTriCu);
         }
         NhanNhanVien->setVisible(CanChonNguoi);
         ChonNhanVien->setVisible(CanChonNguoi);
-        ChonNhanVien->setEnabled(ChonNhanVien->count() > 1);
-        HuongDan->setVisible(CanChonNguoi && ChonNhanVien->count() == 1);
+        ChonNhanVien->setEnabled(ChonNhanVien->count() > 0);
+        if (ChonNhanVien->isEnabled()) {
+            NhapMa->setFocus();
+            NhapMa->selectAll();
+        }
         CapNhatNutVao();
     };
     for (auto* NutVaiTro : NhomVaiTro.buttons())
         connect(NutVaiTro, &QPushButton::clicked, &Hop, NapNhanVien);
-    connect(ChonNhanVien, qOverload<int>(&QComboBox::currentIndexChanged), &Hop, CapNhatNutVao);
+    connect(ChonNhanVien, &QComboBox::editTextChanged, &Hop, CapNhatNutVao);
     if (auto* NutCu = NhomVaiTro.button(static_cast<int>(VaiTroHienTai))) NutCu->setChecked(true);
     NapNhanVien();
     if (Hop.exec() != QDialog::Accepted) return false;
 
     const auto VaiTroMoi = static_cast<VaiTro>(NhomVaiTro.checkedId());
-    const auto MaMoi = ChonNhanVien->currentData().toString().toStdString();
+    const int ViTriMoi = TimNhanVienDaNhap(*ChonNhanVien);
+    const auto MaMoi = ChonNhanVien->itemData(ViTriMoi).toString().toStdString();
     if (VaiTroMoi == VaiTroHienTai && MaMoi == MaNhanVien) return true;
     if (VaiTroHienTai == VaiTro::QuanLy && !QuanTri->LuuTruocKhiDoiVaiTro()) return false;
 
     VaiTroHienTai = VaiTroMoi;
     MaNhanVien = MaMoi;
     const QString Ten = NhomVaiTro.checkedButton()->text();
-    NhanVaiTro->setText(MaNhanVien.empty() ? Ten : Ten + " · " + ChonNhanVien->currentText());
+    NhanVaiTro->setText(MaNhanVien.empty() ? Ten : Ten + " · " + ChonNhanVien->itemText(ViTriMoi));
     QuanTri->setEnabled(VaiTroHienTai == VaiTro::QuanLy);
     for (int I = TrangTiepNhan; I < SoTrang; ++I) {
         const bool DuocMo = DuocMoTrang(I);

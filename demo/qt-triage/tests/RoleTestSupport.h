@@ -29,10 +29,8 @@ inline void HenChonVaiTro(const char* MaNut, const QString& MaNhanVien = {}) {
         VaiTro->click();
         if (!MaNhanVien.isEmpty()) {
             auto* NhanVien = Hop->findChild<QComboBox*>("chonNhanVienVaiTro");
-            assert(NhanVien);
-            const int ViTri = NhanVien->findData(MaNhanVien);
-            assert(ViTri > 0);
-            NhanVien->setCurrentIndex(ViTri);
+            assert(NhanVien && NhanVien->isEditable());
+            NhanVien->setEditText(MaNhanVien);
         }
         assert(Vao->isEnabled());
         Vao->click();

@@ -160,7 +160,16 @@ int main(int SoThamSo, char** ThamSo) {
         auto* H = Hop();
         Bam(H, "vaiTroDieuDuong");
         auto* DanhSach = Tim<QComboBox>(H, "chonNhanVienVaiTro");
-        DanhSach->setCurrentIndex(DanhSach->findData("DD01"));
+        auto* Vao = Tim<QPushButton>(H, "xacNhanVaiTro");
+        assert(DanhSach->isEditable() && !Vao->isEnabled());
+        DanhSach->setCurrentIndex(DanhSach->findData("DD02"));
+        assert(Vao->isEnabled());
+        DanhSach->setEditText("BS01");
+        assert(!Vao->isEnabled());
+        DanhSach->setEditText("DD0");
+        assert(!Vao->isEnabled());
+        DanhSach->setEditText(" dd01 ");
+        assert(Vao->isEnabled());
         Bam(H, "xacNhanVaiTro");
         QTimer::singleShot(0, [] {
             auto* BaoLuu = qobject_cast<QMessageBox*>(QApplication::activeModalWidget());

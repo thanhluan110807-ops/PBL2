@@ -4,6 +4,7 @@
 
 #include "dsa/Vector.h"
 #include "model/Date.h"
+#include "model/DoctorParticipation.h"
 #include "model/Patient.h"
 #include "model/Visit.h"
 #include "repository/PatientRegistry.h"
@@ -44,6 +45,27 @@ int main() {
     const Date NgayKhac{2, 1, 2026};
     assert(TraCuu.TimTheoBenhNhan("An", &NgayKhac, "LK2").Rong());
     assert(TraCuu.TimTheoBenhNhan("Mai").Rong());
+
+    // Chỉ bác sĩ đã khám mới xuất hiện; đánh giá theo đúng mã và lần ghi nhận.
+    auto* Luot = SoBo.TimLanKham("LK1");
+    Patient HoSo("BN1", "Nguyen Van An");
+    HoSo.DatTuoiUocLuong(30);
+    const VitalSigns SinhHieu(80, 120, 18, 98, 15);
+    Luot->PhanCongBacSi("BS-PHAN-CONG");
+    Luot->DanhGia(HoSo, SinhHieu, Moc + 1, "DD01");
+    Luot->DanhGia(HoSo, SinhHieu, Moc + 2, "");
+    Luot->DanhGia(HoSo, SinhHieu, Moc + 3, "DD02");
+    Luot->DanhGia(HoSo, SinhHieu, Moc + 4, "DD01");
+    Luot->BatDauKham(DoctorParticipation("BS-THUC-KHAM", Moc + 5));
+    Luot->GhiNhanBacSiThamGiaKham(DoctorParticipation("BS-THUC-KHAM", Moc + 6));
+    assert(TraCuu.TimTheoBacSi("BS-PHAN-CONG").Rong());
+    const auto DaKham = TraCuu.TimTheoBacSi("BS-THUC-KHAM");
+    assert(DaKham.KichThuoc() == 1 && DaKham[0].LanKham == Luot);
+    const auto DaDanhGia = TraCuu.TimDanhGiaTheoDieuDuong("DD01");
+    assert(DaDanhGia.KichThuoc() == 2 && DaDanhGia[0].HoSo.LanKham == Luot);
+    assert(DaDanhGia[0].DanhGia->LayThoiDiemDanhGia() == Moc + 4);
+    assert(DaDanhGia[1].DanhGia->LayThoiDiemDanhGia() == Moc + 1);
+    assert(TraCuu.TimDanhGiaTheoDieuDuong("").Rong());
 
     const Date NgaySai{29, 2, 2026};
     bool DaBaoLoi = false;

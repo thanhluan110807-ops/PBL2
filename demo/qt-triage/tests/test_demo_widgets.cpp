@@ -27,6 +27,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QTableWidget>
+#include <QTabBar>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QStackedWidget>
@@ -91,7 +92,7 @@ int main(int SoThamSo, char** ThamSo) {
     for (int I=1; I<=9; ++I)
         assert(Tim<QPushButton>(&W,qPrintable(QString("nav%1").arg(I)))->isVisible()==(I>=3 && I<=7));
     Bam(QuanTri,"adminSeed");
-    assert(Tim<QTableWidget>(QuanTri,"staffTable")->rowCount()==4);
+    assert(Tim<QTableWidget>(QuanTri,"staffTable")->rowCount()==2);
     auto* CacMucQuanTri=Tim<QStackedWidget>(QuanTri,"adminPages");
     W.resize(1440,768);
     Tim<QTableWidget>(QuanTri,"staffTable")->selectRow(0);
@@ -120,7 +121,7 @@ int main(int SoThamSo, char** ThamSo) {
     assert(MaNhanVien->mapTo(&W,QPoint()).x()<BangNhanVien->mapTo(&W,QPoint()).x());
     MaNhanVien->setText("BO-QUA");
     Bam(QuanTri,"staffCancel");
-    assert(!MaNhanVien->isVisible() && BangNhanVien->rowCount()==4);
+    assert(!MaNhanVien->isVisible() && BangNhanVien->rowCount()==2);
     Bam(QuanTri,"staffOpenAdd");
     assert(MaNhanVien->text().isEmpty());
     Bam(QuanTri,"staffCancel");
@@ -164,7 +165,7 @@ int main(int SoThamSo, char** ThamSo) {
     Bam(&W,"nav4");
     assert(Trang->currentWidget()!=QuanTri);
     Bam(&W,"nav5");
-    assert(Tim<QTableWidget>(QuanTri,"staffTable")->rowCount()==4);
+    assert(Tim<QTableWidget>(QuanTri,"staffTable")->rowCount()==2);
     // Bỏ qua lưu khi đổi vai trò phải giữ phiên quản lý và thay đổi chưa lưu.
     QTimer::singleShot(0, [] {
         auto* H = Hop();
@@ -235,7 +236,6 @@ int main(int SoThamSo, char** ThamSo) {
         assert(Tim<QScrollArea>(H,"dialogScroll")->horizontalScrollBar()->maximum()==0);
         if (!qEnvironmentVariable("PBL2_VITAL_GUIDE_NARROW").isEmpty())
             assert(H->grab().save(qEnvironmentVariable("PBL2_VITAL_GUIDE_NARROW")));
-        assert(!H->findChild<QLineEdit*>("MaDieuDuong"));
         for (const auto* Ma : {"Mach","HuyetAp","NhipTho","SpO2","GCS"}) {
             auto* O=Tim<QLineEdit>(H,Ma);
             auto* GoiY=Tim<QLabel>(H,qPrintable(QString(Ma)+"Hint"));
@@ -385,6 +385,37 @@ int main(int SoThamSo, char** ThamSo) {
     QTimer::singleShot(0, [] { Bam(Hop(), "xacNhanDong"); }); W.XacNhanDong("LK2", true);
     assert(R.TimLanKham("LK2")->LayTrangThai() == VisitStatus::DaHuy && T.SoDangCho() == 0);
     DoiVaiTro("vaiTroQuanLy", "QL01");
+    // Một bác sĩ khám lại cùng Visit chỉ có một dòng; điều dưỡng thấy đúng đánh giá của mình.
+    Bam(&W,"nav5");
+    BangNhanVien->selectRow(0);
+    QTimer::singleShot(0, [] {
+        auto* H = Hop();
+        assert(H->objectName()=="staffHistoryDialog");
+        auto CacLuot=H->findChildren<QLabel*>("staffHistoryVisit");
+        assert(CacLuot.size()==1 && CacLuot[0]->text().contains("LK001"));
+        QTimer::singleShot(0, [] {
+            auto* ChiTiet = Hop();
+            assert(Tim<QLabel>(ChiTiet,"chiTietMaLanKham")->text().contains("LK001"));
+            assert(!ChiTiet->findChild<QPushButton*>("ketThuc"));
+            Bam(ChiTiet,"dongHop");
+        });
+        Bam(H,"staffHistoryDetails");
+        Bam(H,"dongHop");
+    });
+    Bam(QuanTri,"staffHistory");
+    auto* NhomNhanSu = Tim<QTabBar>(QuanTri,"staffGroups");
+    NhomNhanSu->setCurrentIndex(1);
+    assert(BangNhanVien->rowCount()==2 && BangNhanVien->item(0,0)->text()=="DD01");
+    BangNhanVien->selectRow(0);
+    QTimer::singleShot(0, [] {
+        auto* H = Hop();
+        auto CacLuot=H->findChildren<QLabel*>("staffHistoryVisit");
+        assert(CacLuot.size()==1 && CacLuot[0]->text().contains("LK001"));
+        assert(Tim<QLabel>(H,"danhGiaNhipTim")->text().contains("80"));
+        Bam(H,"dongHop");
+    });
+    Bam(QuanTri,"staffHistory");
+    NhomNhanSu->setCurrentIndex(0);
     Bam(&W, "nav4");
     W.resize(520, 800); UngDung.processEvents();
     assert(Tim<QScrollArea>(&W, "mainScroll")->horizontalScrollBar()->maximum() == 0);

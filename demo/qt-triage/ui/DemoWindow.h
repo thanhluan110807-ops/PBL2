@@ -5,6 +5,7 @@
 #include <string>
 #include <QMainWindow>
 class AdminPanel;
+class NhanVienYTe;
 class QResizeEvent;
 class QCloseEvent;
 class QTimer;
@@ -29,6 +30,7 @@ class DemoWindow : public QMainWindow {
     VaiTro VaiTroHienTai = VaiTro::ChuaChon;
     std::string MaNguoiDung;
     AdminPanel* QuanTri = nullptr;
+    void MoLichSuNhanVien(const NhanVienYTe &NhanVien);
     // Mượn dữ liệu; main giữ Registry và các service sống lâu hơn cửa sổ.
     PatientRegistry &Registry;
     TriageService &DichVu;
@@ -93,7 +95,7 @@ class DemoWindow : public QMainWindow {
     bool DanhDauThayDoi();
     void MoTiepNhan();
     void MoDanhGia(const std::string &MaLanKham);
-    void MoChiTiet(const std::string &MaLanKham);
+    void MoChiTiet(const std::string &MaLanKham, bool ChiDoc = false);
     void MoHoSo(const std::string &MaBenhNhan);
     void MoCanLamSang(const std::string &MaLanKham, bool QuayLai);
     void XacNhanDong(const std::string &MaLanKham, bool Huy);

@@ -170,7 +170,8 @@ void DemoWindow::TaoGiaoDien() {
     // Bộ CSV chung liên kết nhân sự/lịch cạnh Patient; không ghi vào một nguồn khác.
     const QString CsvNhanSu = QFileInfo(Chu(TepPatientTuDong)).absoluteDir().filePath("nhan-su-lich.csv");
     const QString TepNhanSu = QFileInfo::exists(CsvNhanSu) ? CsvNhanSu : ThuMuc + "/nhan-su-lich.pbl2";
-    QuanTri = new AdminPanel(CacTrang, TepNhanSu, true);
+    QuanTri = new AdminPanel(CacTrang, TepNhanSu, true,
+        [this](const NhanVienYTe &NhanVien) { MoLichSuNhanVien(NhanVien); });
     CacTrang->addWidget(QuanTri);
     TaoTrangCaNhan();
     Cot->addWidget(CacTrang, 1);

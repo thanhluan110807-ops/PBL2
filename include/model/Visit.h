@@ -27,7 +27,7 @@ class TriageAssessment {
     int Muc, Tuoi;
     bool TuoiUocLuong;
     std::time_t ThoiDiemDanhGia;
-    // Rỗng khi chưa có đăng nhập; mã đã biết trong lịch sử vẫn được giữ nguyên.
+    // Có thể rỗng với đánh giá cũ chưa ghi nhận điều dưỡng thực hiện.
     std::string MaDieuDuong;
 public:
     TriageAssessment();

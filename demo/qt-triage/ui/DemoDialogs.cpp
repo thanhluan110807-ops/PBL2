@@ -8,6 +8,8 @@
 #include "model/Date.h"
 #include "model/Gender.h"
 #include "model/Patient.h"
+#include "model/NhanVienYTe.h"
+#include "service/VisitSearchService.h"
 #include "model/Visit.h"
 #include "dsa/Vector.h"
 #include "util/My_stdexcept.h"
@@ -39,6 +41,13 @@ QLabel* ThemVanBan(QVBoxLayout* Cot, const QString& Chuoi, const char* Ma = "") 
 }
 QLabel* ThemThongTin(QVBoxLayout* Cot, const QString& Ten, const QString& GiaTri, const char* Ma = "") {
     return ThemVanBan(Cot,Ten+": "+GiaTri,Ma);
+}
+void ThemSinhHieu(QVBoxLayout* The, const VitalSigns& S) {
+    ThemThongTin(The,"Mạch",QString::number(S.LayNhipTim())+" lần/phút","danhGiaNhipTim");
+    ThemThongTin(The,"Huyết áp tâm thu",QString::number(S.LayHuyetApTamThu())+" mmHg");
+    ThemThongTin(The,"Nhịp thở",QString::number(S.LayNhipTho())+" lần/phút");
+    ThemThongTin(The,"SpO₂",QString::number(S.LaySpo2())+"%");
+    ThemThongTin(The,"GCS",QString::number(S.LayDiemGcs()));
 }
 QVBoxLayout* ThemThe(QVBoxLayout* Cot) {
     auto* The=new QFrame; The->setObjectName("card");
@@ -330,7 +339,50 @@ void DemoWindow::MoDanhGia(const std::string &MaLanKham) {
     }
 }
 
-void DemoWindow::MoChiTiet(const std::string &MaLanKham) {
+void DemoWindow::MoLichSuNhanVien(const NhanVienYTe &NhanVien) {
+    if (VaiTroHienTai != VaiTro::QuanLy) return;
+    const bool LaBacSi = NhanVien.LayLoaiNhanVien() == StaffType::BacSi;
+    const auto &Ma = NhanVien.LayMaDinhDanh();
+    KhungHop K(this, LaBacSi ? "Lần khám đã tham gia" : "Lịch sử đánh giá sinh hiệu",
+               Chu(NhanVien.LayHoTen()) + " · " + Chu(Ma), true);
+    K.Hop.setObjectName("staffHistoryDialog");
+
+    // Cả hai nhóm mở cùng màn hình chi tiết ở chế độ chỉ đọc.
+    const auto ThemKetQua = [&](const KetQuaTraCuuLanKham &HoSo) {
+        const auto MaLanKham = HoSo.LanKham->LayMaLanKham();
+        auto *The = ThemThe(K.NoiDung);
+        ThemThongTin(The, "Mã lần khám", Chu(MaLanKham), "staffHistoryVisit");
+        ThemThongTin(The, "Bệnh nhân", Chu(HoSo.BenhNhan->LayHoTen()) + " · " + Chu(HoSo.BenhNhan->LayMaDinhDanh()));
+        auto *Xem = Nut("Xem chi tiết lần khám", "staffHistoryDetails");
+        The->addWidget(Xem);
+        connect(Xem, &QPushButton::clicked, &K.Hop, [this, MaLanKham] { MoChiTiet(MaLanKham, true); });
+        return The;
+    };
+
+    if (LaBacSi) {
+        const auto KetQua = TraCuu.TimTheoBacSi(Ma);
+        if (KetQua.Rong()) K.VanBan("Chưa có lần khám nào ghi nhận bác sĩ này tham gia.");
+        for (int I = 0; I < KetQua.KichThuoc(); ++I) {
+            auto *The = ThemKetQua(KetQua[I]);
+            const auto &LanKham = *KetQua[I].LanKham;
+            ThemThongTin(The, "Tiếp nhận", ThoiDiem(LanKham.LayThoiDiemTiepNhan()) + " (UTC+7)");
+            ThemThongTin(The, "Trạng thái", TenTrangThai(LanKham));
+        }
+    } else {
+        const auto KetQua = TraCuu.TimDanhGiaTheoDieuDuong(Ma);
+        if (KetQua.Rong()) K.VanBan("Chưa có đánh giá sinh hiệu nào lưu mã điều dưỡng này.");
+        for (int I = 0; I < KetQua.KichThuoc(); ++I) {
+            auto *The = ThemKetQua(KetQua[I].HoSo);
+            const auto &DanhGia = *KetQua[I].DanhGia;
+            ThemThongTin(The, "Thời điểm đánh giá", ThoiDiem(DanhGia.LayThoiDiemDanhGia()) + " (UTC+7)");
+            ThemThongTin(The, "Mức cấp cứu", QString::number(DanhGia.LayMuc()));
+            ThemSinhHieu(The, DanhGia.LaySinhHieu());
+        }
+    }
+    K.Hop.exec();
+}
+
+void DemoWindow::MoChiTiet(const std::string &MaLanKham, bool ChiDoc) {
     if (VaiTroHienTai == VaiTro::ChuaChon) return;
     // Sau mỗi thao tác, dựng lại nội dung từ Registry để tránh hiển thị bản cũ.
     while (const Visit *V = Registry.TimLanKham(MaLanKham)) {
@@ -344,22 +396,24 @@ void DemoWindow::MoChiTiet(const std::string &MaLanKham) {
         ThemThongTin(K.NoiDung,"Trạng thái",TenTrangThai(*V),"chiTietTrangThai");
         ThemThongTin(K.NoiDung,"Triệu chứng",Chu(V->LayTrieuChungChinh()),"chiTietTrieuChung");
         ThemThongTin(K.NoiDung,"Tiếp nhận",ThoiDiem(V->LayThoiDiemTiepNhan())+" (UTC+7)","chiTietTiepNhan");
-        K.NoiDung->addWidget(Nhan("Thao tác", "section"));
         int HanhDong = 0;
-        const auto Them = [&](const QString &Ten, const char *Ma, int So) {
-            auto *N = Nut(Ten, Ma); K.NoiDung->addWidget(N);
-            connect(N, &QPushButton::clicked, &K.Hop, [&, So] { HanhDong = So; K.Hop.accept(); });
-        };
-        Them("Hồ sơ bệnh nhân", "suaHoSo", 1);
-        const VisitStatus T = V->LayTrangThai();
-        if (LaDieuDuongThaoTac() && (T == VisitStatus::ChoKhamLanDau || T == VisitStatus::ChoKhamQuayLai))
-            Them(V->SoDanhGia() ? "Đánh giá lại" : "Đánh giá ban đầu", "danhGia", 2);
-        if (LaBacSiPhuTrach(*V) && T == VisitStatus::DangKham) {
-            Them("Chuyển cận lâm sàng", "chuyenCls", 3); Them("Kết thúc lần khám", "ketThuc", 5);
+        if (!ChiDoc) {
+            K.NoiDung->addWidget(Nhan("Thao tác", "section"));
+            const auto Them = [&](const QString &Ten, const char *Ma, int So) {
+                auto *N = Nut(Ten, Ma); K.NoiDung->addWidget(N);
+                connect(N, &QPushButton::clicked, &K.Hop, [&, So] { HanhDong = So; K.Hop.accept(); });
+            };
+            Them("Hồ sơ bệnh nhân", "suaHoSo", 1);
+            const VisitStatus T = V->LayTrangThai();
+            if (LaDieuDuongThaoTac() && (T == VisitStatus::ChoKhamLanDau || T == VisitStatus::ChoKhamQuayLai))
+                Them(V->SoDanhGia() ? "Đánh giá lại" : "Đánh giá ban đầu", "danhGia", 2);
+            if (LaBacSiPhuTrach(*V) && T == VisitStatus::DangKham) {
+                Them("Chuyển cận lâm sàng", "chuyenCls", 3); Them("Kết thúc lần khám", "ketThuc", 5);
+            }
+            if (LaBacSiPhuTrach(*V) && T == VisitStatus::ChoCanLamSang)
+                Them("Ghi kết quả & quay lại", "quayLai", 4);
+            if (CoTheHuyLuot(*V)) Them("Hủy lần khám", "huyLuot", 6);
         }
-        if (LaBacSiPhuTrach(*V) && T == VisitStatus::ChoCanLamSang)
-            Them("Ghi kết quả & quay lại", "quayLai", 4);
-        if (CoTheHuyLuot(*V)) Them("Hủy lần khám", "huyLuot", 6);
         if (V->SoLanBacSiThamGiaKham()) K.NoiDung->addWidget(Nhan("Bác sĩ đã tham gia", "section"));
         for (int I = 0; I < V->SoLanBacSiThamGiaKham(); ++I)
             ThemThongTin(K.NoiDung,"Mã bác sĩ",Chu(V->LayBacSiThamGiaKhamTai(I)));
@@ -380,11 +434,7 @@ void DemoWindow::MoChiTiet(const std::string &MaLanKham) {
             ThemThongTin(The,"Mức cấp cứu",QString::number(D.LayMuc()));
             ThemThongTin(The,"Tuổi khi đánh giá",QString::number(D.LayTuoi())+
                 (D.LaTuoiUocLuong() ? " (ước lượng)" : " (theo ngày sinh)"));
-            ThemThongTin(The,"Mạch",QString::number(S.LayNhipTim())+" lần/phút","danhGiaNhipTim");
-            ThemThongTin(The,"Huyết áp tâm thu",QString::number(S.LayHuyetApTamThu())+" mmHg");
-            ThemThongTin(The,"Nhịp thở",QString::number(S.LayNhipTho())+" lần/phút");
-            ThemThongTin(The,"SpO₂",QString::number(S.LaySpo2())+"%");
-            ThemThongTin(The,"GCS",QString::number(S.LayDiemGcs()));
+            ThemSinhHieu(The, S);
         }
         if (K.Hop.exec() != QDialog::Accepted) break;
         if (HanhDong == 1) MoHoSo(P->LayMaDinhDanh());

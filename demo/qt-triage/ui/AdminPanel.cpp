@@ -33,6 +33,7 @@
 #include <QTableWidget>
 #include <QStackedWidget>
 #include <QTabWidget>
+#include <QTabBar>
 #include <QTimeEdit>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -41,6 +42,8 @@
 #include <QResizeEvent>
 #include <exception>
 #include <string>
+#include <functional>
+#include <utility>
 
 namespace {
 const Shift* TimCa(const Schedule& Lich, const std::string& Ma) {
@@ -114,7 +117,9 @@ void GiuTrangThai(const NhanVienYTe* Cu, NhanVienYTe& Moi) {
 }
 
 }
-AdminPanel::AdminPanel(QWidget* Cha, const QString& TepMacDinh, bool TrongTrangChinh) : QDialog(Cha), TrongTrangChinh(TrongTrangChinh), DuongDan(TepMacDinh) {
+AdminPanel::AdminPanel(QWidget* Cha, const QString& TepMacDinh, bool TrongTrangChinh,
+                       std::function<void(const NhanVienYTe&)> MoLichSu)
+    : QDialog(Cha), TrongTrangChinh(TrongTrangChinh), DuongDan(TepMacDinh), MoLichSu(std::move(MoLichSu)) {
     if (DuongDan.isEmpty())
         DuongDan=QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)).filePath("nhan-su-lich.pbl2");
     if (TrongTrangChinh) setWindowFlags(Qt::Widget);
@@ -246,6 +251,20 @@ void AdminPanel::TaoNhanSu() {
     auto* DanhSach = new QVBoxLayout;
     BoCucNhanSu->addWidget(KhungNhapNhanSu,2);
     BoCucNhanSu->addLayout(DanhSach,3);
+    NhomNhanSu = new QTabBar;
+    NhomNhanSu->setObjectName("staffGroups");
+    NhomNhanSu->setAccessibleName("Nhóm nhân sự");
+    NhomNhanSu->setExpanding(false);
+    NhomNhanSu->addTab("Bác sĩ");
+    NhomNhanSu->addTab("Điều dưỡng");
+    DanhSach->addWidget(NhomNhanSu);
+    TimNhanSu = new QLineEdit;
+    TimNhanSu->setObjectName("staffSearchEmployee");
+    TimNhanSu->setPlaceholderText("Tìm nhân viên theo tên (có dấu hoặc không dấu)");
+    TimNhanSu->setAccessibleName("Tìm nhân viên theo tên");
+    auto* HangTimNhanSu = new QHBoxLayout;
+    HangTimNhanSu->addWidget(TimNhanSu,1);
+    DanhSach->addLayout(HangTimNhanSu);
     auto* TruongNhap = new QWidget;
     auto* F = new QFormLayout(TruongNhap); BieuMauNhanSu=F;
     F->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
@@ -309,7 +328,7 @@ void AdminPanel::TaoNhanSu() {
         MaNV->clear();
         MaNV->setReadOnly(false);
         TenNV->clear();
-        LoaiNV->setCurrentIndex(0);
+        LoaiNV->setCurrentIndex(NhomNhanSu->currentIndex());
         CapNV->setCurrentIndex(0);
         KinhNghiem->setValue(0);
         ChuyenKhoa->clear();
@@ -328,9 +347,9 @@ void AdminPanel::TaoNhanSu() {
     Xoa->setToolTip("Xóa nhân viên có thể cần xếp lại lịch.");
     connect(CapNhat,&QPushButton::clicked,this,[this] { ThemNhanSu(true); });
     connect(Sua,&QPushButton::clicked,this,[this, Them, CapNhat] {
-        const int I = BangNhanSu->currentRow();
-        if (I < 0) { BaoLoi("Hay chon nhan vien"); return; }
-        const auto& N = DuLieu.NhanSu->Lay(I);
+        const auto* NhanVien = NhanVienDangChon();
+        if (!NhanVien) { BaoLoi("Hay chon nhan vien"); return; }
+        const auto& N = *NhanVien;
         DangKyDuPhong->setChecked(DuLieu.DuPhong.Co(N.LayMaDinhDanh()));
         MaNV->setText(QString::fromStdString(N.LayMaDinhDanh()));
         MaNV->setReadOnly(true);
@@ -348,40 +367,50 @@ void AdminPanel::TaoNhanSu() {
         TenNV->setFocus();
     });
     connect(Xoa,&QPushButton::clicked,this,[this] {
-        const int I=BangNhanSu->currentRow();
-        if (I<0) { BaoLoi("Hay chon nhan vien"); return; }
+        const auto* NhanVien = NhanVienDangChon();
+        if (!NhanVien) { BaoLoi("Hay chon nhan vien"); return; }
         if (CoLichSu(DuLieu.Lich)) { BaoLoi("Khong xoa nhan su khi da co lich su phan cong"); return; }
-        const auto Ma=DuLieu.NhanSu->Lay(I).LayMaDinhDanh();
+        const auto Ma = NhanVien->LayMaDinhDanh();
         if (QMessageBox::question(this,"Xóa nhân viên", "Xóa " + QString::fromStdString(Ma) + " và xóa phân công hiện tại?",QMessageBox::Yes|QMessageBox::No,QMessageBox::No)!=QMessageBox::Yes) return;
         DuLieu.NhanSu->Xoa(Ma); DuLieu.DuPhong.Xoa(Ma); DuLieu.Lich.PhanCong.XoaHet(); DaSua=true; LamMoi();
         ThongBao->setText("Đã xóa nhân viên. Hãy xếp lại lịch.");
     });
-    BangNhanSu = Bang(DanhSach,{"Mã","Họ tên","Loại","Giờ đã xếp","Điểm dự kiến","Dự phòng"},"staffTable");
+    BangNhanSu = Bang(DanhSach,{"Mã","Họ tên","Giờ đã xếp","Điểm dự kiến","Dự phòng"},"staffTable");
+    BangNhanSu->horizontalHeader()->setSectionResizeMode(1,QHeaderView::Stretch);
+    auto* NutLichSu = Nut(HangTimNhanSu,"Lần khám đã tham gia","staffHistory");
+    NutLichSu->setVisible(static_cast<bool>(MoLichSu));
+    NutLichSu->setEnabled(false);
+    if (MoLichSu) {
+        connect(NutLichSu,&QPushButton::clicked,this,[this] {
+            if (const auto* NhanVien = NhanVienDangChon()) MoLichSu(*NhanVien);
+        });
+    }
     ChiTietNhanSu = new QLabel("Chọn nhân viên để xem thông tin và nguyện vọng.");
     ChiTietNhanSu->setObjectName("adminStaffDetail"); ChiTietNhanSu->setProperty("adminDetail",true);
     ChiTietNhanSu->setWordWrap(true); DanhSach->addWidget(ChiTietNhanSu);
-    connect(BangNhanSu,&QTableWidget::itemSelectionChanged,this,[this] {
-        const int I=BangNhanSu->currentRow();
-        if (I>=0 && I<DuLieu.NhanSu->KichThuoc()) {
-            const auto& N=DuLieu.NhanSu->Lay(I); const auto& M=N.LayCaMongMuon();
+    connect(BangNhanSu,&QTableWidget::currentCellChanged,this,[this, NutLichSu] {
+        const auto* NhanVien = NhanVienDangChon();
+        NutLichSu->setEnabled(NhanVien != nullptr);
+        if (NhanVien) {
+            const auto& N = *NhanVien;
+            const auto& M = N.LayCaMongMuon();
             ChiTietNhanSu->setText(StaffPresenter::MoTa(N) + QString("\nNguyện vọng: %1:00–%2:00 · %3 (ưu tiên mềm)")
                 .arg(M.GioBatDau,2,10,QChar('0')).arg(M.GioKetThuc,2,10,QChar('0'))
                 .arg(M.MongMuonCuoiTuan?"ưu tiên cuối tuần":"ưu tiên ngày thường"));
         } else ChiTietNhanSu->setText("Chọn nhân viên để xem thông tin và nguyện vọng.");
     });
-    auto* Tim = new QLineEdit; Tim->setObjectName("staffSearchEmployee");
-    Tim->setPlaceholderText("Tìm nhân viên theo tên (có dấu hoặc không dấu)");
-    Tim->setAccessibleName("Tìm nhân viên theo tên");
-    DanhSach->insertWidget(0,Tim);
-    connect(Tim,&QLineEdit::textChanged,this,[this](const QString& Ten) {
-        // Chuẩn hóa cả từ khóa và họ tên, giữ nguyên tên hiển thị.
-        const auto TuKhoa = DemoUi::ChuanHoa(Ten.trimmed());
-        for (int I=0;I<DuLieu.NhanSu->KichThuoc();++I) {
-            const auto HoTen = DemoUi::Chu(DuLieu.NhanSu->Lay(I).LayHoTen());
-            BangNhanSu->setRowHidden(I,!DemoUi::ChuanHoa(HoTen).contains(TuKhoa));
-        }
+    auto* KhungSangLoc = new QWidget;
+    auto* HangSL = new QHBoxLayout(KhungSangLoc);
+    HangSL->setContentsMargins(0,0,0,0);
+    DanhSach->addWidget(KhungSangLoc);
+    KhungSangLoc->hide();
+    connect(TimNhanSu,&QLineEdit::textChanged,this,&AdminPanel::LamMoiNhanSu);
+    connect(NhomNhanSu,&QTabBar::currentChanged,this,[this, NutLichSu, KhungSangLoc](int Nhom) {
+        KhungNhapNhanSu->hide();
+        KhungSangLoc->setVisible(Nhom == 1);
+        NutLichSu->setText(Nhom == 1 ? "Lịch sử đánh giá sinh hiệu" : "Lần khám đã tham gia");
+        LamMoiNhanSu();
     });
-    auto* HangSL=new QHBoxLayout; DanhSach->addLayout(HangSL);
     auto* BatDau=Nut(HangSL,"Bắt đầu sàng lọc","staffTriageStart");
     auto* CapGio=Nut(HangSL,"Cập nhật giờ","staffTriageRefresh");
     CapGio->setToolTip("Cập nhật thời gian sàng lọc và cảnh báo.");
@@ -525,16 +554,7 @@ void AdminPanel::LamMoi() {
         BuocTiep->setText("Bước tiếp theo: đề xuất lịch rồi kiểm tra từng phân công.");
     else if (ChoXacNhan>0) BuocTiep->setText("Kiểm tra phân công dự kiến, xác nhận và lưu lịch khi phù hợp.");
     else BuocTiep->setText("Không còn phân công chờ xác nhận. Kiểm tra lịch và lưu thay đổi khi cần.");
-    BangNhanSu->setRowCount(DuLieu.NhanSu->KichThuoc());
-    for (int I = 0; I < DuLieu.NhanSu->KichThuoc(); ++I) {
-        const auto& N = DuLieu.NhanSu->Lay(I);
-        O(BangNhanSu,I,0,QString::fromStdString(N.LayMaDinhDanh())); O(BangNhanSu,I,1,QString::fromStdString(N.LayHoTen()));
-        BangNhanSu->item(I,1)->setToolTip(StaffPresenter::MoTa(N));
-        O(BangNhanSu,I,2,N.LayLoaiNhanVien() == StaffType::BacSi ? "Bác sĩ" : "Điều dưỡng");
-        O(BangNhanSu,I,3,QString::number(FatigueService::TinhGio(N.LayMaDinhDanh(),DuLieu.Lich)));
-        O(BangNhanSu,I,4,QString::number(FatigueService::TinhDiem(N,DuLieu.Lich)));
-        O(BangNhanSu,I,5,DuLieu.DuPhong.Co(N.LayMaDinhDanh()) ? "Có" : "Không");
-    }
+    LamMoiNhanSu();
     BangCa->setRowCount(DuLieu.Lich.CacCa.KichThuoc());
     for (int I = 0; I < DuLieu.Lich.CacCa.KichThuoc(); ++I) {
         const auto& C = DuLieu.Lich.CacCa[I];
@@ -556,12 +576,7 @@ void AdminPanel::LamMoi() {
         BangLich->item(I,5)->setToolTip(QString::fromStdString(P.LayLyDoHuy()));
         O(BangLich,I,3,N ? QString::fromStdString(N->LayHoTen()) : "Không tìm thấy"); O(BangLich,I,4,VaiTro(P.VaiTro));
     }
-    if (auto* Tim=findChild<QLineEdit*>("staffSearchEmployee")) {
-        Tim->clear();
-        for (int I=0;I<BangNhanSu->rowCount();++I) BangNhanSu->setRowHidden(I,false);
-    }
     ChonNguoiThay->clear();
-    ChiTietNhanSu->setText("Chọn nhân viên để xem thông tin và nguyện vọng.");
     ChiTietCa->setText("Chọn ca để xem thời gian và nhu cầu nhân sự.");
     ChiTietPhanCong->setText("Chọn phân công để xem ca, vai trò và trạng thái.");
     NutLuu->setEnabled(DaSua && !LoiTepLienKet);
@@ -572,6 +587,37 @@ void AdminPanel::LamMoi() {
     TrangThaiTep->setText(LoiTepLienKet ? "Không tải được dữ liệu đã lưu" : DaSua ? "Có thay đổi chưa lưu" :
                          QFileInfo::exists(DuongDan) ? "Đã lưu thay đổi" : "Chưa có thay đổi");
 }
+const NhanVienYTe* AdminPanel::NhanVienDangChon() const {
+    // Sau khi lọc, số dòng hiển thị không còn trùng vị trí trong Registry.
+    const auto* Ma = BangNhanSu->item(BangNhanSu->currentRow(),0);
+    return Ma ? DuLieu.NhanSu->Tim(Ma->text().toStdString()) : nullptr;
+}
+
+void AdminPanel::LamMoiNhanSu() {
+    const auto Loai = NhomNhanSu->currentIndex() == 0 ? StaffType::BacSi : StaffType::DieuDuong;
+    const auto TuKhoa = DemoUi::ChuanHoa(TimNhanSu->text().trimmed());
+    const auto* NhanVien = NhanVienDangChon();
+    const std::string MaDangChon = NhanVien ? NhanVien->LayMaDinhDanh() : "";
+    int DongDangChon = -1;
+    BangNhanSu->setRowCount(0);
+    for (int I = 0; I < DuLieu.NhanSu->KichThuoc(); ++I) {
+        const auto& N = DuLieu.NhanSu->Lay(I);
+        if (N.LayLoaiNhanVien() != Loai) continue;
+        const auto HoTen = DemoUi::Chu(N.LayHoTen());
+        if (!DemoUi::ChuanHoa(HoTen).contains(TuKhoa)) continue;
+        const int Dong = BangNhanSu->rowCount();
+        BangNhanSu->insertRow(Dong);
+        if (N.LayMaDinhDanh() == MaDangChon) DongDangChon = Dong;
+        O(BangNhanSu,Dong,0,DemoUi::Chu(N.LayMaDinhDanh()));
+        O(BangNhanSu,Dong,1,HoTen);
+        BangNhanSu->item(Dong,1)->setToolTip(StaffPresenter::MoTa(N));
+        O(BangNhanSu,Dong,2,QString::number(FatigueService::TinhGio(N.LayMaDinhDanh(),DuLieu.Lich)));
+        O(BangNhanSu,Dong,3,QString::number(FatigueService::TinhDiem(N,DuLieu.Lich)));
+        O(BangNhanSu,Dong,4,DuLieu.DuPhong.Co(N.LayMaDinhDanh()) ? "Có" : "Không");
+    }
+    if (DongDangChon >= 0) BangNhanSu->selectRow(DongDangChon);
+}
+
 void AdminPanel::ThemNhanSu(bool CapNhat) {
     try {
         if (CapNhat && CoLichSu(DuLieu.Lich)) { BaoLoi("Khong sua nhan su lam mat lich su phan cong"); return; }
@@ -594,6 +640,7 @@ void AdminPanel::ThemNhanSu(bool CapNhat) {
         if (DangKyDuPhong->isChecked()) DuLieu.DuPhong.Them(Ma); else DuLieu.DuPhong.Xoa(Ma);
         if (CapNhat) DuLieu.Lich.PhanCong.XoaHet();
         KhungNhapNhanSu->hide();
+        NhomNhanSu->setCurrentIndex(LoaiNV->currentIndex());
         DaSua = true; LamMoi();
         ThongBao->setText(CapNhat ? "Đã cập nhật nhân viên." : "Đã thêm nhân viên.");
     } catch (const My_stdexcept& E) { BaoLoi(E.LayThongBao()); }
@@ -731,11 +778,11 @@ void AdminPanel::reject() {
 
 void AdminPanel::CapNhatSangLoc(int Lenh) {
     try {
-        const int I=BangNhanSu->currentRow();
-        if (I<0) { BaoLoi("Chon dieu duong truoc"); return; }
-        const auto& NV=DuLieu.NhanSu->Lay(I);
-        if (NV.LayLoaiNhanVien()!=StaffType::DieuDuong) { BaoLoi("Chuc nang nay danh cho dieu duong"); return; }
-        DieuDuong Moi(static_cast<const DieuDuong&>(NV));
+        const auto* NhanVien = NhanVienDangChon();
+        if (!NhanVien || NhanVien->LayLoaiNhanVien()!=StaffType::DieuDuong) {
+            BaoLoi("Chon dieu duong truoc"); return;
+        }
+        DieuDuong Moi(static_cast<const DieuDuong&>(*NhanVien));
         const auto BayGio=static_cast<std::time_t>(QDateTime::currentSecsSinceEpoch());
         if (Lenh==0) Moi.BatDauTrucSangLoc(BayGio);
         else if (Lenh==1) Moi.CapNhatThoiGianSangLoc(BayGio);

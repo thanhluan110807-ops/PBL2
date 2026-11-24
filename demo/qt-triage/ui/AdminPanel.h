@@ -3,6 +3,8 @@
 #include "repository/AdminFileManager.h"
 #include <string>
 #include <QDialog>
+#include <functional>
+class NhanVienYTe;
 class QLineEdit;
 class QComboBox;
 class QSpinBox;
@@ -18,6 +20,7 @@ class QResizeEvent;
 class QPushButton;
 class QStackedWidget;
 class QTabWidget;
+class QTabBar;
 class QBoxLayout;
 
 // Widget chỉ thu thập đầu vào và hiển thị; mọi quyết định lịch nằm trong service.
@@ -26,6 +29,7 @@ class AdminPanel : public QDialog {
     AdminData DuLieu;
     std::string MaQuanLyHienTai;
     QString DuongDan;
+    std::function<void(const NhanVienYTe&)> MoLichSu;
     bool DaSua = false;
     bool LoiTepLienKet = false;
     QPushButton* NutLuu;
@@ -42,6 +46,8 @@ class AdminPanel : public QDialog {
     QLabel *ChiTietNhanSu, *ChiTietCa, *ChiTietPhanCong;
     QDateEdit *Tuan;
     QTableWidget *BangNhanSu, *BangCa, *BangLich;
+    QTabBar *NhomNhanSu;
+    QLineEdit *TimNhanSu;
     QLineEdit *MaNV, *TenNV, *ChuyenKhoa, *MaCa;
     QComboBox *LoaiNV, *CapNV, *NgayCa, *ChonNguoiThay;
     QSpinBox *KinhNghiem, *SoBS, *SoDD, *GioMongDau, *GioMongCuoi;
@@ -54,6 +60,8 @@ class AdminPanel : public QDialog {
     void TaoCa();
     void TaoLich();
     void LamMoi();
+    void LamMoiNhanSu();
+    const NhanVienYTe* NhanVienDangChon() const;
     void BaoLoi(const char* Loi);
     void ThemNhanSu(bool CapNhat = false);
     void CapNhatSangLoc(int Lenh);
@@ -69,7 +77,7 @@ protected:
     void closeEvent(QCloseEvent* SuKien) override;
     void resizeEvent(QResizeEvent* SuKien) override;
 public:
-    explicit AdminPanel(QWidget* Cha = nullptr, const QString& TepMacDinh = QString(), bool TrongTrangChinh = false);
+    explicit AdminPanel(QWidget* Cha = nullptr, const QString& TepMacDinh = QString(), bool TrongTrangChinh = false, std::function<void(const NhanVienYTe&)> MoLichSu = {});
     void ChonTrang(int ChiSo, const QString& Ten);
     void DatMaQuanLy(const std::string& Ma);
     bool ChoPhepDong();

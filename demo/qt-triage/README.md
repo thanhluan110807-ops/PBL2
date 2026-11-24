@@ -1,8 +1,11 @@
 # An Tâm — giao diện Qt nối code lõi
 
-Ba trang **Nhân sự**, **Ca trực** và **Lịch và thay ca** của quản lý dùng trực tiếp
-dữ liệu nhân sự/lịch và `SchedulerService`. Vùng chi tiết hiện thông tin người,
-ca hoặc phân công được chọn. Khi tìm người thay, danh sách hiện tên kèm
+Ba mục **Nhân sự**, **Ca trực** và **Lịch và thay ca** trong phiên **Quản lý**
+dùng chung dữ liệu nhân sự và lịch trực. Trong **Nhân sự**, chọn nhóm
+**Bác sĩ** hoặc **Điều dưỡng**, rồi chọn một dòng để xem các lần khám đã tham
+gia hoặc các lần đánh giá sinh hiệu có ghi mã điều dưỡng đó. Màn hình lịch sử
+mở được chi tiết lần khám ở chế độ chỉ đọc. Vùng chi tiết hiển thị thông tin
+người, ca hoặc phân công được chọn. Khi tìm người thay, danh sách hiện tên kèm
 mã nhân viên; thao tác vẫn sử dụng mã. Phần này tự nạp `nhan-su-lich.csv` cạnh
 Patient CSV nếu có; bộ cũ tiếp tục dùng `nhan-su-lich.pbl2` trong thư mục dữ liệu
 ứng dụng nếu chưa liên kết CSV. Nút **Lưu thay đổi** màu xanh ghi thẳng vào file
@@ -81,7 +84,8 @@ giữ mã đó cùng lịch trực khi mở lại.
    có một Visit đang mở. Patient mới có thể chưa rõ tên/tuổi.
 3. Đánh giá: mở chi tiết Visit ở trang **Tiếp nhận**, nhập mạch, huyết áp tâm
    thu, nhịp thở, SpO₂ và GCS. Đánh giá mới ghi mã điều dưỡng đang được chọn
-   trong phiên mô phỏng. Patient cần ngày sinh hoặc tuổi
+   trong phiên mô phỏng. Bản đánh giá chưa có mã vẫn xem được trong
+   chi tiết lần khám. Patient cần ngày sinh hoặc tuổi
    ước lượng. Dòng chữ nhỏ ngay dưới từng ô ghi khoảng giá trị nhập hợp lệ,
    đơn vị và cách nhập số thập phân cho SpO₂. Chữ nội dung 18px, tiêu đề 24px;
    hướng dẫn 14px. Mức cấp cứu được lõi tự tính;

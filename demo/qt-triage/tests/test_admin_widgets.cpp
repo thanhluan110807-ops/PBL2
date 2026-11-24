@@ -16,6 +16,7 @@
 #include <QFile>
 #include <QDir>
 #include <QTabWidget>
+#include <QTabBar>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <cassert>
@@ -40,7 +41,7 @@ int main(int argc, char** argv) {
     Click("adminSeed");
     assert(W.findChild<QLabel*>("adminStaffCount")->text()=="4");
     assert(W.findChild<QLabel*>("adminShiftCount")->text()=="2");
-    assert(W.findChild<QTableWidget*>("staffTable")->rowCount()==4);
+    assert(W.findChild<QTableWidget*>("staffTable")->rowCount()==2);
     assert(W.findChild<QTableWidget*>("shiftTable")->rowCount()==2);
     assert(W.findChild<QTableWidget*>("shiftTable")->item(0,5)->text()=="Có");
     Click("scheduleGenerate");
@@ -134,6 +135,7 @@ int main(int argc, char** argv) {
     const QString TepSua=Tmp.path()+"/sua.pbl2";
     AdminFileManager::Luu(TepSua.toStdString(),Mau);
     AdminPanel Sua(nullptr,TepSua);
+    Sua.findChild<QTabBar*>("staffGroups")->setCurrentIndex(1);
     Sua.findChild<QTableWidget*>("staffTable")->selectRow(0);
     Sua.findChild<QPushButton*>("staffEditSelect")->click();
     Sua.findChild<QLineEdit*>("staffName")->setText(QString::fromUtf8("Đặng Lan"));
@@ -145,9 +147,9 @@ int main(int argc, char** argv) {
     assert(!Sua.findChild<QTableWidget*>("staffTable")->item(0,1)->toolTip().isEmpty());
     auto* TimTenSua=Sua.findChild<QLineEdit*>("staffSearchEmployee");
     TimTenSua->setText("khong khop");
-    assert(Sua.findChild<QTableWidget*>("staffTable")->isRowHidden(0));
+    assert(Sua.findChild<QTableWidget*>("staffTable")->rowCount()==0);
     TimTenSua->setText("dang lan");
-    assert(!Sua.findChild<QTableWidget*>("staffTable")->isRowHidden(0));
+    assert(Sua.findChild<QTableWidget*>("staffTable")->rowCount()==1);
     assert(Sua.LuuTep(TepSua)); Sua.close();
     // Kiểm tra luồng đồng hồ thật và tìm tên trên các nút mới.
     AdminPanel DongHo;
@@ -157,25 +159,29 @@ int main(int argc, char** argv) {
     assert(TimNhanVien && TimNhanVien->accessibleName()=="Tìm nhân viên theo tên");
     for (const auto* TuKhoa : {"Nguyễn", "nguyen", "NGUYỄN"}) {
         TimNhanVien->setText(QString::fromUtf8(TuKhoa));
-        assert(!BangNV->isRowHidden(0) && BangNV->isRowHidden(2));
+        assert(BangNV->rowCount()==1 && BangNV->item(0,0)->text()=="BS01");
     }
+    auto* Nhom=DongHo.findChild<QTabBar*>("staffGroups");
+    Nhom->setCurrentIndex(1);
+    assert(BangNV->rowCount()==0);
     TimNhanVien->setText("LE");
-    assert(BangNV->isRowHidden(0) && !BangNV->isRowHidden(2) && BangNV->isRowHidden(3));
+    assert(BangNV->rowCount()==1 && BangNV->item(0,0)->text()=="DD01");
     TimNhanVien->clear();
-    assert(!BangNV->isRowHidden(0) && !BangNV->isRowHidden(2));
-    BangNV->selectRow(2);
+    assert(BangNV->rowCount()==2);
+    assert(BangNV->item(1,0)->text()=="DD02");
+    BangNV->selectRow(0);
     const auto* DiaChi=DongHo.LayDuLieu().NhanSu->Tim("DD01");
     DongHo.findChild<QPushButton*>("staffTriageStart")->click();
     assert(DongHo.LayDuLieu().NhanSu->Tim("DD01")==DiaChi);
     assert(static_cast<const DieuDuong*>(DiaChi)->DangTheoDongHo());
-    BangNV->selectRow(2);
+    BangNV->selectRow(0);
     DongHo.findChild<QPushButton*>("staffTriageRefresh")->click();
     DongHo.findChild<QPushButton*>("scheduleGenerate")->click();
     const QString TepDongHo=Tmp.path()+"/dong-ho.pbl2";
     assert(DongHo.LuuTep(TepDongHo));
     AdminPanel NapDongHo(nullptr,TepDongHo);
     assert(static_cast<const DieuDuong*>(NapDongHo.LayDuLieu().NhanSu->Tim("DD01"))->DangTheoDongHo());
-    BangNV->selectRow(2);
+    BangNV->selectRow(0);
     DongHo.findChild<QPushButton*>("staffTriageEnd")->click();
     assert(!static_cast<const DieuDuong*>(DiaChi)->DangSangLoc());
     assert(DongHo.LuuTep(TepDongHo)); DongHo.close(); NapDongHo.close();

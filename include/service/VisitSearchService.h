@@ -4,9 +4,16 @@
 
 #include "dsa/Vector.h"
 #include "model/Date.h"
+#include "model/Visit.h"
 #include "repository/PatientRegistry.h"
 
-// Tra cứu các lần khám theo thông tin bệnh nhân; Registry giữ quyền sở hữu dữ liệu.
+// Một dòng sinh hiệu mượn dữ liệu; thêm đánh giá vào Visit có thể làm con trỏ cũ hết hạn.
+struct KetQuaTraCuuDanhGia {
+    KetQuaTraCuuLanKham HoSo;
+    const TriageAssessment* DanhGia = nullptr;
+};
+
+// Tra cứu lịch sử khám và đánh giá; Registry giữ quyền sở hữu dữ liệu.
 class VisitSearchService {
     const PatientRegistry& Registry;
 
@@ -18,4 +25,8 @@ public:
     Vector<KetQuaTraCuuLanKham> TimTheoBenhNhan(
         const std::string& TenCanTim = "", const Date* NgayTiepNhan = nullptr,
         const std::string& MaLanKham = "") const;
+    // Chỉ lấy bác sĩ thực sự tham gia, mỗi lần khám xuất hiện một lần.
+    Vector<KetQuaTraCuuLanKham> TimTheoBacSi(const std::string& MaBacSi) const;
+    // Mỗi kết quả là một lần đánh giá có đúng mã điều dưỡng. Mã rỗng trả rỗng.
+    Vector<KetQuaTraCuuDanhGia> TimDanhGiaTheoDieuDuong(const std::string& MaDieuDuong) const;
 };

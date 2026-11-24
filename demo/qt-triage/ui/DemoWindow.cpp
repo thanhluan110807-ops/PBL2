@@ -406,7 +406,9 @@ void DemoWindow::DoDuLieu() {
         auto *TenO = new QTableWidgetItem(Ten + "\n" + Chu(MaBenhNhan) + " · " + MaLuot);
         TenO->setData(Qt::UserRole, Luot ? Chu(MaKham) : Chu(MaBenhNhan));
         Bang->setItem(Dong, 1, TenO);
-        Bang->setItem(Dong, 0, new QTableWidgetItem(QString::number(Thu + 1)));
+        // Chỉ Hàng chờ giữ vị trí ưu tiên gốc khi lọc. Các bảng còn lại đánh số theo dòng hiện ra.
+        const int SoThuTu = (LaHang ? Thu : Dong) + 1;
+        Bang->setItem(Dong, 0, new QTableWidgetItem(QString::number(SoThuTu)));
         auto *MucO = new QWidget;
         auto *BoCuc = new QHBoxLayout(MucO);
         BoCuc->setContentsMargins(6, 16, 6, 16);
@@ -468,8 +470,8 @@ void DemoWindow::DoDuLieu() {
     CacThe->addStretch();
     VungDanhSach->setCurrentIndex(Hep || !SoHien || Trang == TrangHoSo ? 1 : 0);
     VungDanhSach->setMinimumHeight(Hep || Trang == TrangHoSo ? qMax(220, CacThe->sizeHint().height()) : 390);
-    SoKetQua->setText(
-        QString("Hiển thị %1 / %2 · STT theo toàn bộ hàng chờ khi xem hàng chờ").arg(SoHien).arg(Tong));
+    const QString TomTat = QString("Hiển thị %1 / %2").arg(SoHien).arg(Tong);
+    SoKetQua->setText(LaHang ? TomTat + " · STT theo toàn bộ hàng chờ" : TomTat);
 }
 void DemoWindow::resizeEvent(QResizeEvent *SuKien) {
     QMainWindow::resizeEvent(SuKien);

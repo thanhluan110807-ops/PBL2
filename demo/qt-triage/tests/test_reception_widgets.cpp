@@ -10,6 +10,8 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QTableWidget>
+#include <QTableWidgetItem>
 #include <QTemporaryDir>
 #include <QTimer>
 #include <cassert>
@@ -153,4 +155,14 @@ int main(int argc,char** argv) {
     auto* TaiNap=SessionFileManager().DocBoFile(TepPatient,TepVisit,Hang);
     assert(TaiNap->TimLanKham("LK003")->LayMaBenhNhan()=="A");
     assert(TaiNap->TaoMaLanKham()=="LK004"); delete TaiNap;
+
+    // Lượt mới hơn đã hủy không chiếm số thứ tự ở danh sách chờ sàng lọc.
+    T.TiepNhan("V-HUY", "BN002", std::time(nullptr) + 1, "Đã hủy");
+    T.Huy("V-HUY");
+    W.LamMoi();
+    const auto* Bang = Tim<QTableWidget>(&W, "hangCho");
+    assert(Bang->rowCount() == 2);
+    assert(Bang->item(0, 0)->text() == "1" && Bang->item(1, 0)->text() == "2");
+    Nhap(&W, "timHang", "LK002");
+    assert(Bang->rowCount() == 1 && Bang->item(0, 0)->text() == "1");
 }

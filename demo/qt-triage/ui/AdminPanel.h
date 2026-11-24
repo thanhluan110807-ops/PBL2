@@ -70,6 +70,7 @@ public:
     explicit AdminPanel(QWidget* Cha = nullptr, const QString& TepMacDinh = QString(), bool TrongTrangChinh = false);
     void ChonTrang(int ChiSo, const QString& Ten);
     bool ChoPhepDong();
+    bool LuuTruocKhiDoiVaiTro();
     bool LuuNhanSu(const QString& Tep);
     bool NapNhanSu(const QString& Tep);
     bool LuuTep(const QString& Tep);

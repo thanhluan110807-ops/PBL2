@@ -54,8 +54,10 @@ int main(int SoThamSo, char *ThamSo[]) {
         VisitSearchService TraCuu(*Registry);
         DemoWindow CuaSo(*Registry, Triage, TraCuu, TepPatient, TepVisit);
         DemoUi::NhoBoFileDaChon(ThuMucCauHinh.toStdString(),TepPatient,TepVisit);
-        CuaSo.show();
-        MaThoat = UngDung.exec();
+        if (CuaSo.ChonVaiTro()) {
+            CuaSo.show();
+            MaThoat = UngDung.exec();
+        }
     } catch (const My_stdexcept &Loi) {
         QMessageBox::critical(nullptr, "Không thể chạy demo", QString::fromUtf8(Loi.LayThongBao()));
         MaThoat = 1;

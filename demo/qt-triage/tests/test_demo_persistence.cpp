@@ -1,8 +1,11 @@
+#include "RoleTestSupport.h"
 #include "ui/DemoWindow.h"
 #include "ui/DemoStartup.h"
 #include "repository/SessionFileManager.h"
 #include "repository/AdminFileManager.h"
 #include "model/BacSi.h"
+#include "model/Shift.h"
+#include "model/ShiftAssignment.h"
 #include "ui/AdminPanel.h"
 #include "repository/PatientRegistry.h"
 #include "service/TriageService.h"
@@ -12,6 +15,11 @@
 #include "model/Visit.h"
 #include <QApplication>
 #include <QDialog>
+#include <QDate>
+#include <QDateTime>
+#include <QTime>
+#include <QTimeZone>
+#include <ctime>
 #include <QLabel>
 #include <QLineEdit>
 #include <QComboBox>
@@ -19,6 +27,8 @@
 #include <QTimer>
 #include <QTemporaryDir>
 #include <QMetaObject>
+#include <QScrollArea>
+#include <QScrollBar>
 #include <QString>
 #include <QWidget>
 #include <filesystem>
@@ -40,12 +50,43 @@ int main(int So,char** Args) {
     PatientRegistry R; TriageService T(R); VisitSearchService S(R);
     AdminData NhanSu;
     NhanSu.NhanSu->Them(BacSi("BS1","Bác sĩ mẫu",CapBac::BacSiChinh,8,"Cấp cứu"));
+    NhanSu.NhanSu->Them(DieuDuong("DD01","Điều dưỡng mẫu",CapBac::DieuDuongChinh,5));
+    NhanSu.TuanBatDau = "2026-11-09";
+    const auto DauTuan = static_cast<std::time_t>(QDateTime(QDate(2026,11,9),QTime(0,0),QTimeZone(7*3600)).toSecsSinceEpoch());
+    NhanSu.Lich.CacCa.ThemCuoi(Shift::TuThoiDiem("CA-BS",DauTuan+7*3600,DauTuan+15*3600,1,0,false));
+    NhanSu.Lich.CacCa.ThemCuoi(Shift::TuThoiDiem("CA-DD",DauTuan+7*3600,DauTuan+15*3600,0,1,false));
+    NhanSu.Lich.CacCa.ThemCuoi(Shift::TuThoiDiem("CA-HUY",DauTuan+31*3600,DauTuan+39*3600,0,1,false));
+    NhanSu.Lich.PhanCong.ThemCuoi(ShiftAssignment("PC-BS","BS1","CA-BS",AssignmentRole::BacSi));
+    NhanSu.Lich.PhanCong.ThemCuoi(ShiftAssignment("PC-DD","DD01","CA-DD",AssignmentRole::DieuDuong));
+    ShiftAssignment DaHuy("PC-HUY","DD01","CA-HUY",AssignmentRole::DieuDuong);
+    DaHuy.Huy("Ca đã đổi");
+    NhanSu.Lich.PhanCong.ThemCuoi(DaHuy);
     const std::string TepNhanSu=Goc+"/nhan-su-lich.csv";
     AdminFileManager::Luu(TepNhanSu,NhanSu);
-    DemoWindow W(R,T,S,TepPatient,TepVisit); W.show(); A.processEvents();
+    DemoWindow W(R,T,S,TepPatient,TepVisit);
+    HenChonVaiTro("vaiTroDieuDuong","DD01");
+    assert(W.ChonVaiTro());
+    W.show(); A.processEvents();
+    const auto Bam = [&](const char* Ma) {
+        auto* Nut = W.findChild<QPushButton*>(Ma); assert(Nut && Nut->isVisible()); Nut->click();
+    };
+    const auto KiemTraLich = [&](const QString& MaCa) {
+        Bam("nav8");
+        A.processEvents();
+        const auto Ca = W.findChildren<QLabel*>("caTrucCaNhan");
+        assert(Ca.size()==1 && Ca[0]->isVisible() && Ca[0]->text()==MaCa);
+        assert(W.findChild<QLabel*>("tuanLichCaNhan")->text().contains("09/11/2026 – 15/11/2026"));
+        assert(!W.findChild<QPushButton*>("adminSave")->isVisible());
+    };
+    KiemTraLich("CA-DD");
+    W.resize(520,800); A.processEvents();
+    assert(W.width()==520);
+    assert(W.findChild<QScrollArea*>("trangCaNhan")->horizontalScrollBar()->maximum()==0);
+    W.resize(1440,980); A.processEvents();
+    Bam("nav1");
     // Cùng bộ Patient/Visit: tự liên kết CSV nhân sự cạnh đó, không nạp nguồn khác.
     auto* QuanTri=W.findChild<AdminPanel*>("adminPanel"); assert(QuanTri);
-    assert(QuanTri->LayDuLieu().NhanSu->KichThuoc()==1);
+    assert(QuanTri->LayDuLieu().NhanSu->KichThuoc()==2);
     assert(!W.findChild<QPushButton*>("luuDuLieu"));
     // Tiếp nhận thật qua GUI, không bấm bất kỳ nút lưu nào.
     QTimer::singleShot(0,[] {
@@ -69,13 +110,15 @@ int main(int So,char** Args) {
     // Mở lại không cần tự tìm bản lưu hoặc chọn file.
     Moi=DemoUi::KhoiDongTuDong(TepPatient,TepVisit,Hang);
     assert(Moi && Moi->TimLanKham("LK001")->SoDanhGia()==1);
-    // Chưa đăng nhập: đánh giá vẫn được lưu/đọc lại, không gán mã người giả.
-    assert(Moi->TimLanKham("LK001")->LayDanhGiaGanNhat().LayMaDieuDuong().empty());
+    assert(Moi->TimLanKham("LK001")->LayDanhGiaGanNhat().LayMaDieuDuong()=="DD01");
     { TriageService Tai(*Moi); Tai.KhoiPhucHangCho(Hang); assert(Tai.SoDangCho()==1); }
     delete Moi;
-    W.findChild<QLineEdit*>("maBacSi")->setText("BS1"); W.findChild<QPushButton*>("goiTiep")->click();
+    HenChonVaiTro("vaiTroBacSi","BS1"); Bam("doiVaiTro");
+    KiemTraLich("CA-BS");
+    Bam("nav2"); Bam("goiTiep");
     Moi=SessionFileManager().DocBoFile(TepPatient,TepVisit,Hang);
     assert(Moi->TimLanKham("LK001")->LayTrangThai()==VisitStatus::DangKham); delete Moi;
+    HenChonVaiTro("vaiTroDieuDuong","DD01"); Bam("doiVaiTro");
     // Chặn I/O sau thao tác: không báo đã lưu, không nhận thêm thay đổi, không cho đóng mất dữ liệu.
     namespace Fs=std::filesystem;
     Fs::rename(Fs::u8path(Goc),Fs::u8path(Goc+"-giu"));

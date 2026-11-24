@@ -1,9 +1,8 @@
 # An Tâm — giao diện Qt nối code lõi
 
-Mục **Nhân sự và lịch trực** trong thanh điều hướng mở phần B ngay trong vùng nội dung chính, không bật hộp thoại riêng. Ba tab Nhân sự,
-Ca trực, Lịch và thay ca dùng trực tiếp dữ liệu nhân sự/lịch và `SchedulerService`.
-Các thẻ tổng quan lấy số lượng từ dữ liệu hiện tại; vùng chi tiết hiện thông tin
-người, ca hoặc phân công được chọn. Khi tìm người thay, danh sách hiện tên kèm
+Ba trang **Nhân sự**, **Ca trực** và **Lịch và thay ca** của quản lý dùng trực tiếp
+dữ liệu nhân sự/lịch và `SchedulerService`. Vùng chi tiết hiện thông tin người,
+ca hoặc phân công được chọn. Khi tìm người thay, danh sách hiện tên kèm
 mã nhân viên; thao tác vẫn sử dụng mã. Phần này tự nạp `nhan-su-lich.csv` cạnh
 Patient CSV nếu có; bộ cũ tiếp tục dùng `nhan-su-lich.pbl2` trong thư mục dữ liệu
 ứng dụng nếu chưa liên kết CSV. Nút **Lưu thay đổi** màu xanh ghi thẳng vào file
@@ -47,6 +46,22 @@ bình thường tự dùng lại bộ đã liên kết và giữ thay đổi, kh
 tạo phiên tạm. Lần đầu chưa có cấu hình cũng tự dùng bộ này. Xem
 [bộ CSV trong data/ và kịch bản trình diễn](../../data/README.md) để biết chi tiết.
 
+## Chọn vai trò
+
+Khi mở An Tâm, chọn **Điều dưỡng**, **Bác sĩ** hoặc **Quản lý**. Điều dưỡng và
+bác sĩ chọn thêm nhân viên đã có trong danh sách. Nếu bộ dữ liệu chưa có nhân
+sự, vào **Quản lý → Nhân sự** để thêm hoặc nạp mẫu rồi lưu. Nút **Đổi vai trò**
+ở thanh đầu chuyển vai trò ngay trong cùng phiên. Nếu quản lý còn thay đổi,
+ứng dụng yêu cầu lưu hoặc hủy chuyển vai trò.
+
+- **Điều dưỡng:** Tiếp nhận, Hàng chờ (chỉ xem), Lượt khám, Hồ sơ bệnh nhân và Lịch trực.
+- **Bác sĩ:** Hàng chờ, Khám, Lượt khám, Hồ sơ bệnh nhân và Lịch trực.
+- **Quản lý:** Lượt khám và Hồ sơ bệnh nhân (chỉ xem), Nhân sự, Ca trực, Lịch và thay ca.
+
+**Lịch trực** của bác sĩ và điều dưỡng chỉ hiển thị phân công còn hiệu lực của
+nhân viên đang chọn trong tuần lưu cùng bộ dữ liệu. Đây là chế độ mô phỏng
+bằng cách chọn vai trò và nhân viên.
+
 ## Luồng dùng thử
 
 1. Khởi động: tự dùng bộ file đã nhớ, hoặc bộ CSV mẫu nếu chưa có cấu hình.
@@ -62,20 +77,19 @@ tạo phiên tạm. Lần đầu chưa có cấu hình cũng tự dùng bộ nà
    Hồ sơ cùng tên không tự gộp. Mã hoặc CCCD trùng bị từ chối; mỗi Patient chỉ
    có một Visit đang mở. Patient mới có thể chưa rõ tên/tuổi.
 3. Đánh giá: mở chi tiết Visit ở trang **Tiếp nhận**, nhập mạch, huyết áp tâm
-   thu, nhịp thở, SpO₂ và GCS. Tạm bỏ nhập mã điều dưỡng khi chưa có đăng nhập;
-   đánh giá mới lưu mã rỗng, lịch sử đã có mã vẫn giữ nguyên. Khi triển khai
-   đăng nhập theo vai trò, mã sẽ lấy từ tài khoản điều dưỡng đang đăng nhập.
-   Patient cần ngày sinh hoặc tuổi
+   thu, nhịp thở, SpO₂ và GCS. Đánh giá mới ghi mã điều dưỡng đang được chọn
+   trong phiên mô phỏng. Patient cần ngày sinh hoặc tuổi
    ước lượng. Dòng chữ nhỏ ngay dưới từng ô ghi khoảng giá trị nhập hợp lệ,
    đơn vị và cách nhập số thập phân cho SpO₂. Chữ nội dung 18px, tiêu đề 24px;
    hướng dẫn 14px. Mức cấp cứu được lõi tự tính;
    lưu thành công mới vào hàng khám.
-4. Gọi khám: nhập mã bác sĩ và bấm **Gọi lượt tiếp theo**. Bộ lọc chỉ ảnh hưởng
-   hiển thị. Mức cao hơn luôn đi trước; khi hai đầu hàng cùng mức, luân phiên
-   quay lại/lần đầu, lần hòa đầu tiên ưu tiên quay lại.
-5. Chi tiết: bác sĩ đã tham gia có thể chỉ định cận lâm sàng, nhận kết quả và
-   đưa Visit vào hàng quay lại. Có thể kết thúc khi đang khám hoặc hủy Visit
-   đang mở. Đánh giá lại chỉ hiện khi đang chờ khám. Lịch sử đánh giá, bác sĩ
+4. Gọi khám: chọn vai trò **Bác sĩ**, vào **Hàng chờ** và bấm **Gọi lượt tiếp theo**.
+   Tab **Khám** hiện bệnh nhân vừa gọi. Xử lý lượt đang khám trước khi gọi lượt
+   khác. Bộ lọc chỉ ảnh hưởng hiển thị. Mức cao hơn luôn đi trước; khi hai đầu
+   hàng cùng mức, luân phiên quay lại/lần đầu, lần hòa đầu tiên ưu tiên quay lại.
+5. Chi tiết: bác sĩ phụ trách có thể chỉ định cận lâm sàng, ghi kết quả và
+   đưa Visit vào hàng quay lại. Bác sĩ có thể kết thúc lượt mình đang khám.
+   Điều dưỡng có thể đánh giá lại và hủy lượt đang chờ từ trang **Lượt khám**. Lịch sử đánh giá, bác sĩ
    tham gia và cận lâm sàng đọc từ Visit thật. Thông tin được xếp thành từng
    dòng nhãn/giá trị từ trên xuống; nội dung dài cuộn trong hộp thoại.
 6. Tra cứu trong tab **Lượt khám**: ô tìm trong danh sách hỗ trợ tên/mã/CCCD
@@ -84,7 +98,7 @@ tạo phiên tạm. Lần đầu chưa có cấu hình cũng tự dùng bộ nà
    quả. Patient chưa khám nằm trong **Hồ sơ bệnh nhân**.
 7. Hồ sơ: mặc định xem từng dòng **Họ tên: …**, **CCCD: …**, ngày sinh, giới
    tính, nhóm máu, dị ứng, tiền sử và các Visit liên kết. Giá trị chưa biết để
-   trống. Bấm **Bổ sung / cập nhật thông tin** mới hiện ô nhập tên, giới tính,
+   trống. Điều dưỡng bấm **Bổ sung / cập nhật thông tin** để nhập tên, giới tính,
    ngày sinh, CCCD. **Hủy chỉnh sửa** trở lại phần xem; **Lưu thay đổi** cập
    nhật qua Registry, giữ nguyên mã, dữ liệu y tế và lịch sử. Lưu thành công
    trở lại phần xem thông tin mới. Hồ sơ và chi tiết lần khám dùng chữ nội
@@ -103,9 +117,7 @@ hai hàng, cận lâm sàng, bổ sung danh tính và các tình huống bị t�
 - Mở lại tự dùng bộ file gần nhất; nếu bị dừng giữa hai lần ghi, tự hoàn tất
   từ bản chụp đầy đủ. Ghi lỗi giữ RAM, tạm chặn thay đổi, tự thử lại mỗi 3 giây;
   không đóng cửa sổ khi chưa ghi được. [Chi tiết](../../docs/repository/visit-files.md).
-- Chưa nối danh sách nhân viên; mã bác sĩ/điều dưỡng do người dùng nhập.
-- Chưa tính áp lực hàng đợi. Mục **Nhân sự và lịch trực** hiển thị phần B trong
-  cửa sổ chính, tự đọc file đã liên kết và ghi khi bấm **Lưu thay đổi**.
+- Chưa tính áp lực hàng đợi.
 - Bỏ mức phân loại thủ công, cảnh báo chờ quá giờ, đồng hồ mô phỏng, mẫu 3:1.
   Thời gian là giờ hệ thống; màn hình hiển thị UTC+7. Cột **Tiếp nhận** không
   phải thời gian vào hàng (API chưa trả thời điểm vào hàng).
@@ -118,7 +130,8 @@ hai hàng, cận lâm sàng, bổ sung danh tính và các tình huống bị t�
 
 ## Mã nguồn và kiểm thử
 
-- `ui/DemoWindow.h/.cpp`: bố cục, thống kê, bảng/thẻ, lọc và gọi tiếp.
+- `ui/DemoWindow.h/.cpp`: bố cục, điều hướng, bảng/thẻ, lọc và gọi tiếp.
+- `ui/DemoRoles.cpp`: chọn/đổi vai trò, lịch cá nhân và bệnh nhân đang khám.
 - `ui/DemoDialogs.cpp`: tiếp nhận, đánh giá, chi tiết, danh tính, cận lâm sàng.
 - `ui/DemoStartup.h/.cpp`: chọn Patient/Visit CSV hoặc Registry rỗng trước khi tạo service.
 - `ui/DemoStyle.h/.cpp`: QSS, icon, nhãn trạng thái và thời gian.

@@ -3,7 +3,7 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 message(STATUS "Native demo: Qt ${QT_VERSION_MAJOR}, Widgets only")
 
-add_library(pbl2_demo_ui STATIC ui/DemoWindow.cpp ui/DemoDialogs.cpp ui/DemoStyle.cpp ui/DemoStartup.cpp ui/AdminPanel.cpp ui/StaffPresenter.cpp)
+add_library(pbl2_demo_ui STATIC ui/DemoWindow.cpp ui/DemoDialogs.cpp ui/DemoRoles.cpp ui/DemoStyle.cpp ui/DemoStartup.cpp ui/AdminPanel.cpp ui/StaffPresenter.cpp)
 target_link_libraries(pbl2_demo_ui PUBLIC pbl2_core Qt${QT_VERSION_MAJOR}::Widgets)
 target_include_directories(pbl2_demo_ui PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 if(MSVC)

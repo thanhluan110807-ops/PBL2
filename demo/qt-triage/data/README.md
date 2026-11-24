@@ -37,8 +37,10 @@ Trang **Hồ sơ bệnh nhân** phải có 30 hồ sơ. Hàng chờ và danh sá
 
 ## Thử phân loại 5 mức
 
-Tiếp nhận từng hồ sơ BN001–BN005 bằng chế độ **Chọn hồ sơ đã có**, dùng các
-mã Visit TEST001–TEST005. Nhập triệu chứng thử tùy ý; không cần mã điều dưỡng.
+Nếu bộ dữ liệu chưa có nhân sự, vào **Quản lý → Nhân sự** để thêm hoặc nạp mẫu
+rồi lưu. Chọn một điều dưỡng để tiếp nhận từng hồ sơ BN001–BN005 bằng chế độ
+**Chọn hồ sơ đã có**. Ghi lại các mã lượt hệ thống tự cấp để đối chiếu với
+TEST001–TEST005 trong bảng bên dưới.
 Nhập các bộ số đo dưới đây trong hộp **Đánh giá**. Đây là đầu vào thử luật
 mô phỏng hiện tại trong code, không phải hướng dẫn y tế.
 
@@ -50,8 +52,8 @@ mô phỏng hiện tại trong code, không phải hướng dẫn y tế.
 | BN004 / TEST004 | 80 | 120 | 18 | 96 | 15 | 4 |
 | BN005 / TEST005 | 80 | 120 | 18 | 98 | 15 | 5 |
 
-Hàng chờ dự kiến TEST001 → TEST002 → TEST003 → TEST004 → TEST005. Nhập
-BS_TEST rồi gọi tiếp. Bộ lọc không thay đổi người được gọi. Để thử hàng cùng
+Hàng chờ dự kiến TEST001 → TEST002 → TEST003 → TEST004 → TEST005. Đổi sang
+**Bác sĩ**, chọn nhân viên, rồi gọi tiếp. Bộ lọc không thay đổi người được gọi. Để thử hàng cùng
 mức hoặc nhóm tuổi trẻ em, không dùng mọi bộ số đo người lớn như giá trị bình
 thường; có thể dùng các ví dụ riêng bên dưới.
 
@@ -60,8 +62,8 @@ thường; có thể dùng các ví dụ riêng bên dưới.
 Bắt đầu một phiên mới với cùng file CSV, sau đó:
 
 1. Tiếp nhận BN001/HOA001; đánh giá 80/120/18/98/15 (mức 5).
-2. Gọi HOA001 với BS_TEST, chuyển cận lâm sàng do BS_TEST chỉ định, ghi kết quả
-   thử để đưa HOA001 vào hàng quay lại.
+2. Đổi sang bác sĩ, gọi HOA001, chuyển cận lâm sàng rồi ghi kết quả thử để đưa
+   HOA001 vào hàng quay lại. Đổi vai trò khi cần tiếp nhận hoặc gọi lượt khác.
 3. Tiếp nhận BN004/HOA004, đánh giá cùng bộ số đo (mức 5).
 4. Gọi tiếp: HOA001 được chọn vì đây là lần hòa đầu tiên.
 5. Chuyển HOA001 đi cận lâm sàng và cho quay lại lần nữa.
@@ -88,8 +90,8 @@ Thứ tự số đo ghi tắt là mạch / HA tâm thu / nhịp thở / SpO₂ /
   Visit thứ hai cho BN001 khi còn Visit mở, hoặc dùng mã Visit đã có: bị từ chối.
 - Thử BN010: tiếp nhận được, đánh giá bị từ chối vì chưa có tuổi; bổ sung tên,
   giới tính, ngày sinh hợp lệ rồi đánh giá lại. Mã BN010 và Visit cũ giữ nguyên.
-- Sau khi gọi khám, thử chỉ định cận lâm sàng bằng mã bác sĩ chưa tham gia:
-  bị từ chối. Chọn đúng BS_TEST để tiếp tục vòng cận lâm sàng/quay lại.
+- Sau khi gọi khám, đổi sang bác sĩ khác và mở chi tiết lượt đã gọi. Chức năng
+  chỉ định cận lâm sàng chỉ xuất hiện với bác sĩ đang phụ trách lượt đó.
 - Thử sinh hiệu sai (SpO₂ 101 hoặc GCS 2): báo lỗi; sửa đúng rồi lưu lại.
 - Thử hủy Visit đang mở, hoặc kết thúc khi đang khám; lịch sử còn, có thể tiếp
   nhận Visit mới cho cùng Patient. Hủy hộp xác nhận thì trạng thái giữ nguyên.

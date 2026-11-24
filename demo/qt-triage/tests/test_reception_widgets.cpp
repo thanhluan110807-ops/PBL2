@@ -1,3 +1,4 @@
+#include "RoleTestSupport.h"
 #include "ui/DemoWindow.h"
 #include "repository/SessionFileManager.h"
 #include "model/Patient.h"
@@ -46,7 +47,11 @@ int main(int argc,char** argv) {
     T.TiepNhan("V-OLD","A",std::time(nullptr)-3600,"Khám cũ"); T.Huy("V-OLD");
     const auto TepPatient=(Tmp.path()+"/patient.csv").toStdString();
     const auto TepVisit=(Tmp.path()+"/visit.csv").toStdString();
-    DemoWindow W(R,T,S,TepPatient,TepVisit); W.show(); App.processEvents();
+    TaoNhanSuMau(Tmp.path());
+    DemoWindow W(R,T,S,TepPatient,TepVisit);
+    HenChonVaiTro("vaiTroDieuDuong", "DD01");
+    assert(W.ChonVaiTro());
+    W.show(); App.processEvents();
 
     QTimer::singleShot(0,[&] {
         auto* H=Hop(); auto* CheDo=Tim<QComboBox>(H,"cheDo");

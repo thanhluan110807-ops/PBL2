@@ -56,26 +56,27 @@ Patient/Visit phải được nạp cùng nhau. Giao diện tự liên kết `nh
 nằm cạnh Patient CSV. File nhân sự/lịch là CSV thật với từng cột riêng, tiêu đề
 `PBL2_ADMIN_CSV,1,2026-11-09`; xem [định dạng](../docs/PHAN-B.md#csv-nhân-sự-và-lịch-trực).
 Các mã bác sĩ/điều dưỡng trong lịch sử đều có trong danh sách nhân sự;
-đánh giá mới để trống mã điều dưỡng theo giai đoạn chưa có đăng nhập.
+đánh giá mới ghi mã điều dưỡng được chọn trong phiên mô phỏng.
 
 ## Kịch bản trình diễn gợi ý
 
-1. **Tiếp nhận:** có 2 lượt chưa đánh giá, 5 chờ khám lần đầu, 3 chờ quay lại
+1. **Tiếp nhận:** chọn **Điều dưỡng**, ví dụ **DD01**. Có 2 lượt chưa đánh giá, 5 chờ khám lần đầu, 3 chờ quay lại
    và 2 đang khám. LK009 có đủ tuổi; LK010 là bệnh nhân chưa rõ tên, tuổi ước
    lượng 40. Có thể mở một lượt và nhập sinh hiệu để đưa vào hàng chờ.
 2. **Hàng chờ:** có đủ mức 1–5, hai hàng lần đầu/quay lại. Khi chưa thay đổi
    dữ liệu, thứ tự gọi là **LK001 → LK006 → LK002 → LK003 → LK007 → LK004 →
-   LK008 → LK005**. Dùng mã bác sĩ **BS04** khi gọi khám. Mức 1 đi trước;
-   khi bằng mức thì hai hàng luân phiên theo quy tắc hiện có.
+   LK008 → LK005**. Chọn **Bác sĩ BS01**, bấm **Gọi lượt tiếp theo** và mở
+   **Khám** để xử lý lượt trước khi gọi tiếp. Mức 1 đi trước; khi bằng mức thì
+   hai hàng luân phiên theo quy tắc hiện có.
 3. **Chi tiết:** LK011/LK012 đang khám bởi BS04/BS08; LK013 đang chờ siêu âm
-   do BS04 chỉ định. Có thể nhập kết quả cho LK013 để đưa lại vào hàng chờ.
+   do BS04 chỉ định. Đổi sang **BS04** để nhập kết quả LK013 và đưa lượt trở lại hàng chờ.
    LK006–LK008 đã có kết quả mô phỏng và đang chờ bác sĩ xem lại.
 4. **Hồ sơ/lượt khám:** BN001 có lần trước LK016 và lượt hiện tại LK001;
    BN011 có LK017 đã kết thúc và LK011 đang khám. Tổng cộng có 3 lượt đã kết
    thúc, 1 đã hủy; BN016 chưa có lượt, có thể dùng để demo tiếp nhận hồ sơ cũ.
    Mã tiếp theo lúc chưa thao tác là **BN017** và **LK018**. Khi lọc ngày dùng
    **12/11/2026**; lịch sử trước đó ở 11/11 và 05/11, không tự đổi theo ngày máy.
-5. **Nhân sự/ca trực:** xem BS01–BS10 và DD01–DD10, cấp bậc, chuyên khoa,
+5. **Nhân sự/ca trực:** chọn **Quản lý** để xem BS01–BS10 và DD01–DD10, cấp bậc, chuyên khoa,
    điểm mệt mỏi và giờ đã xếp. Có ca sáng **07:00–15:00** và đêm
    **22:00–06:00 hôm sau**, mỗi ca cần 2 bác sĩ, 2 điều dưỡng, 1 trưởng ca.
    Đây là hai khung ca minh họa, không phải lịch phủ đủ 24 giờ mỗi ngày.

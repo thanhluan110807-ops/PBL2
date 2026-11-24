@@ -686,6 +686,16 @@ bool AdminPanel::ChoPhepBoThayDoi() {
     return !DaSua || QMessageBox::question(this,"Dữ liệu chưa lưu","Bỏ các thay đổi chưa lưu? Chọn Không để quay lại bấm Lưu thay đổi.",QMessageBox::Yes|QMessageBox::No,QMessageBox::No)==QMessageBox::Yes;
 }
 bool AdminPanel::ChoPhepDong() { return ChoPhepBoThayDoi(); }
+bool AdminPanel::LuuTruocKhiDoiVaiTro() {
+    if (!DaSua) return true;
+    const auto LuaChon = QMessageBox::question(this, "Dữ liệu chưa lưu",
+        "Lưu thay đổi nhân sự và lịch trực trước khi đổi vai trò?",
+        QMessageBox::Save | QMessageBox::Cancel, QMessageBox::Cancel);
+    if (LuaChon != QMessageBox::Save) return false;
+    if (LuuTep(DuongDan)) return true;
+    QMessageBox::warning(this, "Chưa đổi vai trò", ThongBao->text());
+    return false;
+}
 void AdminPanel::resizeEvent(QResizeEvent* E) {
     QDialog::resizeEvent(E);
     // Đặt biểu mẫu cạnh danh sách khi đủ rộng; cửa sổ hẹp xếp chúng theo chiều dọc.

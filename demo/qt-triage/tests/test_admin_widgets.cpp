@@ -1,6 +1,8 @@
 #include "ui/AdminPanel.h"
 #include "model/DieuDuong.h"
 #include "model/BacSi.h"
+#include "model/QuanLy.h"
+#include "repository/AdminFileManager.h"
 #include "repository/StaffFileManager.h"
 #include <QDateTime>
 #include "service/SchedulerService.h"
@@ -52,12 +54,20 @@ int main(int argc, char** argv) {
     assert(W.findChild<QLabel*>("adminAssignmentDetail")->text().contains("T2-SANG"));
     assert(W.findChild<QTableWidget*>("scheduleTable")->rowCount()==4);
     assert(SchedulerService::LichHopLe(*W.LayDuLieu().NhanSu,W.LayDuLieu().Lich));
+    W.DatMaQuanLy("QL01");
+    Click("assignmentConfirm");
+    assert(W.LayDuLieu().Lich.PhanCong[0].LayMaQuanLyXacNhan()=="QL01");
     assert(NutLuu->isEnabled() && !QFile::exists(Tep));
     Click("adminSave");
     assert(!QApplication::activeModalWidget());
     assert(QFile::exists(Tep) && !NutLuu->isEnabled());
     AdminPanel Doc(nullptr,Tep);
     assert(Doc.findChild<QTableWidget*>("scheduleTable")->rowCount()==4);
+    auto DuLieuHaiQuanLy = AdminFileManager::Doc(Tep.toStdString());
+    DuLieuHaiQuanLy.DanhSachQuanLy.ThemCuoi(QuanLy("QL02", "Quản lý thay ca"));
+    AdminFileManager::Luu(Tep.toStdString(), DuLieuHaiQuanLy);
+    assert(W.NapTep(Tep));
+    W.DatMaQuanLy("QL02");
     Click("staffOpenAdd");
     W.findChild<QLineEdit*>("staffId")->setText("BS01");
     W.findChild<QLineEdit*>("staffName")->setText("Trung ma");
@@ -87,15 +97,19 @@ int main(int argc, char** argv) {
     assert(UngVien->currentText().contains("Du phong"));
     Click("replacementApply");
     assert(W.LayDuLieu().Lich.PhanCong[0].LayTrangThai()==AssignmentStatus::DaHuy);
+    assert(W.LayDuLieu().Lich.PhanCong[0].LayMaQuanLyXacNhan()=="QL01");
     const int Cuoi=W.LayDuLieu().Lich.PhanCong.KichThuoc()-1;
     assert(W.LayDuLieu().Lich.PhanCong[Cuoi].MaNhanVien=="BS03");
     assert(W.LayDuLieu().Lich.PhanCong[Cuoi].LayTrangThai()==AssignmentStatus::DaXacNhan);
+    assert(W.LayDuLieu().Lich.PhanCong[Cuoi].LayMaQuanLyXacNhan()=="QL02");
     assert(W.findChild<QLabel*>("adminAssignmentCount")->text()=="3");
     Click("adminSave");
     assert(!NutLuu->isEnabled());
     assert(Doc.NapTep(Tep));
     assert(Doc.LayDuLieu().Lich.PhanCong[Cuoi].MaNhanVien=="BS03");
     assert(Doc.LayDuLieu().Lich.PhanCong[0].LayTrangThai()==AssignmentStatus::DaHuy);
+    assert(Doc.LayDuLieu().Lich.PhanCong[0].LayMaQuanLyXacNhan()=="QL01");
+    assert(Doc.LayDuLieu().Lich.PhanCong[Cuoi].LayMaQuanLyXacNhan()=="QL02");
     if (!qEnvironmentVariable("PBL2_ADMIN_CAPTURE").isEmpty()) {
         W.findChild<QTabWidget*>()->setCurrentIndex(2); App.processEvents();
         assert(W.grab().save(qEnvironmentVariable("PBL2_ADMIN_CAPTURE")));
@@ -178,6 +192,9 @@ int main(int argc, char** argv) {
     auto* BangTruc=Truc.findChild<QTableWidget*>("scheduleTable"); BangTruc->selectRow(0);
     Truc.findChild<QPushButton*>("assignmentStart")->click();
     assert(Truc.LayDuLieu().Lich.PhanCong[0].LayTrangThai()==AssignmentStatus::DuKien);
+    Truc.findChild<QPushButton*>("assignmentConfirm")->click();
+    assert(Truc.LayDuLieu().Lich.PhanCong[0].LayTrangThai()==AssignmentStatus::DuKien);
+    Truc.DatMaQuanLy("QL01");
     Truc.findChild<QPushButton*>("assignmentConfirm")->click();
     assert(Truc.LayDuLieu().Lich.PhanCong[0].LayTrangThai()==AssignmentStatus::DaXacNhan);
     BangTruc->selectRow(0); Truc.findChild<QPushButton*>("assignmentStart")->click();

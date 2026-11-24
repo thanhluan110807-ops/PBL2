@@ -33,6 +33,7 @@ add_library(pbl2_core STATIC
     src/model/Visit.cpp
     src/model/DoctorParticipation.cpp
     src/model/ShiftAssignment.cpp
+    src/model/QuanLy.cpp
     src/repository/ScheduleRegistry.cpp
     src/repository/ScheduleFileManager.cpp
     src/model/CapBac.cpp

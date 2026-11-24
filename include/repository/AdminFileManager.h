@@ -1,17 +1,23 @@
 // Phần B — Chức năng chính: Đọc/ghi snapshot chung nhân sự, lịch và dự phòng cho GUI.
 #pragma once
 #include "repository/StaffRegistry.h"
+#include "model/QuanLy.h"
 #include "model/Shift.h"
 #include "repository/StandbyPool.h"
+#include "dsa/Vector.h"
 #include <memory>
+#include <string>
 
 // Một snapshot chứa cả nhân sự và lịch để tránh đọc hai file lệch phiên bản.
 // unique_ptr sở hữu Registry; nó tự giải phóng khi quá trình đọc thất bại.
 struct AdminData {
     std::unique_ptr<StaffRegistry> NhanSu = std::make_unique<StaffRegistry>();
+    Vector<QuanLy> DanhSachQuanLy;
     Schedule Lich;
     StandbyPool DuPhong;
     std::string TuanBatDau = "2026-11-02";
+    AdminData();
+    const QuanLy* TimQuanLy(const std::string& Ma) const;
 };
 class AdminFileManager {
 public:

@@ -27,7 +27,7 @@ class DemoWindow : public QMainWindow {
         TrangNhanSu, TrangCaTruc, TrangQuanLyLich, TrangLichCaNhan, TrangKham, SoTrang
     };
     VaiTro VaiTroHienTai = VaiTro::ChuaChon;
-    std::string MaNhanVien;
+    std::string MaNguoiDung;
     AdminPanel* QuanTri = nullptr;
     // Mượn dữ liệu; main giữ Registry và các service sống lâu hơn cửa sổ.
     PatientRegistry &Registry;

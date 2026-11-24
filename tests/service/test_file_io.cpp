@@ -50,8 +50,10 @@ int main() {
     PhaiLoiTai([&] { ScheduleFileManager::DocLichTruc(Tep,N); },2);
     Ghi(Tep,"PBL2_SCHEDULE 1\nPC \"P\" \"B1\" \"C\" 1 0 0 \"\"\nCA \"C\" 1793577600 1793606400 1 0 1\nEND\n");
     auto L=ScheduleFileManager::DocLichTruc(Tep,N); assert(L->SoPhanCong()==1);
+    assert(L->LayPhanCong(0).LayMaQuanLyXacNhan().empty());
     Ghi(Tep,"PBL2_ADMIN 4 2026-11-02\n \t\r\nEND\n  \t\r\n");
-    assert(AdminFileManager::Doc(Tep).NhanSu->KichThuoc()==0);
+    auto Cu = AdminFileManager::Doc(Tep);
+    assert(Cu.NhanSu->KichThuoc()==0 && Cu.TimQuanLy("QL01"));
     Ghi(Tep,"PBL2_ADMIN 4 2026-11-02\nNV hong\nEND\n");
     PhaiLoiTai([&] { AdminFileManager::Doc(Tep); },2);
     Ghi(Tep,"PBL2_ADMIN 4 2026-11-02\nEND\nCA hong\n");

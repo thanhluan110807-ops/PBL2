@@ -6,6 +6,7 @@
 #include "repository/ScheduleFileManager.h"
 #include "service/SchedulerService.h"
 #include "model/Date.h"
+#include "model/QuanLy.h"
 #include "util/My_stdexcept.h"
 #include "util/CsvFile.h"
 #include "dsa/Vector.h"
@@ -45,6 +46,14 @@ void KiemTraChuoi(const std::string& S) {
 }
 void KiemTra(const AdminData& D) {
     if (!D.NhanSu || D.NhanSu->KichThuoc() > 100 || !TuanHopLe(D.TuanBatDau)) Loi("Nhan su hoac ngay thu Hai khong hop le");
+    if (D.DanhSachQuanLy.Rong() || D.DanhSachQuanLy.KichThuoc() > 100)
+        Loi("Can tu 1 den 100 quan ly");
+    for (int I = 0; I < D.DanhSachQuanLy.KichThuoc(); ++I) {
+        const auto& Nguoi = D.DanhSachQuanLy[I];
+        if (!QuanLy::MaHopLe(Nguoi.LayMaQuanLy()) || D.TimQuanLy(Nguoi.LayMaQuanLy()) != &Nguoi)
+            Loi("Ma quan ly khong hop le hoac trung ma");
+        KiemTraChuoi(Nguoi.LayMaQuanLy()); KiemTraChuoi(Nguoi.LayHoTen());
+    }
     ScheduleRegistry R;
     for (int I=0; I<D.Lich.CacCa.KichThuoc(); ++I) R.ThemCaTruc(D.Lich.CacCa[I]);
     for (int I=0; I<D.Lich.PhanCong.KichThuoc(); ++I) R.ThemPhanCong(D.Lich.PhanCong[I],*D.NhanSu);
@@ -64,20 +73,22 @@ bool LaTepCsv(const std::string& DuongDan) {
 // CSV dùng các cột riêng; tận dụng bộ đọc nghiệp vụ cũ để không lặp luật kiểm tra.
 bool LaCotChuoi(const std::string& Loai, int Cot) {
     if (Loai == "NV") return Cot == 2 || Cot == 3 || Cot == 7;
+    if (Loai == "QL") return true;
     if (Loai == "CA" || Loai == "DP") return Cot == 1;
-    return Loai == "PC" && (Cot == 1 || Cot == 2 || Cot == 3 || Cot == 7);
+    return Loai == "PC" && (Cot == 1 || Cot == 2 || Cot == 3 || Cot == 7 || Cot == 8);
 }
 
-std::string ChuyenDongCsv(const Vector<std::string>& CacO) {
+std::string ChuyenDongCsv(const Vector<std::string>& CacO, int PhienBan) {
     if (CacO.KichThuoc() == 1 && CacO[0].empty()) return "";
     const auto& Loai = CacO[0];
-    if (Loai == "PBL2_ADMIN_CSV") {
-        if (CacO.KichThuoc() != 3 || CacO[1] != "1" || !TuanHopLe(CacO[2]))
+    if (PhienBan == 0) {
+        if (Loai != "PBL2_ADMIN_CSV" || CacO.KichThuoc() != 3 ||
+            (CacO[1] != "1" && CacO[1] != "2") || !TuanHopLe(CacO[2]))
             Loi("Tieu de CSV nhan su/lich khong hop le");
-        return "PBL2_ADMIN 4 " + CacO[2];
+        return std::string(CacO[1] == "1" ? "PBL2_ADMIN 4 " : "PBL2_ADMIN 5 ") + CacO[2];
     }
-    const int SoCot = Loai == "NV" ? 27 : Loai == "CA" ? 7 : Loai == "PC" ? 8 :
-                      Loai == "DP" ? 2 : Loai == "END" ? 1 : 0;
+    const int SoCot = Loai == "NV" ? 27 : Loai == "CA" ? 7 : Loai == "PC" ? (PhienBan == 5 ? 9 : 8) :
+                      Loai == "QL" && PhienBan == 5 ? 3 : Loai == "DP" ? 2 : Loai == "END" ? 1 : 0;
     if (!SoCot || CacO.KichThuoc() != SoCot) Loi("Loai dong hoac so cot CSV nhan su/lich sai");
     std::ostringstream Dong; Dong << Loai;
     for (int I = 1; I < SoCot; ++I) {
@@ -103,11 +114,23 @@ void GhiCsv(std::ostream& Tep, const std::string& NoiDung) {
         std::string Tu;
         // std::quoted đọc nguyên tên/lý do có khoảng trắng, dấu phẩy và ngoặc kép.
         while (CacTu >> std::quoted(Tu)) CacO.ThemCuoi(Tu);
-        if (CacO[0] == "PBL2_ADMIN") { CacO[0] = "PBL2_ADMIN_CSV"; CacO[1] = "1"; }
+        if (CacO[0] == "PBL2_ADMIN") { CacO[0] = "PBL2_ADMIN_CSV"; CacO[1] = "2"; }
         CsvFile::GhiBanGhi(Tep,CacO);
     }
 }
 }
+
+AdminData::AdminData() {
+    // Dữ liệu cũ hoặc bộ rỗng vẫn vào được bằng một quản lý mẫu.
+    DanhSachQuanLy.ThemCuoi(QuanLy("QL01", "Quản lý mẫu"));
+}
+
+const QuanLy* AdminData::TimQuanLy(const std::string& Ma) const {
+    for (int I = 0; I < DanhSachQuanLy.KichThuoc(); ++I)
+        if (DanhSachQuanLy[I].LayMaQuanLy() == Ma) return &DanhSachQuanLy[I];
+    return nullptr;
+}
+
 void AdminFileManager::Luu(const std::string& DuongDan, const AdminData& D) {
     KiemTra(D);
     const std::filesystem::path Dich(DuongDan);
@@ -117,7 +140,11 @@ void AdminFileManager::Luu(const std::string& DuongDan, const AdminData& D) {
         std::ofstream Tep(Tam, std::ios::binary | std::ios::trunc);
         if (!Tep) Loi("Khong tao duoc file tam");
         std::ostringstream NoiDung;
-        NoiDung << "PBL2_ADMIN 4 " << D.TuanBatDau << '\n' << std::setprecision(17);
+        NoiDung << "PBL2_ADMIN 5 " << D.TuanBatDau << '\n' << std::setprecision(17);
+        for (int I = 0; I < D.DanhSachQuanLy.KichThuoc(); ++I) {
+            const auto& Nguoi = D.DanhSachQuanLy[I];
+            NoiDung << "QL " << std::quoted(Nguoi.LayMaQuanLy()) << ' ' << std::quoted(Nguoi.LayHoTen()) << '\n';
+        }
         for (int I = 0; I < D.NhanSu->KichThuoc(); ++I) StaffFileManager::GhiDong(NoiDung,D.NhanSu->Lay(I));
         for (int I=0; I<D.Lich.CacCa.KichThuoc(); ++I) ScheduleFileManager::GhiCa(NoiDung,D.Lich.CacCa[I]);
         for (int I=0; I<D.Lich.PhanCong.KichThuoc(); ++I) ScheduleFileManager::GhiPhanCong(NoiDung,D.Lich.PhanCong[I]);
@@ -151,36 +178,45 @@ AdminData AdminFileManager::Doc(const std::string& DuongDan) {
     CsvFile::BoQuaBom(Tep);
     AdminData D;
     std::string Dong, Loai;
+    int PhienBan = 0;
     auto DocDong = [&] {
         if (!Csv) return static_cast<bool>(std::getline(Tep,Dong));
         Vector<std::string> CacO;
         if (!CsvFile::DocBanGhi(Tep,CacO,DongCsv,DongHienTai)) return false;
-        Dong = ChuyenDongCsv(CacO);
+        Dong = ChuyenDongCsv(CacO,PhienBan);
         return true;
     };
     if (!DocDong() || Dong.size()>8192) Loi("File rong");
     std::istringstream Dau(Dong);
-    int PhienBan = 0;
-    if (!(Dau >> Loai >> PhienBan >> D.TuanBatDau) || Loai != "PBL2_ADMIN" || (PhienBan != 1 && PhienBan != 2 && PhienBan != 3 && PhienBan != 4)) Loi("Sai dinh dang hoac phien ban");
+    if (!(Dau >> Loai >> PhienBan >> D.TuanBatDau) || Loai != "PBL2_ADMIN" || PhienBan < 1 || PhienBan > 5)
+        Loi("Sai dinh dang hoac phien ban");
     HetDong(Dau);
+    if (PhienBan == 5) D.DanhSachQuanLy.XoaHet();
     bool DaKetThuc = false;
     int SoDong = 0;
     while (DocDong()) {
         if (!Csv) ++DongHienTai;
-        if (++SoDong > 800 || Dong.size() > 8192) Loi("File vuot gioi han");
+        // Bản mới chứa tối đa 100 dòng quản lý và thêm một cột trong mỗi phân công.
+        if (++SoDong > (PhienBan == 5 ? 900 : 800) || Dong.size() > (PhienBan == 5 ? 12000u : 8192u))
+            Loi("File vuot gioi han");
         if (!Dong.empty() && Dong.back() == '\r') Dong.pop_back();
         if (Dong.empty()) continue;
         std::istringstream S(Dong); if (!(S >> Loai)) continue;
         if (DaKetThuc) Loi("Du lieu sau END");
         if (Loai == "NV") {
-            StaffFileManager::DocDong(S,*D.NhanSu,PhienBan==4?3:PhienBan);
-        } else if (Loai == "CA" && PhienBan==4) {
+            StaffFileManager::DocDong(S,*D.NhanSu,PhienBan>=4?3:PhienBan);
+        } else if (Loai == "QL" && PhienBan == 5) {
+            std::string Ma, Ten;
+            if (!(S >> std::quoted(Ma) >> std::quoted(Ten)) || D.TimQuanLy(Ma) || D.DanhSachQuanLy.KichThuoc() >= 100)
+                Loi("Dong quan ly khong hop le, trung ma hoac qua 100 quan ly");
+            D.DanhSachQuanLy.ThemCuoi(QuanLy(Ma,Ten));
+        } else if (Loai == "CA" && PhienBan>=4) {
             if (D.Lich.CacCa.KichThuoc()>=32) Loi("Qua 32 ca");
             D.Lich.CacCa.ThemCuoi(ScheduleFileManager::DocCa(S));
             continue;
-        } else if (Loai == "PC" && PhienBan==4) {
+        } else if (Loai == "PC" && PhienBan>=4) {
             if (D.Lich.PhanCong.KichThuoc()>=512) Loi("Qua 512 phan cong");
-            D.Lich.PhanCong.ThemCuoi(ScheduleFileManager::DocPhanCong(S));
+            D.Lich.PhanCong.ThemCuoi(ScheduleFileManager::DocPhanCong(S,PhienBan==5));
             continue;
         } else if (Loai == "CA") {
             Shift C; int Truong, Dau, Cuoi, BS, DD; std::string Ma;

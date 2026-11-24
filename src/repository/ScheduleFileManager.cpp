@@ -6,6 +6,8 @@
 #include <iomanip>
 #include <filesystem>
 #include <chrono>
+#include <optional>
+#include <string>
 #ifdef _WIN32
 #ifndef NOMINMAX
 #define NOMINMAX
@@ -33,22 +35,31 @@ Shift ScheduleFileManager::DocCa(std::istream& S) {
 }
 void ScheduleFileManager::GhiPhanCong(std::ostream& S, const ShiftAssignment& P) {
     Chuoi(P.LayMaPhanCong()); Chuoi(P.MaNhanVien); Chuoi(P.MaCa); Chuoi(P.LayLyDoHuy());
+    Chuoi(P.LayMaQuanLyXacNhan());
     S<<"PC "<<std::quoted(P.LayMaPhanCong())<<' '<<std::quoted(P.MaNhanVien)<<' '<<std::quoted(P.MaCa)<<' '
      <<static_cast<int>(P.VaiTro)<<' '<<static_cast<int>(P.LayTrangThai())<<' '<<P.LayThoiDiemBatDau()<<' '
-     <<std::quoted(P.LayLyDoHuy())<<'\n';
+     <<std::quoted(P.LayLyDoHuy())<<' '<<std::quoted(P.LayMaQuanLyXacNhan())<<'\n';
 }
-ShiftAssignment ScheduleFileManager::DocPhanCong(std::istream& S) {
-    std::string M,N,C,LyDo; int Vai,TrangThai; std::time_t Dau;
+ShiftAssignment ScheduleFileManager::DocPhanCong(std::istream& S, std::optional<bool> CoCotMaQuanLy) {
+    std::string M,N,C,LyDo,MaQuanLy; int Vai,TrangThai; std::time_t Dau;
     if (!(S>>std::quoted(M)>>std::quoted(N)>>std::quoted(C)>>Vai>>TrangThai>>Dau>>std::quoted(LyDo)) ||
         Vai<0 || Vai>2 || TrangThai<0 || TrangThai>3 || Dau<0) Loi("Dong phan cong sai");
-    Chuoi(M); Chuoi(N); Chuoi(C); Chuoi(LyDo); HetDong(S);
+    if (!CoCotMaQuanLy.has_value()) {
+        S >> std::ws;
+        CoCotMaQuanLy = !S.eof();
+    }
+    if (*CoCotMaQuanLy && !(S>>std::quoted(MaQuanLy))) Loi("Thieu cot ma quan ly xac nhan");
+    Chuoi(M); Chuoi(N); Chuoi(C); Chuoi(LyDo); Chuoi(MaQuanLy); HetDong(S);
+    if (TrangThai==0 && !MaQuanLy.empty()) Loi("Phan cong du kien chua co nguoi xac nhan");
     ShiftAssignment P(M,N,C,static_cast<AssignmentRole>(Vai));
     if (TrangThai==3) {
         if (Dau!=0) Loi("Ban huy khong duoc co gio bat dau");
+        // Bản hủy có thể đã được xác nhận trước đó; giữ nguyên người xác nhận.
+        if (!MaQuanLy.empty()) P.XacNhan(MaQuanLy);
         P.Huy(LyDo);
     } else {
         if (!LyDo.empty() || (TrangThai!=2 && Dau!=0)) Loi("Trang thai va du lieu khong khop");
-        if (TrangThai>=1) P.XacNhan();
+        if (TrangThai>=1) P.XacNhan(MaQuanLy);
         if (TrangThai==2) P.GhiNhanBatDau(Dau);
     }
     return P;
@@ -58,7 +69,7 @@ void ScheduleFileManager::LuuLichTruc(const std::string& Ten, const ScheduleRegi
     try {
         std::ofstream S(Tam,std::ios::binary|std::ios::trunc);
         if (!S) Loi("Khong tao duoc file tam lich");
-        S<<"PBL2_SCHEDULE 1\n";
+        S<<"PBL2_SCHEDULE 2\n";
         for (int I=0; I<R.SoCa(); ++I) GhiCa(S,R.LayCa(I));
         for (int I=0; I<R.SoPhanCong(); ++I) GhiPhanCong(S,R.LayPhanCong(I));
         S<<"END\n"; S.flush(); if (!S) Loi("Ghi lich khong day du");
@@ -78,16 +89,21 @@ std::unique_ptr<ScheduleRegistry> ScheduleFileManager::DocLichTruc(const std::st
     std::string Dong,Loai; int PhienBan;
     if (!std::getline(Tep,Dong) || Dong.size()>8192) Loi("Thieu header lich");
     std::istringstream Dau(Dong);
-    if (!(Dau>>Loai>>PhienBan) || Loai!="PBL2_SCHEDULE" || PhienBan!=1) Loi("Sai phien ban file lich");
+    if (!(Dau>>Loai>>PhienBan) || Loai!="PBL2_SCHEDULE" || (PhienBan!=1 && PhienBan!=2)) Loi("Sai phien ban file lich");
     HetDong(Dau);
     Vector<ShiftAssignment> CacP; Vector<int> DongPhanCong; bool Xong=false; int SoDong=0;
     while (std::getline(Tep,Dong)) {
         ++DongHienTai;
-        if (++SoDong>550 || Dong.size()>8192) Loi("File lich vuot gioi han");
+        // Bản mới có thêm một trường tối đa 1000 byte, có thể gấp đôi khi thoát dấu ngoặc.
+        if (++SoDong>550 || Dong.size()>(PhienBan==2 ? 12000u : 8192u)) Loi("File lich vuot gioi han");
         std::istringstream S(Dong); if (!(S>>Loai)) continue;
         if (Xong) Loi("Du lieu sau END");
         if (Loai=="CA") R->ThemCaTruc(DocCa(S));
-        else if (Loai=="PC") { if (CacP.KichThuoc()>=512) Loi("Qua 512 phan cong"); CacP.ThemCuoi(DocPhanCong(S)); DongPhanCong.ThemCuoi(DongHienTai); }
+        else if (Loai=="PC") {
+            if (CacP.KichThuoc()>=512) Loi("Qua 512 phan cong");
+            CacP.ThemCuoi(DocPhanCong(S,PhienBan==2));
+            DongPhanCong.ThemCuoi(DongHienTai);
+        }
         else if (Loai=="END") { HetDong(S); Xong=true; }
         else Loi("Loai dong lich khong ho tro");
     }

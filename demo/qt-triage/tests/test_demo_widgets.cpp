@@ -62,6 +62,11 @@ int main(int SoThamSo, char** ThamSo) {
         Bam(H, "vaiTroBacSi");
         assert(!Vao->isEnabled());
         Bam(H, "vaiTroQuanLy");
+        assert(!Vao->isEnabled());
+        auto* DanhSach = Tim<QComboBox>(H, "chonNhanVienVaiTro");
+        DanhSach->setEditText("QL-KHONG-CO");
+        assert(!Vao->isEnabled());
+        DanhSach->setEditText("ql01");
         assert(Vao->isEnabled());
         Vao->click();
     });
@@ -142,7 +147,12 @@ int main(int SoThamSo, char** ThamSo) {
     assert(!MaCaMoi->isVisible() && BangCaTruc->rowCount()==3);
     Bam(&W,"nav7");
     Bam(QuanTri,"scheduleGenerate");
-    assert(Tim<QTableWidget>(QuanTri,"scheduleTable")->rowCount()>0);
+    auto* BangLich = Tim<QTableWidget>(QuanTri,"scheduleTable");
+    assert(BangLich->rowCount()>0);
+    assert(BangLich->item(0,7)->text()=="—");
+    BangLich->selectRow(0);
+    Bam(QuanTri,"assignmentConfirm");
+    assert(BangLich->item(0,7)->text()=="QL01");
     assert(Tim<QPushButton>(QuanTri,"adminSave")->isEnabled());
     Bam(&W,"nav5");
     W.resize(1440,980);
@@ -179,7 +189,7 @@ int main(int SoThamSo, char** ThamSo) {
     });
     Bam(&W,"doiVaiTro");
     assert(Tim<QPushButton>(QuanTri,"adminSave")->isEnabled());
-    assert(Tim<QLabel>(&W,"vaiTroHienTai")->text()=="Quản lý");
+    assert(Tim<QLabel>(&W,"vaiTroHienTai")->text().startsWith("Quản lý · QL01"));
     QTimer::singleShot(0, [] {
         auto* H=qobject_cast<QMessageBox*>(QApplication::activeModalWidget());
         assert(H && H->button(QMessageBox::No));
@@ -374,7 +384,7 @@ int main(int SoThamSo, char** ThamSo) {
     assert(T.SoDangCho() == 1);
     QTimer::singleShot(0, [] { Bam(Hop(), "xacNhanDong"); }); W.XacNhanDong("LK2", true);
     assert(R.TimLanKham("LK2")->LayTrangThai() == VisitStatus::DaHuy && T.SoDangCho() == 0);
-    DoiVaiTro("vaiTroQuanLy");
+    DoiVaiTro("vaiTroQuanLy", "QL01");
     Bam(&W, "nav4");
     W.resize(520, 800); UngDung.processEvents();
     assert(Tim<QScrollArea>(&W, "mainScroll")->horizontalScrollBar()->maximum() == 0);

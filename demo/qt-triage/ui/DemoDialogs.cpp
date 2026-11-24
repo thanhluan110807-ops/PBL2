@@ -319,7 +319,7 @@ void DemoWindow::MoDanhGia(const std::string &MaLanKham) {
             if (!HopLe) BaoLoi("SpO2 phai la so hop le");
             const VitalSigns SoDo(DocSo(Mach), DocSo(Ha), DocSo(Tho), S, DocSo(Gcs));
             // Ghi mã nhân viên đang được chọn trong phiên mô phỏng.
-            DichVu.DanhGia(MaLanKham, SoDo, std::time(nullptr), MaNhanVien);
+            DichVu.DanhGia(MaLanKham, SoDo, std::time(nullptr), MaNguoiDung);
             DanhDauThayDoi();
             K.Hop.accept();
         } catch (const My_stdexcept &E) { K.BaoLoi(E); }
@@ -476,7 +476,7 @@ void DemoWindow::MoCanLamSang(const std::string &MaLanKham, bool QuayLai) {
     connect(Luu, &QPushButton::clicked, &K.Hop, [&] {
         try {
             if (QuayLai) DichVu.QuayLai(MaLanKham, Doc(NoiDung), std::time(nullptr));
-            else DichVu.ChuyenCanLamSang(MaLanKham, Doc(NoiDung), MaNhanVien);
+            else DichVu.ChuyenCanLamSang(MaLanKham, Doc(NoiDung), MaNguoiDung);
             DanhDauThayDoi();
             K.Hop.accept();
         } catch (const My_stdexcept &E) { K.BaoLoi(E); }

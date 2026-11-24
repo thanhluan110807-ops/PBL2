@@ -96,7 +96,7 @@ int main() {
     const auto TepCsv = (ThuMuc / "nhan-su-lich.csv").string();
     AdminFileManager::Luu(TepCsv,D);
     { std::ifstream Vao(TepCsv); std::string Dau; std::getline(Vao,Dau);
-      assert(Dau == "PBL2_ADMIN_CSV,1,2026-11-02"); }
+      assert(Dau == "PBL2_ADMIN_CSV,2,2026-11-02"); }
     auto Csv = AdminFileManager::Doc(TepCsv);
     assert(Csv.NhanSu->KichThuoc()==4 && Csv.Lich.PhanCong.KichThuoc()==4 && Csv.DuPhong.Co("B2"));
     Csv.NhanSu->CapNhat(BacSi("B1","Nguyễn, \"An\"",CapBac::BacSiChinh,8,"Cấp cứu"));
@@ -106,6 +106,8 @@ int main() {
     for (const auto* NoiDung : {
         "PBL2_ADMIN_CSV,99,2026-11-02\nEND\n",
         "PBL2_ADMIN_CSV,1,2026-11-02\n",
+        "PBL2_ADMIN_CSV,2,2026-11-02\nQL,QL02,Bình\nQL,QL02,An\nEND\n",
+        "PBL2_ADMIN_CSV,2,2026-11-02\nEND\n",
         "PBL2_ADMIN_CSV,1,2026-11-02\nPC,thieu-cot\nEND\n",
         "PBL2_ADMIN_CSV,1,2026-11-02\nCA,C1,\"100 200\",300,1,1,1\nEND\n",
         "PBL2_ADMIN_CSV,1,2026-11-02\nEND\nDP,B1\n"}) {

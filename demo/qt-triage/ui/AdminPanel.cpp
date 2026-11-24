@@ -2,6 +2,7 @@
 // Phần B — Chức năng chính: Giao diện Qt quản lý nhân sự, ca trực và lưu dữ liệu liên kết.
 #include "model/BacSi.h"
 #include "model/DieuDuong.h"
+#include "model/ShiftAssignment.h"
 #include "ui/AdminPanel.h"
 #include "ui/StaffPresenter.h"
 #include "ui/DemoStyle.h"
@@ -39,6 +40,7 @@
 #include <QGridLayout>
 #include <QResizeEvent>
 #include <exception>
+#include <string>
 
 namespace {
 const Shift* TimCa(const Schedule& Lich, const std::string& Ma) {
@@ -92,6 +94,11 @@ QString ThoiDiem(std::time_t T) {
 }
 QString VaiTro(AssignmentRole V) {
     return V == AssignmentRole::TruongCa ? "Trưởng ca" : V == AssignmentRole::BacSi ? "Bác sĩ" : "Điều dưỡng";
+}
+QString NguoiXacNhan(const ShiftAssignment& PhanCong) {
+    if (PhanCong.LayTrangThai() == AssignmentStatus::DuKien) return "—";
+    const auto& Ma = PhanCong.LayMaQuanLyXacNhan();
+    return Ma.empty() ? QString("Chưa ghi nhận") : QString::fromStdString(Ma);
 }
 // Form chỉ sửa thông tin hành chính; giữ các số liệu đã ghi nhận khi tạo bản cập nhật.
 void GiuTrangThai(const NhanVienYTe* Cu, NhanVienYTe& Moi) {
@@ -224,6 +231,10 @@ void AdminPanel::ChonTrang(int ChiSo, const QString& Ten) {
     TieuDe->setText(Ten);
     ChonTuan->setVisible(ChiSo != 0);
     NutNapMau->setVisible(ChiSo == 0);
+}
+
+void AdminPanel::DatMaQuanLy(const std::string& Ma) {
+    MaQuanLyHienTai = DuLieu.TimQuanLy(Ma) ? Ma : std::string{};
 }
 
 void AdminPanel::TaoNhanSu() {
@@ -457,7 +468,7 @@ void AdminPanel::TaoLich() {
     auto* W = new QWidget; auto* Cot = new QVBoxLayout(W);
     auto* Giai = Nut(Cot,"Đề xuất lịch trực","scheduleGenerate"); Giai->setProperty("primary",true);
     connect(Giai,&QPushButton::clicked,this,[this] { LapLich(); });
-    BangLich = Bang(Cot,{"Ca","Thời gian ca","Nhân viên","Họ tên","Vai trò","Trạng thái","Mã phân công"},"scheduleTable");
+    BangLich = Bang(Cot,{"Ca","Thời gian ca","Nhân viên","Họ tên","Vai trò","Trạng thái","Mã phân công","Người xác nhận"},"scheduleTable");
     ChiTietPhanCong = new QLabel("Chọn phân công để xem ca, vai trò và trạng thái.");
     ChiTietPhanCong->setObjectName("adminAssignmentDetail"); ChiTietPhanCong->setProperty("adminDetail",true);
     ChiTietPhanCong->setWordWrap(true); Cot->addWidget(ChiTietPhanCong);
@@ -468,7 +479,8 @@ void AdminPanel::TaoLich() {
             ChiTietPhanCong->setText(QString("%1 · %2 (%3)\n%4 · %5")
                 .arg(QString::fromStdString(P.MaCa),BangLich->item(I,3)->text(),QString::fromStdString(P.MaNhanVien),
                      VaiTro(P.VaiTro),BangLich->item(I,5)->text())+
-                (C?QString(" · %1 → %2").arg(ThoiDiem(C->LayBatDau()),ThoiDiem(C->LayKetThuc())):QString()));
+                (C?QString(" · %1 → %2").arg(ThoiDiem(C->LayBatDau()),ThoiDiem(C->LayKetThuc())):QString())+
+                "\nNgười xác nhận: " + NguoiXacNhan(P));
         } else ChiTietPhanCong->setText("Chọn phân công để xem ca, vai trò và trạng thái.");
     });
     auto* Hang = new QGridLayout; Cot->addLayout(Hang);
@@ -540,6 +552,7 @@ void AdminPanel::LamMoi() {
         const QString TrangThai[]={"Dự kiến","Đã xác nhận","Đang trực","Đã hủy"};
         O(BangLich,I,5,TrangThai[static_cast<int>(P.LayTrangThai())]);
         O(BangLich,I,6,QString::fromStdString(P.LayMaPhanCong()));
+        O(BangLich,I,7,NguoiXacNhan(P));
         BangLich->item(I,5)->setToolTip(QString::fromStdString(P.LayLyDoHuy()));
         O(BangLich,I,3,N ? QString::fromStdString(N->LayHoTen()) : "Không tìm thấy"); O(BangLich,I,4,VaiTro(P.VaiTro));
     }
@@ -643,6 +656,7 @@ void AdminPanel::TimThay() {
 void AdminPanel::ThayNguoi() {
     const int I = BangLich->currentRow();
     if (I < 0 || ChonNguoiThay->currentIndex() < 0) { BaoLoi("Chon dong va tim nguoi thay truoc"); return; }
+    if (!DuLieu.TimQuanLy(MaQuanLyHienTai)) { BaoLoi("Hãy chọn mã quản lý trước khi xác nhận thay ca."); return; }
     try {
         auto R=TaoRegistry(DuLieu);
         const auto Cu=DuLieu.Lich.PhanCong[I];
@@ -654,7 +668,7 @@ void AdminPanel::ThayNguoi() {
         std::string M=Cu.LayMaPhanCong()+"-thay";
         while (R->TimPhanCong(M)) M+="-1";
         R->ThemPhanCong(ShiftAssignment(M,Ma,Cu.MaCa,Cu.VaiTro),*DuLieu.NhanSu);
-        R->XacNhanPhanCong(M,*DuLieu.NhanSu);
+        R->XacNhanPhanCong(M,*DuLieu.NhanSu,MaQuanLyHienTai);
         DuLieu.Lich=ChupLich(*R); DaSua=true; LamMoi(); ThongBao->setText("Đã xác nhận người thay; giữ bản cũ cùng lý do hủy.");
     } catch (const My_stdexcept& E) { BaoLoi(E.LayThongBao()); }
 
@@ -676,6 +690,7 @@ bool AdminPanel::NapTep(const QString& Tep) {
     try {
         AdminData Moi = AdminFileManager::Doc(Tep.toStdString());
         DuLieu = std::move(Moi); DuongDan = Tep;
+        if (!DuLieu.TimQuanLy(MaQuanLyHienTai)) MaQuanLyHienTai.clear();
         Tuan->blockSignals(true); Tuan->setDate(QDate::fromString(QString::fromStdString(DuLieu.TuanBatDau),Qt::ISODate)); Tuan->blockSignals(false);
         DaSua = false; LoiTepLienKet=false; LamMoi(); ThongBao->setText("Đã nạp dữ liệu nhân sự và lịch trực."); return true;
     } catch (const My_stdexcept& E) { BaoLoi(E.LayThongBao()); }
@@ -737,9 +752,10 @@ void AdminPanel::CapNhatSangLoc(int Lenh) {
 void AdminPanel::ThaoTacPhanCong(int Lenh) {
     const int I=BangLich->currentRow();
     if (I<0) { BaoLoi("Chon mot dong phan cong truoc"); return; }
+    if (Lenh==0 && !DuLieu.TimQuanLy(MaQuanLyHienTai)) { BaoLoi("Hãy chọn mã quản lý trước khi xác nhận phân công."); return; }
     try {
         auto R=TaoRegistry(DuLieu); const auto P=DuLieu.Lich.PhanCong[I];
-        if (Lenh==0) R->XacNhanPhanCong(P.LayMaPhanCong(),*DuLieu.NhanSu);
+        if (Lenh==0) R->XacNhanPhanCong(P.LayMaPhanCong(),*DuLieu.NhanSu,MaQuanLyHienTai);
         else if (Lenh==1) {
             bool OK=false; const auto LyDo=QInputDialog::getText(this,"Hủy phân công","Lý do:",QLineEdit::Normal,{},&OK);
             if (!OK) return;

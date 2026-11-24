@@ -1,6 +1,7 @@
 // Phần B — Chức năng chính: Giao diện Qt quản lý nhân sự, ca trực và lưu dữ liệu liên kết.
 #pragma once
 #include "repository/AdminFileManager.h"
+#include <string>
 #include <QDialog>
 class QLineEdit;
 class QComboBox;
@@ -23,6 +24,7 @@ class QBoxLayout;
 class AdminPanel : public QDialog {
     bool TrongTrangChinh = false;
     AdminData DuLieu;
+    std::string MaQuanLyHienTai;
     QString DuongDan;
     bool DaSua = false;
     bool LoiTepLienKet = false;
@@ -69,6 +71,7 @@ protected:
 public:
     explicit AdminPanel(QWidget* Cha = nullptr, const QString& TepMacDinh = QString(), bool TrongTrangChinh = false);
     void ChonTrang(int ChiSo, const QString& Ten);
+    void DatMaQuanLy(const std::string& Ma);
     bool ChoPhepDong();
     bool LuuTruocKhiDoiVaiTro();
     bool LuuNhanSu(const QString& Tep);

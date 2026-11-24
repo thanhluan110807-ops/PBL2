@@ -49,8 +49,9 @@ tạo phiên tạm. Lần đầu chưa có cấu hình cũng tự dùng bộ nà
 ## Chọn vai trò
 
 Khi mở An Tâm, chọn **Điều dưỡng**, **Bác sĩ** hoặc **Quản lý**. Điều dưỡng và
-bác sĩ nhập mã nhân viên hoặc chọn từ danh sách của vai trò đó. Nếu bộ dữ liệu
-chưa có nhân sự, vào **Quản lý → Nhân sự** để thêm hoặc nạp mẫu rồi lưu. Nút **Đổi vai trò**
+bác sĩ nhập mã nhân viên hoặc chọn từ danh sách của vai trò đó. Quản lý nhập
+mã quản lý, ví dụ `QL01` trên bộ dữ liệu cũ hoặc bộ rỗng. Nếu bộ dữ liệu chưa
+có nhân sự, vào **Quản lý → Nhân sự** để thêm hoặc nạp mẫu rồi lưu. Nút **Đổi vai trò**
 ở thanh đầu chuyển vai trò ngay trong cùng phiên. Nếu quản lý còn thay đổi,
 ứng dụng yêu cầu lưu hoặc hủy chuyển vai trò.
 
@@ -60,7 +61,9 @@ chưa có nhân sự, vào **Quản lý → Nhân sự** để thêm hoặc nạ
 
 **Lịch trực** của bác sĩ và điều dưỡng chỉ hiển thị phân công còn hiệu lực của
 nhân viên đang chọn trong tuần lưu cùng bộ dữ liệu. Đây là chế độ mô phỏng
-bằng cách chọn vai trò và nhân viên.
+bằng cách chọn vai trò và mã người dùng. Khi xác nhận phân công hoặc thay ca,
+ứng dụng ghi mã quản lý vào cột **Người xác nhận**. Bấm **Lưu thay đổi** để
+giữ mã đó cùng lịch trực khi mở lại.
 
 ## Luồng dùng thử
 

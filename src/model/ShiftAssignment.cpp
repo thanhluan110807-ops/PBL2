@@ -1,5 +1,7 @@
 // Phần B — Chức năng chính: Quản lý mã, vai trò và trạng thái một phân công.
 #include "model/ShiftAssignment.h"
+#include "model/QuanLy.h"
+#include <string>
 #include "util/My_stdexcept.h"
 namespace {
 void Loi() { throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe, "Du lieu hoac chuyen trang thai phan cong khong hop le"); }
@@ -10,9 +12,12 @@ ShiftAssignment::ShiftAssignment(const std::string& M, const std::string& N, con
     : MaPhanCong(M), MaNhanVien(N), MaCa(C), VaiTro(V) {
     if (M.empty() || N.empty() || C.empty() || (V != AssignmentRole::BacSi && V != AssignmentRole::TruongCa && V != AssignmentRole::DieuDuong)) Loi();
 }
-void ShiftAssignment::XacNhan() {
+void ShiftAssignment::XacNhan(const std::string& MaQuanLy) {
+    // Xác nhận lặp lại giữ nguyên người đã xác nhận lần đầu.
     if (TrangThai == AssignmentStatus::DaXacNhan) return;
-    if (TrangThai != AssignmentStatus::DuKien || MaPhanCong.empty()) Loi();
+    if (TrangThai != AssignmentStatus::DuKien || MaPhanCong.empty() ||
+        (!MaQuanLy.empty() && !QuanLy::MaHopLe(MaQuanLy))) Loi();
+    MaQuanLyXacNhan = MaQuanLy;
     TrangThai = AssignmentStatus::DaXacNhan;
 }
 void ShiftAssignment::Huy(const std::string& LyDo) {

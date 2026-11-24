@@ -56,14 +56,14 @@ void ScheduleRegistry::ThemPhanCong(const ShiftAssignment& P, const StaffRegistr
     catch (...) { DanhSachPhanCong.XoaCuoi(); throw; }
     Moi.release();
 }
-void ScheduleRegistry::XacNhanPhanCong(const std::string& M, const StaffRegistry& N) {
+void ScheduleRegistry::XacNhanPhanCong(const std::string& M, const StaffRegistry& N, const std::string& MaQuanLy) {
     auto P=CacPhanCong.Timkiem(M); if (!P) Loi("Khong tim thay phan cong");
     Schedule L=LayLichHieuLuc(); L.PhanCong.XoaHet();
     for (int I=0; I<SoPhanCong(); ++I)
         if (LayPhanCong(I).LayMaPhanCong()!=M && LayPhanCong(I).DangHieuLuc()) L.PhanCong.ThemCuoi(LayPhanCong(I));
     const auto NV=N.Tim((*P)->MaNhanVien); const auto C=TimCaTruc((*P)->MaCa);
     if (!NV || !C || !SchedulerService::CoThePhanCong(*NV,*C,(*P)->VaiTro,L,{})) Loi("Nhan su khong con du dieu kien");
-    (*P)->XacNhan();
+    (*P)->XacNhan(MaQuanLy);
 }
 void ScheduleRegistry::HuyPhanCong(const std::string& M, const std::string& LyDo) {
     auto P=CacPhanCong.Timkiem(M); if (!P) Loi("Khong tim thay phan cong");

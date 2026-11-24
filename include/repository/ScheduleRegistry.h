@@ -25,7 +25,7 @@ public:
     const Shift& LayCa(int I) const { return *DanhSachCa[I]; }
     const ShiftAssignment& LayPhanCong(int I) const { return *DanhSachPhanCong[I]; }
     Schedule LayLichHieuLuc() const;
-    void XacNhanPhanCong(const std::string& Ma, const StaffRegistry& NhanSu);
+    void XacNhanPhanCong(const std::string& Ma, const StaffRegistry& NhanSu, const std::string& MaQuanLy = {});
     void HuyPhanCong(const std::string& Ma, const std::string& LyDo);
     void GhiNhanBatDau(const std::string& Ma, std::time_t ThoiDiem);
 };

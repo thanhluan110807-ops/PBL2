@@ -496,7 +496,7 @@ void DemoWindow::GoiTiep() {
         return;
     }
     try {
-        const Visit &V = DichVu.GoiTiep(MaNhanVien);
+        const Visit &V = DichVu.GoiTiep(MaNguoiDung);
         const bool DaLuu = DanhDauThayDoi();
         ChuyenTrang(TrangKham);
         if (!DaLuu) return;

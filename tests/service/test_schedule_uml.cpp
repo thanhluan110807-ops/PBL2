@@ -3,6 +3,7 @@
 #include "service/SchedulerService.h"
 #include "model/BacSi.h"
 #include "model/DieuDuong.h"
+#include "model/QuanLy.h"
 #include "model/Visit.h"
 #include "util/My_stdexcept.h"
 #include <cassert>
@@ -58,7 +59,12 @@ int main() {
     auto Thay=SchedulerService(N,R).TimNguoiThayCa(Ma);
     assert(Thay.KichThuoc()==1 && Thay[0]->LayMaDinhDanh()=="B2");
     StandbyPool Rong; assert(SchedulerService(N,R).TimNguoiThayCa(Ma,&Rong).Rong());
-    R.XacNhanPhanCong(Ma,N); assert(R.TimPhanCong(Ma)==DiaChi);
+    PhaiLoi([] { QuanLy("QL 01", "Quản lý"); });
+    PhaiLoi([&] { R.XacNhanPhanCong(Ma,N,"QL 01"); });
+    assert(DiaChi->LayTrangThai()==AssignmentStatus::DuKien);
+    R.XacNhanPhanCong(Ma,N,"QL01"); assert(R.TimPhanCong(Ma)==DiaChi);
+    R.XacNhanPhanCong(Ma,N,"QL02");
+    assert(DiaChi->LayMaQuanLyXacNhan()=="QL01");
     PhaiLoi([&] { R.GhiNhanBatDau(Ma,C.LayBatDau()-1); });
     auto Tang=SchedulerService(N,R).DeXuatTangCuong("S",1,0);
     assert(Tang.KichThuoc()==1 && Tang[0].MaNhanVien!="B1" && R.SoPhanCong()==2);
@@ -68,7 +74,7 @@ int main() {
     assert(R.LayLichHieuLuc().PhanCong.KichThuoc()==1);
     auto Bu=SchedulerService(N,R).LapLichDuKien();
     assert(Bu.KichThuoc()==1 && Bu[0].LayMaPhanCong()!=Ma);
-    R.ThemPhanCong(Bu[0],N); R.XacNhanPhanCong(Bu[0].LayMaPhanCong(),N);
+    R.ThemPhanCong(Bu[0],N); R.XacNhanPhanCong(Bu[0].LayMaPhanCong(),N,"QL02");
     R.GhiNhanBatDau(Bu[0].LayMaPhanCong(),C.LayBatDau());
     PhaiLoi([&] { SchedulerService(N,R).TimNguoiThayCa(Bu[0].LayMaPhanCong()); });
     const auto ThuMuc=std::filesystem::temp_directory_path()/("pbl2-uml-"+std::to_string(std::chrono::steady_clock::now().time_since_epoch().count()));
@@ -77,7 +83,13 @@ int main() {
     auto Doc=ScheduleFileManager::DocLichTruc(Tep,N);
     assert(Doc->SoPhanCong()==3 && Doc->TimCaTruc("S")->LayBatDau()==C.LayBatDau());
     assert(Doc->TimPhanCong(Ma)->LayLyDoHuy()=="Nghi dot xuat");
+    assert(Doc->TimPhanCong(Ma)->LayMaQuanLyXacNhan()=="QL01");
+    assert(Doc->TimPhanCong(Bu[0].LayMaPhanCong())->LayMaQuanLyXacNhan()=="QL02");
     assert(Doc->TimPhanCong(Bu[0].LayMaPhanCong())->LayThoiDiemBatDau()==C.LayBatDau());
+    std::stringstream DongPhanCong;
+    ScheduleFileManager::GhiPhanCong(DongPhanCong, *Doc->TimPhanCong(Ma));
+    std::string LoaiDong; DongPhanCong >> LoaiDong;
+    assert(LoaiDong=="PC" && ScheduleFileManager::DocPhanCong(DongPhanCong).LayMaQuanLyXacNhan()=="QL01");
     StaffRegistry Thieu; PhaiLoi([&] { ScheduleFileManager::DocLichTruc(Tep,Thieu); });
     { std::ofstream F(Tep,std::ios::app); F<<"PC hong\n"; }
     PhaiLoi([&] { ScheduleFileManager::DocLichTruc(Tep,N); });
@@ -88,14 +100,24 @@ int main() {
     PhaiLoi([&] { ScheduleFileManager::DocLichTruc(Tep,N); });
     std::istringstream Sai("\"P\" \"B1\" \"S\" 0 0 10 \"\"");
     PhaiLoi([&] { ScheduleFileManager::DocPhanCong(Sai); });
-    // Snapshot v4 giữ trạng thái; không mất lý do hủy hoặc thời điểm bắt đầu.
+    // Snapshot giữ mã quản lý, lý do hủy và thời điểm bắt đầu.
     AdminData A;
+    A.DanhSachQuanLy.ThemCuoi(QuanLy("QL02", "Nguyễn, \"Bình\""));
     for (int I=0; I<N.KichThuoc(); ++I) A.NhanSu->Them(N.Lay(I));
     A.Lich.CacCa.ThemCuoi(C);
     for (int I=0; I<R.SoPhanCong(); ++I) A.Lich.PhanCong.ThemCuoi(R.LayPhanCong(I));
     AdminFileManager::Luu(Tep,A); auto AD=AdminFileManager::Doc(Tep);
     assert(AD.Lich.PhanCong[0].LayTrangThai()==AssignmentStatus::DaHuy);
     assert(AD.Lich.PhanCong[2].LayTrangThai()==AssignmentStatus::DangTruc);
+    assert(AD.Lich.PhanCong[0].LayMaQuanLyXacNhan()=="QL01");
+    assert(AD.Lich.PhanCong[2].LayMaQuanLyXacNhan()=="QL02");
+    assert(AD.TimQuanLy("QL02") && AD.TimQuanLy("QL02")->LayHoTen()=="Nguyễn, \"Bình\"");
+    const auto TepCsv=(ThuMuc/"lich.csv").string();
+    AdminFileManager::Luu(TepCsv,A);
+    auto Csv=AdminFileManager::Doc(TepCsv);
+    assert(Csv.Lich.PhanCong[0].LayMaQuanLyXacNhan()=="QL01");
+    assert(Csv.Lich.PhanCong[2].LayMaQuanLyXacNhan()=="QL02");
+    assert(Csv.TimQuanLy("QL02") && Csv.TimQuanLy("QL02")->LayHoTen()=="Nguyễn, \"Bình\"");
     // Visit lưu vai trò/thời điểm, phân công trước không được tính là đã khám.
     Patient BenhNhan("BN","Nguoi benh"); BenhNhan.DatTuoiUocLuong(30);
     Visit V("V","BN",Tuan,"Dau dau");

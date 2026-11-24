@@ -4,6 +4,7 @@
 #include "model/DoctorParticipation.h"
 #include "model/NhanVienYTe.h"
 #include "model/Patient.h"
+#include "model/QuanLy.h"
 #include "model/Shift.h"
 #include "model/ShiftAssignment.h"
 #include "model/Visit.h"
@@ -122,10 +123,9 @@ bool DemoWindow::ChonVaiTro() {
     connect(Vao, &QPushButton::clicked, &Hop, [&] { if (Vao->isEnabled()) Hop.accept(); });
 
     const auto CapNhatNutVao = [&] {
-        const auto VaiTroChon = static_cast<VaiTro>(NhomVaiTro.checkedId());
-        const bool CanChonNguoi = VaiTroChon == VaiTro::BacSi || VaiTroChon == VaiTro::DieuDuong;
+        const bool CanChonNguoi = NhomVaiTro.checkedId() >= 0;
         const int ViTri = TimNhanVienDaNhap(*ChonNhanVien);
-        Vao->setEnabled(VaiTroChon == VaiTro::QuanLy || (CanChonNguoi && ViTri >= 0));
+        Vao->setEnabled(CanChonNguoi && ViTri >= 0);
         QString ThongBao;
         if (CanChonNguoi) {
             if (ChonNhanVien->count() == 0)
@@ -143,20 +143,31 @@ bool DemoWindow::ChonVaiTro() {
         const QSignalBlocker ChanTinHieu(ChonNhanVien);
         const int MaVaiTro = NhomVaiTro.checkedId();
         const auto VaiTroChon = static_cast<VaiTro>(MaVaiTro);
-        const bool CanChonNguoi = VaiTroChon == VaiTro::BacSi || VaiTroChon == VaiTro::DieuDuong;
+        const bool CanChonNguoi = MaVaiTro >= 0;
+        const bool LaQuanLy = VaiTroChon == VaiTro::QuanLy;
+        const auto& DuLieu = QuanTri->LayDuLieu();
         ChonNhanVien->clear();
-        if (CanChonNguoi) {
+        if (LaQuanLy) {
+            for (int I = 0; I < DuLieu.DanhSachQuanLy.KichThuoc(); ++I) {
+                const QuanLy& Nguoi = DuLieu.DanhSachQuanLy[I];
+                const QString Ma = Chu(Nguoi.LayMaQuanLy());
+                ChonNhanVien->addItem(Ma + " · " + Chu(Nguoi.LayHoTen()), Ma);
+            }
+        } else if (CanChonNguoi) {
             const auto Loai = VaiTroChon == VaiTro::BacSi ? StaffType::BacSi : StaffType::DieuDuong;
-            const auto& NhanSu = *QuanTri->LayDuLieu().NhanSu;
+            const auto& NhanSu = *DuLieu.NhanSu;
             for (int I = 0; I < NhanSu.KichThuoc(); ++I) {
                 const auto& Nguoi = NhanSu.Lay(I);
                 if (Nguoi.LayLoaiNhanVien() != Loai) continue;
                 const QString Ma = Chu(Nguoi.LayMaDinhDanh());
                 ChonNhanVien->addItem(Ma + " · " + Chu(Nguoi.LayHoTen()), Ma);
             }
-            const int ViTriCu = VaiTroChon == VaiTroHienTai ? ChonNhanVien->findData(Chu(MaNhanVien)) : -1;
-            ChonNhanVien->setCurrentIndex(ViTriCu);
         }
+        const int ViTriCu = VaiTroChon == VaiTroHienTai ? ChonNhanVien->findData(Chu(MaNguoiDung)) : -1;
+        ChonNhanVien->setCurrentIndex(ViTriCu);
+        const QString TenTruong = LaQuanLy ? "Mã quản lý" : "Mã nhân viên";
+        NhanNhanVien->setText(TenTruong);
+        NhapMa->setAccessibleName(TenTruong);
         NhanNhanVien->setVisible(CanChonNguoi);
         ChonNhanVien->setVisible(CanChonNguoi);
         ChonNhanVien->setEnabled(ChonNhanVien->count() > 0);
@@ -176,13 +187,14 @@ bool DemoWindow::ChonVaiTro() {
     const auto VaiTroMoi = static_cast<VaiTro>(NhomVaiTro.checkedId());
     const int ViTriMoi = TimNhanVienDaNhap(*ChonNhanVien);
     const auto MaMoi = ChonNhanVien->itemData(ViTriMoi).toString().toStdString();
-    if (VaiTroMoi == VaiTroHienTai && MaMoi == MaNhanVien) return true;
+    if (VaiTroMoi == VaiTroHienTai && MaMoi == MaNguoiDung) return true;
     if (VaiTroHienTai == VaiTro::QuanLy && !QuanTri->LuuTruocKhiDoiVaiTro()) return false;
 
     VaiTroHienTai = VaiTroMoi;
-    MaNhanVien = MaMoi;
+    MaNguoiDung = MaMoi;
     const QString Ten = NhomVaiTro.checkedButton()->text();
-    NhanVaiTro->setText(MaNhanVien.empty() ? Ten : Ten + " · " + ChonNhanVien->itemText(ViTriMoi));
+    NhanVaiTro->setText(Ten + " · " + ChonNhanVien->itemText(ViTriMoi));
+    QuanTri->DatMaQuanLy(VaiTroMoi == VaiTro::QuanLy ? MaNguoiDung : std::string{});
     QuanTri->setEnabled(VaiTroHienTai == VaiTro::QuanLy);
     for (int I = TrangTiepNhan; I < SoTrang; ++I) {
         const bool DuocMo = DuocMoTrang(I);
@@ -219,7 +231,7 @@ bool DemoWindow::LaDieuDuongThaoTac() const {
 bool DemoWindow::LaBacSiPhuTrach(const Visit& LanKham) const {
     const int SoLan = LanKham.SoLanBacSiThamGiaKham();
     return VaiTroHienTai == VaiTro::BacSi && SoLan > 0 &&
-           LanKham.LayBacSiThamGiaKhamTai(SoLan - 1) == MaNhanVien;
+           LanKham.LayBacSiThamGiaKhamTai(SoLan - 1) == MaNguoiDung;
 }
 
 bool DemoWindow::CoTheHuyLuot(const Visit& LanKham) const {
@@ -272,7 +284,7 @@ void DemoWindow::HienLichCaNhan() {
         if (Ca.LayBatDau() < MocDau || Ca.LayBatDau() >= MocCuoi) continue;
         for (int J = 0; J < DuLieu.Lich.PhanCong.KichThuoc(); ++J) {
             const auto& PhanCong = DuLieu.Lich.PhanCong[J];
-            if (!PhanCong.DangHieuLuc() || PhanCong.MaNhanVien != MaNhanVien ||
+            if (!PhanCong.DangHieuLuc() || PhanCong.MaNhanVien != MaNguoiDung ||
                 PhanCong.MaCa != Ca.LayMaCaTruc()) continue;
             auto* The = ThemThe(NoiDungCaNhan);
             QString TenCa = Chu(Ca.LayMaCaTruc());
@@ -280,6 +292,10 @@ void DemoWindow::HienLichCaNhan() {
             ThemNhan(The, TenCa, "section", "caTrucCaNhan");
             ThemNhan(The, ThoiDiem(Ca.LayBatDau()) + " → " + ThoiDiem(Ca.LayKetThuc()));
             ThemNhan(The, TrangThai[static_cast<int>(PhanCong.LayTrangThai())], "muted");
+            if (PhanCong.LayTrangThai() != AssignmentStatus::DuKien) {
+                const auto& MaQuanLy = PhanCong.LayMaQuanLyXacNhan();
+                ThemNhan(The, "Người xác nhận: " + (MaQuanLy.empty() ? QString("Chưa ghi nhận") : Chu(MaQuanLy)), "muted");
+            }
             ++SoCa;
         }
     }

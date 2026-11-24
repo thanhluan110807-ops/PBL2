@@ -3,6 +3,7 @@
 #include "repository/ScheduleRegistry.h"
 #include <memory>
 #include <iosfwd>
+#include <optional>
 class ScheduleFileManager {
 public:
     static void LuuLichTruc(const std::string& DuongDan, const ScheduleRegistry& Lich);
@@ -11,5 +12,6 @@ public:
     static void GhiCa(std::ostream& Tep, const Shift& Ca);
     static Shift DocCa(std::istream& Tep);
     static void GhiPhanCong(std::ostream& Tep, const ShiftAssignment& P);
-    static ShiftAssignment DocPhanCong(std::istream& Tep);
+    // Khi đọc một dòng riêng, chấp nhận cả dòng cũ và dòng có mã quản lý.
+    static ShiftAssignment DocPhanCong(std::istream& Tep, std::optional<bool> CoCotMaQuanLy = {});
 };

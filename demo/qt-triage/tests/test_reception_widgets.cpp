@@ -40,7 +40,7 @@ int main(int argc,char** argv) {
     PatientRegistry R;
     Patient P("A","Nguyễn An",Gender::Nam); P.DatTuoiUocLuong(30); P.CapNhatThongTinDiUng("Penicillin");
     const auto* Cu=R.ThemBenhNhan(P);
-    R.ThemBenhNhan("B","Trần Bình",Gender::Nu,Date{1,1,2000},"999");
+    R.ThemBenhNhan("BN002","Trần Bình",Gender::Nu,Date{1,1,2000},"999");
     const auto* VoDanh=R.ThemBenhNhan("C");
     TriageService T(R); VisitSearchService S(R);
     T.TiepNhan("V-OLD","A",std::time(nullptr)-3600,"Khám cũ"); T.Huy("V-OLD");
@@ -56,9 +56,15 @@ int main(int argc,char** argv) {
         assert(Tim<QLineEdit>(H,"HoTen")->font().pixelSize()==18);
         Chup(H,"PBL2_RECEPTION_NEW");
         CheDo->setCurrentIndex(1);
-        assert(Tim<QListWidget>(H,"chonHoSo")->isVisible());
+        auto* DanhSach = Tim<QListWidget>(H,"chonHoSo");
+        auto* TimHoSo = Tim<QLineEdit>(H,"timHoSo");
         assert(!Tim<QPushButton>(H,"luu")->isEnabled());
-        Chon(H,"A");
+        TimHoSo->insert("A");
+        assert(DanhSach->isVisible() && DanhSach->count()==2);
+        TimHoSo->insert("N");
+        assert(DanhSach->count()==2 && DanhSach->item(0)->data(Qt::UserRole).toString()=="A");
+        assert(!Tim<QPushButton>(H,"luu")->isEnabled());
+        DanhSach->setCurrentRow(0);
         assert(Tim<QLineEdit>(H,"MaBenhNhan")->text()=="A");
         assert(Tim<QLineEdit>(H,"MaBenhNhan")->isReadOnly());
         assert(Tim<QLineEdit>(H,"HoTen")->text()=="Nguyễn An" && Tim<QLineEdit>(H,"HoTen")->isReadOnly());
@@ -68,13 +74,23 @@ int main(int argc,char** argv) {
         for (const auto* Ma : {"CanCuoc","NgaySinh","TienSu"})
             assert(Tim<QLineEdit>(H,Ma)->isEnabled() && !Tim<QLineEdit>(H,Ma)->isReadOnly());
         Chup(H,"PBL2_RECEPTION_EXISTING");
+        TimHoSo->setText("khong co ho so nay");
+        assert(!DanhSach->isVisible() && DanhSach->count()==0);
+        assert(Tim<QLabel>(H,"khongCoHoSo")->isVisible());
+        assert(Tim<QLineEdit>(H,"MaBenhNhan")->text().isEmpty());
+        assert(!Tim<QPushButton>(H,"luu")->isEnabled());
+        TimHoSo->clear();
+        assert(!DanhSach->isVisible() && !Tim<QLabel>(H,"khongCoHoSo")->isVisible());
+        TimHoSo->setText(" 999 ");
+        assert(DanhSach->isVisible() && DanhSach->count()==1);
+        assert(DanhSach->item(0)->data(Qt::UserRole).toString()=="BN002");
         // Đổi chế độ/người không được mang dữ liệu hồ sơ trước sang hồ sơ mới.
         Nhap(H,"MaLanKham","LK001"); CheDo->setCurrentIndex(0);
         assert(!Tim<QListWidget>(H,"chonHoSo")->isVisible());
         assert(Tim<QLineEdit>(H,"MaBenhNhan")->text().isEmpty());
         assert(Tim<QLineEdit>(H,"HoTen")->text().isEmpty() && !Tim<QLineEdit>(H,"HoTen")->isReadOnly());
         assert(Tim<QLineEdit>(H,"MaLanKham")->text()=="LK001");
-        CheDo->setCurrentIndex(1); Chon(H,"B");
+        CheDo->setCurrentIndex(1); Chon(H,"BN002");
         assert(Tim<QLineEdit>(H,"HoTen")->text()=="Trần Bình");
         assert(Tim<QLineEdit>(H,"DiUng")->text().isEmpty() && !Tim<QLineEdit>(H,"DiUng")->isReadOnly());
         Chon(H,"A"); Nhap(H,"CanCuoc","001"); Nhap(H,"TienSu","Hen");

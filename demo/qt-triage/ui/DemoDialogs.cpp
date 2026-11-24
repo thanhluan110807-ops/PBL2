@@ -26,6 +26,7 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QSignalBlocker>
 #include <QStatusBar>
 #include <QVBoxLayout>
 using namespace DemoUi;
@@ -153,11 +154,16 @@ QListWidget#chonHoSo::item:selected { background:#EEE9FA; color:#593AB8; }
     auto* CotChon=new QVBoxLayout(VungChon); CotChon->setContentsMargins(0,0,0,0); CotChon->setSpacing(8);
     auto* Tim=new QLineEdit; Tim->setObjectName("timHoSo");
     Tim->setAccessibleName("Tìm hồ sơ cũ theo tên / CCCD / mã");
+    Tim->setPlaceholderText("Nhập tên, CCCD hoặc mã bệnh nhân…");
+    Tim->setClearButtonEnabled(true);
     auto* NhanTim=Nhan("Tìm hồ sơ cũ theo tên / CCCD / mã"); NhanTim->setBuddy(Tim);
     CotChon->addWidget(NhanTim); CotChon->addWidget(Tim);
     auto *DanhSach = new QListWidget; DanhSach->setObjectName("chonHoSo");
     DanhSach->setAccessibleName("Danh sách hồ sơ bệnh nhân cũ");
     DanhSach->setMaximumHeight(160); CotChon->addWidget(DanhSach);
+    auto* KhongCoHoSo = Nhan("Không tìm thấy hồ sơ phù hợp.", "muted");
+    KhongCoHoSo->setObjectName("khongCoHoSo");
+    CotChon->addWidget(KhongCoHoSo);
     K.Form->addRow(VungChon);
     auto* HuongDan=Nhan("", "muted"); HuongDan->setWordWrap(true); K.Form->addRow(HuongDan);
     auto *Ma = K.Truong("MaBenhNhan", "Mã bệnh nhân (tự động)");
@@ -174,10 +180,14 @@ QListWidget#chonHoSo::item:selected { background:#EEE9FA; color:#593AB8; }
     auto *TrieuChung = K.Truong("TrieuChung", "Triệu chứng / lý do khám *");
     K.VanBan("Trước khi đánh giá cần có ngày sinh hoặc tuổi ước lượng.");
     auto *Luu = K.Luu("Tiếp nhận và mở lần khám");
+    const auto LayMaHoSoDaChon = [&] {
+        // Dòng đang có tiêu điểm có thể chưa được chọn bằng chuột hoặc bàn phím.
+        const auto* Dong = DanhSach->selectedItems().value(0);
+        return Dong ? Dong->data(Qt::UserRole).toString().toStdString() : std::string{};
+    };
     const auto DienThongTin=[&] {
         const bool Moi=CheDo->currentIndex()==0;
-        const Patient* P=!Moi && DanhSach->currentItem()
-            ? Registry.TimBenhNhan(DanhSach->currentItem()->data(Qt::UserRole).toString().toStdString()) : nullptr;
+        const Patient* P = Moi ? nullptr : Registry.TimBenhNhan(LayMaHoSoDaChon());
         const auto Dat=[&](QLineEdit* O, const QString& GiaTri, bool DaBiet) {
             O->setText(GiaTri); O->setEnabled(Moi || P!=nullptr);
             O->setReadOnly(!Moi && DaBiet);
@@ -201,28 +211,52 @@ QListWidget#chonHoSo::item:selected { background:#EEE9FA; color:#593AB8; }
         K.Loi->clear(); K.Loi->hide();
     };
     const auto TimLai = [&] {
+        const QSignalBlocker ChanTinHieu(DanhSach);
         DanhSach->clear();
-        const auto CacHoSo = Registry.LayDanhSachBenhNhan();
-        for (int I = 0; I < CacHoSo.KichThuoc(); ++I) {
-            const Patient &P = *CacHoSo[I];
-            QString NoiDung=Chu(P.LayMaDinhDanh());
-            if (!P.LayHoTen().empty()) NoiDung+=" · "+Chu(P.LayHoTen());
-            if (!P.LaySoCanCuoc().empty()) NoiDung+=" · "+Chu(P.LaySoCanCuoc());
-            if (!ChuanHoa(NoiDung).contains(ChuanHoa(Tim->text()))) continue;
-            auto *Dong = new QListWidgetItem(NoiDung);
-            Dong->setData(Qt::UserRole, Chu(P.LayMaDinhDanh())); DanhSach->addItem(Dong);
+        const QString TuKhoa = ChuanHoa(Tim->text().simplified());
+        if (!TuKhoa.isEmpty()) {
+            const QString DauTu = " " + TuKhoa;
+            int SoDongUuTien = 0;
+            const auto CacHoSo = Registry.LayDanhSachBenhNhan();
+            for (int I = 0; I < CacHoSo.KichThuoc(); ++I) {
+                const Patient &P = *CacHoSo[I];
+                const QString MaHoSo = Chu(P.LayMaDinhDanh());
+                const QString HoTen = Chu(P.LayHoTen());
+                const QString CanCuoc = Chu(P.LaySoCanCuoc());
+                const QString TenTim = " " + ChuanHoa(HoTen.simplified());
+                const QString MaTim = ChuanHoa(MaHoSo);
+                if (!TenTim.contains(TuKhoa) && !MaTim.contains(TuKhoa) && !CanCuoc.contains(TuKhoa)) continue;
+
+                QString NoiDung = MaHoSo;
+                if (!HoTen.isEmpty()) NoiDung += " · " + HoTen;
+                if (!CanCuoc.isEmpty()) NoiDung += " · " + CanCuoc;
+                auto* Dong = new QListWidgetItem(NoiDung);
+                Dong->setData(Qt::UserRole, MaHoSo);
+                // Ví dụ: tìm "an" thì hiện An trước những tên chỉ chứa "an" như Thanh.
+                if (TenTim.contains(DauTu) || MaTim.startsWith(TuKhoa) || CanCuoc.startsWith(TuKhoa))
+                    DanhSach->insertItem(SoDongUuTien++, Dong);
+                else
+                    DanhSach->addItem(Dong);
+            }
         }
+        DanhSach->setVisible(DanhSach->count() > 0);
+        KhongCoHoSo->setVisible(!TuKhoa.isEmpty() && DanhSach->count() == 0);
+        DanhSach->scrollToTop();
         // Không tự chọn kết quả, nhất là khi có người trùng tên.
         DienThongTin();
     };
     connect(Tim, &QLineEdit::textChanged, &K.Hop, TimLai);
-    connect(DanhSach,&QListWidget::currentItemChanged,&K.Hop,[&] { DienThongTin(); });
+    connect(DanhSach, &QListWidget::itemSelectionChanged, &K.Hop, DienThongTin);
     const auto DoiCheDo = [&] {
         const bool Moi = CheDo->currentIndex() == 0;
         VungChon->setVisible(!Moi);
         HuongDan->setText(Moi ? "Nhập thông tin người bệnh và lần khám mới." :
             "Chọn đúng người từ danh sách. Ô xám là thông tin đã có; ô trắng có thể bổ sung.");
-        if (Moi) DienThongTin(); else TimLai();
+        if (Moi) DienThongTin();
+        else {
+            TimLai();
+            Tim->setFocus();
+        }
     };
     connect(CheDo, qOverload<int>(&QComboBox::currentIndexChanged), &K.Hop, DoiCheDo); DoiCheDo();
     const auto DocHoSo=[&](const std::string& MaHoSo) {
@@ -239,8 +273,8 @@ QListWidget#chonHoSo::item:selected { background:#EEE9FA; color:#593AB8; }
             const std::string MaLanMoi = Registry.TaoMaLanKham();
             std::string MaChon;
             if (CheDo->currentIndex() == 1) {
-                if (!DanhSach->currentItem()) BaoLoi("Chon dung ho so benh nhan truoc");
-                MaChon = DanhSach->currentItem()->data(Qt::UserRole).toString().toStdString();
+                MaChon = LayMaHoSoDaChon();
+                if (MaChon.empty()) BaoLoi("Chon dung ho so benh nhan truoc");
                 Registry.BoSungThongTinConThieu(MaChon,DocHoSo(MaChon));
                 if (!DanhDauThayDoi()) { K.Hop.accept(); return; }
                 DienThongTin();
@@ -249,10 +283,13 @@ QListWidget#chonHoSo::item:selected { background:#EEE9FA; color:#593AB8; }
                 Registry.ThemBenhNhan(P); MaChon = P.LayMaDinhDanh();
                 if (!DanhDauThayDoi()) { K.Hop.accept(); return; }
                 // Nếu bước tạo Visit thất bại, hồ sơ vẫn còn và lần thử lại dùng hồ sơ đó.
-                Tim->clear(); CheDo->setCurrentIndex(1);
+                CheDo->setCurrentIndex(1);
+                Tim->setText(Chu(MaChon));
                 for (int I = 0; I < DanhSach->count(); ++I)
-                    if (DanhSach->item(I)->data(Qt::UserRole).toString() == Chu(MaChon))
+                    if (DanhSach->item(I)->data(Qt::UserRole).toString() == Chu(MaChon)) {
                         DanhSach->setCurrentRow(I);
+                        break;
+                    }
             }
             DichVu.TiepNhan(MaLanMoi, MaChon, std::time(nullptr), Doc(TrieuChung));
             DanhDauThayDoi();

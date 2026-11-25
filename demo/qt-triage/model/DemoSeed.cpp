@@ -1,7 +1,7 @@
 #include "model/DemoTriageService.h"
 
 namespace Demo {
-// Chỉ dữ liệu mẫu được dựng trực tiếp trong service; widget không sửa trạng thái.
+
 void DemoTriageService::NapMau(bool KichBanBaMot) {
     XoaDuLieu();
     const char *Ten[] = {"Nguyễn Minh Khôi", "Trần Thảo Vy",  "",
@@ -65,4 +65,4 @@ void DemoTriageService::NapMau(bool KichBanBaMot) {
     for (int &Dem : BoDem)
         Dem = 0;
 }
-} // namespace Demo
+}

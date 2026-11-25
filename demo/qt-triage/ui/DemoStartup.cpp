@@ -74,7 +74,7 @@ PatientRegistry *ChonDuLieu(QWidget *Cha, TrangThaiHangCho *HangCho,
     auto *Loi = Nhan("", "error"); Loi->setObjectName("loiCsv"); Loi->setWordWrap(true); Cot->addWidget(Loi);
     auto *Doc = Nut("Đọc CSV & bắt đầu", "docCsv", true); Cot->addWidget(Doc);
     auto *Rong = Nut("Bắt đầu rỗng", "batDauRong"); Cot->addWidget(Rong);
-    // Chỉ tạo service sau khi hộp thoại trả Registry thành công.
+
     PatientRegistry *KetQua = nullptr;
     QObject::connect(Chon, &QPushButton::clicked, &Hop, [&] {
         const QString Tep = QFileDialog::getOpenFileName(&Hop, "Chọn hồ sơ bệnh nhân", "", "CSV (*.csv)");

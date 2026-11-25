@@ -12,7 +12,7 @@ VisitSearchService::VisitSearchService(const PatientRegistry& Registry) : Regist
 Vector<KetQuaTraCuuLanKham> VisitSearchService::TimTheoBenhNhan(
     const std::string& TenCanTim, const Date* NgayTiepNhan,
     const std::string& MaLanKham) const {
-    // Registry đã có quy tắc lọc và sắp xếp; không lặp lại ở tầng service.
+
     return Registry.TraCuuLanKham(TenCanTim, NgayTiepNhan, MaLanKham);
 }
 

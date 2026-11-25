@@ -1,4 +1,4 @@
-// Phần B — Chức năng chính: kiểm thử file nhân viên/lịch và dữ liệu lỗi.
+
 #include "repository/StaffFileManager.h"
 #include "repository/ScheduleFileManager.h"
 #include "repository/AdminFileManager.h"
@@ -35,17 +35,17 @@ int main() {
     Hong.Them(BacSi("B2","Ten\nkhong hop le",CapBac::BacSiChinh,5,"Noi"));
     bool Loi=false;
     try { StaffFileManager::LuuNhanVien(Tep,Hong); } catch (const My_stdexcept&) { Loi=true; }
-    assert(Loi && StaffFileManager::DocNhanVien(Tep)->Tim("B1")); // Lưu lỗi giữ file cũ.
+    assert(Loi && StaffFileManager::DocNhanVien(Tep)->Tim("B1"));
     Ghi(Tep,"PBL2_STAFF 3\r\n  \t\r\nNV hong\r\nEND\r\n");
     PhaiLoiTai([&] { StaffFileManager::DocNhanVien(Tep); },3);
     Ghi(Tep,"PBL2_STAFF 3\nEND\nNV hong\n");
     PhaiLoiTai([&] { StaffFileManager::DocNhanVien(Tep); },3);
     Ghi(Tep,std::string(8193,'X')+"\n");
     PhaiLoiTai([&] { StaffFileManager::DocNhanVien(Tep); },1);
-    // Bản 1 vẫn khôi phục đúng lớp con, dùng mặc định cho trạng thái mới.
+
     Ghi(Tep,"PBL2_STAFF 1\nNV 0 \"B1\" \"An\" 3 5 0 \"Noi\" 7 15 0\nEND\n \t\n");
     assert(StaffFileManager::DocNhanVien(Tep)->Tim("B1"));
-    // PC trước CA được phép; mã liên kết sai phải chỉ đúng dòng PC khi kiểm tra cuối.
+
     Ghi(Tep,"PBL2_SCHEDULE 1\nPC \"P\" \"KhongCo\" \"C\" 1 0 0 \"\"\nCA \"C\" 1793577600 1793606400 1 0 1\nEND\n");
     PhaiLoiTai([&] { ScheduleFileManager::DocLichTruc(Tep,N); },2);
     Ghi(Tep,"PBL2_SCHEDULE 1\nPC \"P\" \"B1\" \"C\" 1 0 0 \"\"\nCA \"C\" 1793577600 1793606400 1 0 1\nEND\n");
@@ -58,7 +58,7 @@ int main() {
     PhaiLoiTai([&] { AdminFileManager::Doc(Tep); },2);
     Ghi(Tep,"PBL2_ADMIN 4 2026-11-02\nEND\nCA hong\n");
     PhaiLoiTai([&] { AdminFileManager::Doc(Tep); },3);
-    // Không còn file tạm khi ghi bị lỗi.
+
     for (const auto& Muc:std::filesystem::directory_iterator(ThuMuc))
         assert(Muc.path().filename().string().find(".tmp-")==std::string::npos);
     std::filesystem::remove_all(ThuMuc);

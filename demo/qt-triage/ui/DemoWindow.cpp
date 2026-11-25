@@ -56,7 +56,7 @@ DemoWindow::DemoWindow(PatientRegistry &Registry, TriageService &DichVu,
     connect(ThuLaiLuu, &QTimer::timeout, this, [this] { if (DaThayDoi) ThuLuuTuDong(); });
     ThuLaiLuu->start();
     if (!QFileInfo::exists(Chu(TepPatientTuDong)) || !QFileInfo::exists(Chu(TepVisitTuDong)))
-        DanhDauThayDoi(); // Bộ mới cần tạo file ban đầu; mở bộ đã lưu không ghi lại khi chưa sửa.
+        DanhDauThayDoi();
     else TinhTrangLuu->setText("● Hồ sơ đã lưu");
     LamMoi();
 }
@@ -167,7 +167,7 @@ void DemoWindow::TaoGiaoDien() {
     CacTrang->addWidget(Cuon);
     const QString ThuMuc = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     QDir().mkpath(ThuMuc);
-    // Bộ CSV chung liên kết nhân sự/lịch cạnh Patient; không ghi vào một nguồn khác.
+
     const QString CsvNhanSu = QFileInfo(Chu(TepPatientTuDong)).absoluteDir().filePath("nhan-su-lich.csv");
     const QString TepNhanSu = QFileInfo::exists(CsvNhanSu) ? CsvNhanSu : ThuMuc + "/nhan-su-lich.pbl2";
     QuanTri = new AdminPanel(CacTrang, TepNhanSu, true,
@@ -407,7 +407,7 @@ void DemoWindow::DoDuLieu() {
         auto *TenO = new QTableWidgetItem(Ten + "\n" + Chu(MaBenhNhan) + " · " + MaLuot);
         TenO->setData(Qt::UserRole, Luot ? Chu(MaKham) : Chu(MaBenhNhan));
         Bang->setItem(Dong, 1, TenO);
-        // Chỉ Hàng chờ giữ vị trí ưu tiên gốc khi lọc. Các bảng còn lại đánh số theo dòng hiện ra.
+
         const int SoThuTu = (LaHang ? Thu : Dong) + 1;
         Bang->setItem(Dong, 0, new QTableWidgetItem(QString::number(SoThuTu)));
         auto *MucO = new QWidget;
@@ -422,7 +422,7 @@ void DemoWindow::DoDuLieu() {
         Bang->setItem(Dong, 3, new QTableWidgetItem(Loai));
         Bang->setItem(Dong, 4, new QTableWidgetItem(Cho));
         Bang->setItem(Dong, 5, new QTableWidgetItem(DanhGia));
-        // Giữ mã ổn định trong callback, không giữ chỉ số danh sách đang lọc.
+
         const auto Mo = [this, MaKham, MaBenhNhan] {
             if (MaKham.empty()) MoHoSo(MaBenhNhan);
             else MoChiTiet(MaKham);
@@ -534,7 +534,7 @@ bool DemoWindow::CoTheThayDoi() {
     return false;
 }
 void DemoWindow::closeEvent(QCloseEvent *SuKien) {
-    // Thử lưu ngay nếu lần trước gặp lỗi; không yêu cầu người dùng bấm Lưu.
+
     if (DaThayDoi && !ThuLuuTuDong()) { SuKien->ignore(); return; }
     if (QuanTri && !QuanTri->ChoPhepDong()) { SuKien->ignore(); return; }
     SuKien->accept();

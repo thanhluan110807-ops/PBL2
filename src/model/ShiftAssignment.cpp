@@ -1,4 +1,4 @@
-// Phần B — Chức năng chính: Quản lý mã, vai trò và trạng thái một phân công.
+
 #include "model/ShiftAssignment.h"
 #include "model/QuanLy.h"
 #include <string>
@@ -13,7 +13,7 @@ ShiftAssignment::ShiftAssignment(const std::string& M, const std::string& N, con
     if (M.empty() || N.empty() || C.empty() || (V != AssignmentRole::BacSi && V != AssignmentRole::TruongCa && V != AssignmentRole::DieuDuong)) Loi();
 }
 void ShiftAssignment::XacNhan(const std::string& MaQuanLy) {
-    // Xác nhận lặp lại giữ nguyên người đã xác nhận lần đầu.
+
     if (TrangThai == AssignmentStatus::DaXacNhan) return;
     if (TrangThai != AssignmentStatus::DuKien || MaPhanCong.empty() ||
         (!MaQuanLy.empty() && !QuanLy::MaHopLe(MaQuanLy))) Loi();
@@ -21,7 +21,7 @@ void ShiftAssignment::XacNhan(const std::string& MaQuanLy) {
     TrangThai = AssignmentStatus::DaXacNhan;
 }
 void ShiftAssignment::Huy(const std::string& LyDo) {
-    // Ca đã bắt đầu cần quy trình bàn giao, không được giả vờ chưa làm.
+
     if (LyDo.find_first_not_of(" \t\r\n") == std::string::npos || TrangThai == AssignmentStatus::DangTruc || TrangThai == AssignmentStatus::DaHuy) Loi();
     LyDoHuy = LyDo;
     TrangThai = AssignmentStatus::DaHuy;

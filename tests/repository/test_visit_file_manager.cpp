@@ -29,7 +29,7 @@ void KiemTraKhoiPhuc() {
     VaoHang(T,"V1","P1"); T.GoiTiep("BS1");
     T.ChuyenCanLamSang("V1","Xét nghiệm, \"thử\"\nABC","BS1"); T.QuayLai("V1","KQ\nBình thường",102);
     VaoHang(T,"V2","P2");
-    assert(T.GoiTiep("BS2").LayMaLanKham()=="V1"); // Lượt hòa sau phải lần đầu.
+    assert(T.GoiTiep("BS2").LayMaLanKham()=="V1");
     T.ChuyenCanLamSang("V1","Chụp","BS2"); T.QuayLai("V1","KQ2",103);
     T.DanhGia("V1",VitalSigns(80,120,18,98.25,15),104,"DD2");
     VaoHang(T,"V3","P3"); T.DanhGia("V3",VitalSigns(80,120,18,89,15),105,"DD1");
@@ -53,15 +53,15 @@ void KiemTraKhoiPhuc() {
     assert(Moi.TimLanKham("V6")->LayTrangThai()==VisitStatus::ChoCanLamSang);
     assert(KhoiPhuc.GoiTiep("BS5").LayMaLanKham()=="V2");
     assert(KhoiPhuc.GoiTiep("BS6").LayMaLanKham()=="V1");
-    F.LuuLanKham(Moi,KhoiPhuc,Tep); // Đang khám cũng phải round-trip.
+    F.LuuLanKham(Moi,KhoiPhuc,Tep);
     PatientRegistry Lan3; for(const char* Ma:{"P1","P2","P3","P4","P5","P6"}) Them(Lan3,Ma);
     F.DocLanKham(Lan3,Tep); assert(Lan3.TimLanKham("V2")->LayTrangThai()==VisitStatus::DangKham);
-    F.LuuLanKham(R,T,Tep); // Giữ bản có hai mục chờ cho các kiểm tra file lỗi bên dưới.
+    F.LuuLanKham(R,T,Tep);
 }
 void KiemTraFifo() {
     PatientRegistry R; Them(R,"P1"); Them(R,"P2"); TriageService T(R);
     VaoHang(T,"Z","P1"); VaoHang(T,"A","P2");
-    // Cùng thời điểm: Z vào trước; không được sắp theo mã sau khi đọc lại.
+
     VisitFileManager F; F.LuuLanKham(R,T,Tep);
     PatientRegistry Moi; Them(Moi,"P1"); Them(Moi,"P2");
     const auto Hang=F.DocLanKham(Moi,Tep); TriageService Tai(Moi); Tai.KhoiPhucHangCho(Hang);
@@ -105,13 +105,13 @@ void KiemTraThamGiaDayDu() {
         assert(CoLoi && Tam.SoLanKham() == 0 && Tam.SoBenhNhan() == 1);
     };
     TuChoi("103,HoTro", "103,KhongBiet");
-    TuChoi("103,HoTro", "99,HoTro"); // Không được trước tiếp nhận.
-    TuChoi("103,HoTro", "101,HoTro"); // Không được lùi trước lượt bác sĩ cũ.
+    TuChoi("103,HoTro", "99,HoTro");
+    TuChoi("103,HoTro", "101,HoTro");
     TuChoi("104,ThayThe,\"BS,1\"", "104,ThayThe,THIEU");
-    TuChoi("THAMGIA,V1,BS2,103,HoTro,", "THAMGIA,V1,BS2"); // v2 phải đủ metadata.
+    TuChoi("THAMGIA,V1,BS2,103,HoTro,", "THAMGIA,V1,BS2");
 }
 void KiemTraDocV1() {
-    // File cũ chưa có thời điểm/vai trò; chuyển đổi phải giữ mã và thứ tự.
+
     {
         std::ofstream Ra(Tep, std::ios::binary | std::ios::trunc);
         Ra << "PBL2_VISIT,1\nMETA,0,1\nVISIT,V1,P1,100,DangKham,Dau\n"
@@ -125,7 +125,7 @@ void KiemTraDocV1() {
     assert(V->LayBacSiThamGiaKhamTai(0) == "BS1" && V->LayBacSiThamGiaKhamTai(1) == "BS1");
     assert(V->LayThamGiaTai(0).LayThoiDiemThamGia() == 0);
     TriageService T(R); T.KhoiPhucHangCho(Hang);
-    // Ghi lại bằng v2 vẫn phải giữ thời điểm chưa biết, đồng thời nhận sự kiện mới.
+
     R.TimLanKham("V1")->GhiNhanBacSiThamGiaKham(DoctorParticipation("BS2",102,DoctorRole::ThayThe,"BS1"));
     F.LuuLanKham(R,T,Tep);
     PatientRegistry Moi; Them(Moi,"P1"); F.DocLanKham(Moi,Tep);
@@ -148,7 +148,7 @@ void KiemTraLoi() {
     Sai=DayDu; auto ViTri=Sai.find("HANGCHO,"); assert(ViTri!=std::string::npos);
     Sai.replace(ViTri,7,"KHONGBIET"); ThuLoi(Sai);
     Sai=DayDu; ViTri=Sai.find("META,"); auto Cuoi=Sai.find('\n',ViTri);
-    Sai.replace(ViTri,Cuoi-ViTri,"META,0,1"); ThuLoi(Sai); // Mục chờ có thứ tự vượt metadata.
+    Sai.replace(ViTri,Cuoi-ViTri,"META,0,1"); ThuLoi(Sai);
     { std::ofstream Ra(Tep,std::ios::binary|std::ios::trunc); Ra<<DayDu; }
     PatientRegistry Thieu; Them(Thieu,"P1"); bool DaLoi=false;
     try { VisitFileManager().DocLanKham(Thieu,Tep); } catch(const My_stdexcept&) { DaLoi=true; }

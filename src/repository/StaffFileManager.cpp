@@ -1,4 +1,4 @@
-// Phần B — Chức năng chính: Đọc/ghi file nhân viên và phục hồi đúng lớp BacSi/DieuDuong.
+
 #include "repository/StaffFileManager.h"
 #include "model/BacSi.h"
 #include "model/DieuDuong.h"

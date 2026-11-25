@@ -1,4 +1,4 @@
-// Phần B — Chức năng chính: Lớp trừu tượng chứa thông tin và trạng thái nhân viên y tế.
+
 #include "model/NhanVienYTe.h"
 #include "util/My_stdexcept.h"
 #include <cmath>
@@ -47,7 +47,7 @@ void NhanVienYTe::GhiNhanCaTruc(bool LaCaDem, bool LaCuoiTuan) {
 }
 void NhanVienYTe::DatLaiTuanMoi() { GioLamTuan = 0; }
 bool NhanVienYTe::CanNghiNgoiBatBuoc() const {
-    // Giữ cờ của bản gốc; muốn kiểm tra đủ 24h phải dùng thời điểm ca ở SchedulerService.
+
     return VuaTrucDem;
 }
 bool NhanVienYTe::VuotNguongMetMoi(double Nguong) const {
@@ -78,7 +78,7 @@ void NhanVienYTe::HoanDoiThongTinChung(NhanVienYTe& Khac) noexcept {
 void NhanVienYTe::CapNhatTu(const NhanVienYTe& Nguon) {
     if (LayMaDinhDanh()!=Nguon.LayMaDinhDanh())
         throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe,"Khong duoc doi ma nhan vien");
-    // Chép trước: nếu cấp phát lỗi thì đối tượng đang dùng còn nguyên.
+
     std::unique_ptr<NhanVienYTe> Tam(Nguon.SaoChep());
-    HoanDoiDuLieu(*Tam); // Lớp con kiểm tra đúng kiểu trước khi đổi các trường.
+    HoanDoiDuLieu(*Tam);
 }

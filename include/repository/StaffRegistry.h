@@ -1,4 +1,4 @@
-// Phần B — Chức năng chính: Quản lý nhân viên trong RAM, tra cứu theo mã và tên bác sĩ.
+
 #pragma once
 #include "model/NhanVienYTe.h"
 #include "dsa/HashTable.h"
@@ -6,8 +6,8 @@
 
 class BacSi;
 
-// Registry sở hữu nhân viên; HashTable chỉ giữ con trỏ để tra cứu nhanh theo mã.
-// Cấm copy để tránh hai Registry cùng delete một nhân viên.
+
+
 class StaffRegistry {
     HashTable<std::string, NhanVienYTe*> ChiMuc;
     Vector<NhanVienYTe*> DanhSach;

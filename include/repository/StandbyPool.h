@@ -1,9 +1,9 @@
-// Phần B — Chức năng chính: Lưu danh sách mã nhân viên dự phòng, không sở hữu nhân viên.
+
 #pragma once
 #include "dsa/LinkedList.h"
 #include <string>
 
-// Chỉ lưu mã đăng ký dự phòng; không sở hữu nhân viên và không lưu con trỏ dễ hết hạn.
+
 class StandbyPool {
     LinkedList<std::string> CacMa;
 public:

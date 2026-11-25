@@ -30,7 +30,7 @@ void operator delete[](void* DiaChi) noexcept { GiaiPhong(DiaChi); }
 void operator delete(void* DiaChi, std::size_t) noexcept { GiaiPhong(DiaChi); }
 void operator delete[](void* DiaChi, std::size_t) noexcept { GiaiPhong(DiaChi); }
 
-// Thử lỗi ở từng lần cấp phát trong đánh giá, gọi khám và ghi kết quả.
+
 void KiemTra(int CongDoan) {
     bool ThanhCong = false;
     int SoLoi = 0;

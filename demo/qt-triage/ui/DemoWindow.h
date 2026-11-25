@@ -31,7 +31,7 @@ class DemoWindow : public QMainWindow {
     std::string MaNguoiDung;
     AdminPanel* QuanTri = nullptr;
     void MoLichSuNhanVien(const NhanVienYTe &NhanVien);
-    // Mượn dữ liệu; main giữ Registry và các service sống lâu hơn cửa sổ.
+
     PatientRegistry &Registry;
     TriageService &DichVu;
     VisitSearchService &TraCuu;
@@ -91,7 +91,7 @@ class DemoWindow : public QMainWindow {
                VisitSearchService &TraCuu, const std::string &TepPatient, const std::string &TepVisit, QWidget *Cha = nullptr);
     bool ChonVaiTro();
     void LamMoi();
-    // Gọi ngay sau thay đổi; chỉ trả true sau khi bản lưu đã được đồng bộ.
+
     bool DanhDauThayDoi();
     void MoTiepNhan();
     void MoDanhGia(const std::string &MaLanKham);

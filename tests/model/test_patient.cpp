@@ -8,7 +8,7 @@
 #include "util/My_stdexcept.h"
 
 int main() {
-    // Có CCCD không có nghĩa đã biết ngày sinh; giữ cả các số 0 đầu.
+
     Patient CoCanCuoc("BN_CCCD", "Le An", Gender::Nu, "001234567890");
     assert(CoCanCuoc.LaySoCanCuoc() == "001234567890");
     assert(!CoCanCuoc.CoNgaySinh());

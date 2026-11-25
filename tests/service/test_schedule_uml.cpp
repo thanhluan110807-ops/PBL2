@@ -18,7 +18,7 @@ template<class F> void PhaiLoiTai(int Dong, F Ham) {
 }
 #define PhaiLoi(...) PhaiLoiTai(__LINE__, __VA_ARGS__)
 int main() {
-    // 00:00 thứ Hai 02/11/2026, UTC+7.
+
     constexpr std::time_t Tuan=1793552400;
     const auto C=Shift::TuThoiDiem("S",Tuan+7*3600,Tuan+15*3600,1,1,true);
     assert(C.HopLe() && C.TinhSoGio()==8 && !C.LaCaDem() && !C.LaCaCuoiTuan());
@@ -51,7 +51,7 @@ int main() {
     PhaiLoi([&] { R.ThemCaTruc(Shift::TuThoiDiem("TuanSau",Tuan+604800,Tuan+604800+3600)); });
     PhaiLoi([&] { R.ThemPhanCong(ShiftAssignment("X","KhongCo","S",AssignmentRole::BacSi),N); });
     auto DeXuat=SchedulerService(N,R).LapLichDuKien();
-    assert(DeXuat.KichThuoc()==2 && R.SoPhanCong()==0); // Đề xuất không tự sửa registry.
+    assert(DeXuat.KichThuoc()==2 && R.SoPhanCong()==0);
     for (int I=0; I<DeXuat.KichThuoc(); ++I) R.ThemPhanCong(DeXuat[I],N);
     const auto Ma=R.LayPhanCong(0).LayMaPhanCong();
     const auto DiaChi=R.TimPhanCong(Ma);
@@ -93,14 +93,14 @@ int main() {
     StaffRegistry Thieu; PhaiLoi([&] { ScheduleFileManager::DocLichTruc(Tep,Thieu); });
     { std::ofstream F(Tep,std::ios::app); F<<"PC hong\n"; }
     PhaiLoi([&] { ScheduleFileManager::DocLichTruc(Tep,N); });
-    assert(Doc->SoPhanCong()==3); // Registry đang dùng không bị lỗi file phá hủy.
+    assert(Doc->SoPhanCong()==3);
     { std::ofstream F(Tep); F<<"PBL2_SCHEDULE 1\nCA hong\nEND\n"; }
     PhaiLoi([&] { ScheduleFileManager::DocLichTruc(Tep,N); });
     { std::ofstream F(Tep); F<<"PBL2_SCHEDULE 1\n"; }
     PhaiLoi([&] { ScheduleFileManager::DocLichTruc(Tep,N); });
     std::istringstream Sai("\"P\" \"B1\" \"S\" 0 0 10 \"\"");
     PhaiLoi([&] { ScheduleFileManager::DocPhanCong(Sai); });
-    // Snapshot giữ mã quản lý, lý do hủy và thời điểm bắt đầu.
+
     AdminData A;
     A.DanhSachQuanLy.ThemCuoi(QuanLy("QL02", "Nguyễn, \"Bình\""));
     for (int I=0; I<N.KichThuoc(); ++I) A.NhanSu->Them(N.Lay(I));
@@ -118,7 +118,7 @@ int main() {
     assert(Csv.Lich.PhanCong[0].LayMaQuanLyXacNhan()=="QL01");
     assert(Csv.Lich.PhanCong[2].LayMaQuanLyXacNhan()=="QL02");
     assert(Csv.TimQuanLy("QL02") && Csv.TimQuanLy("QL02")->LayHoTen()=="Nguyễn, \"Bình\"");
-    // Visit lưu vai trò/thời điểm, phân công trước không được tính là đã khám.
+
     Patient BenhNhan("BN","Nguoi benh"); BenhNhan.DatTuoiUocLuong(30);
     Visit V("V","BN",Tuan,"Dau dau");
     V.PhanCongBacSi("B1"); assert(V.SoLanBacSiThamGiaKham()==0);

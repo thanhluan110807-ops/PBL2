@@ -61,7 +61,7 @@ double DocThuc(const std::string& Chuoi) {
     std::istringstream Vao(Chuoi); Vao.imbue(std::locale::classic());
     double So = 0; Vao >> std::noskipws >> So;
     if (Vao.fail() || !Vao.eof()) Loi("So thuc Visit khong hop le");
-    return So; // VitalSigns kiểm tra NaN, vô cực và phạm vi số đo.
+    return So;
 }
 std::string SoThuc(double So) {
     std::ostringstream Ra; Ra.imbue(std::locale::classic());
@@ -102,7 +102,7 @@ void Ghi(std::ostream& Ra, std::initializer_list<std::string> CacO) {
     Vector<std::string> Dong; for (const auto& O : CacO) Dong.ThemCuoi(O);
     CsvFile::GhiBanGhi(Ra,Dong);
 }
-// Dựng riêng để kiểm tra cả liên kết và heap; chưa động vào dữ liệu bên gọi.
+
 void KiemTra(const PatientRegistry& R, const Vector<BanChupLanKham>& CacLan, const TrangThaiHangCho& Hang) {
     PatientRegistry Tam;
     const auto CacHoSo = R.LayDanhSachBenhNhan();
@@ -208,7 +208,7 @@ TrangThaiHangCho VisitFileManager::DocLanKham(PatientRegistry& R,const std::stri
         }
     }
     if (!DaHet || !CoMeta) Loi("File Visit chua du: thieu META/KETTHUC");
-    KiemTra(R,CacLan,Hang); // Bao gồm kiểm tra heap; lỗi không làm Registry bên gọi thay đổi.
+    KiemTra(R,CacLan,Hang);
     R.KhoiPhucLanKham(CacLan);
     return Hang;
 }

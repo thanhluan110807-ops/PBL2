@@ -4,7 +4,7 @@
 #include <cassert>
 #include <utility>
 #include <string>
-// Cố ý cho mọi khóa va chạm để kiểm tra chaining thật sự.
+
 struct BamTrung { std::size_t operator()(int) const { return 0; } };
 struct GiaTriThu {
     static int DangSong;

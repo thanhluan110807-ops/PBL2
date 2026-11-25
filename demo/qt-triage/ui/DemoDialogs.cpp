@@ -55,7 +55,7 @@ QVBoxLayout* ThemThe(QVBoxLayout* Cot) {
     NoiDung->setContentsMargins(16,14,16,14); NoiDung->setSpacing(8);
     NoiDung->setAlignment(Qt::AlignTop); Cot->addWidget(The); return NoiDung;
 }
-// QObject hủy widget con; các biến mượn widget chỉ sống trong lúc exec().
+
 struct KhungHop {
     QDialog Hop;
     QVBoxLayout *NoiDung;
@@ -86,7 +86,7 @@ QPushButton, QLineEdit, QComboBox { font-size:18px; }
         auto *Than = new QWidget;
         Than->setObjectName("dialogContent");
         NoiDung = new QVBoxLayout(Than);
-        // Dồn thông tin về đầu trang, không giãn các dòng theo chiều cao hộp thoại.
+
         NoiDung->setAlignment(Qt::AlignTop); NoiDung->setSpacing(12);
         VungNhap = new QWidget; VungNhap->setObjectName("dialogForm");
         Form = new QFormLayout(VungNhap); Form->setContentsMargins(0,0,0,0);
@@ -141,7 +141,7 @@ QString NgaySinh(const Patient &P) {
     if (!P.CoNgaySinh()) return "";
     const Date D = P.LayNgaySinh(); return QDate(D.Nam, D.Thang, D.Ngay).toString("dd/MM/yyyy");
 }
-} // namespace
+}
 
 void DemoWindow::MoTiepNhan() {
     if (!LaDieuDuongThaoTac() || !CoTheThayDoi()) return;
@@ -187,7 +187,7 @@ QListWidget#chonHoSo::item:selected { background:#EEE9FA; color:#593AB8; }
     K.VanBan("Trước khi đánh giá cần có ngày sinh hoặc tuổi ước lượng.");
     auto *Luu = K.Luu("Tiếp nhận và mở lần khám");
     const auto LayMaHoSoDaChon = [&] {
-        // Dòng đang có tiêu điểm có thể chưa được chọn bằng chuột hoặc bàn phím.
+
         const auto* Dong = DanhSach->selectedItems().value(0);
         return Dong ? Dong->data(Qt::UserRole).toString().toStdString() : std::string{};
     };
@@ -238,7 +238,7 @@ QListWidget#chonHoSo::item:selected { background:#EEE9FA; color:#593AB8; }
                 if (!CanCuoc.isEmpty()) NoiDung += " · " + CanCuoc;
                 auto* Dong = new QListWidgetItem(NoiDung);
                 Dong->setData(Qt::UserRole, MaHoSo);
-                // Ví dụ: tìm "an" thì hiện An trước những tên chỉ chứa "an" như Thanh.
+
                 if (TenTim.contains(DauTu) || MaTim.startsWith(TuKhoa) || CanCuoc.startsWith(TuKhoa))
                     DanhSach->insertItem(SoDongUuTien++, Dong);
                 else
@@ -248,7 +248,7 @@ QListWidget#chonHoSo::item:selected { background:#EEE9FA; color:#593AB8; }
         DanhSach->setVisible(DanhSach->count() > 0);
         KhongCoHoSo->setVisible(!TuKhoa.isEmpty() && DanhSach->count() == 0);
         DanhSach->scrollToTop();
-        // Không tự chọn kết quả, nhất là khi có người trùng tên.
+
         DienThongTin();
     };
     connect(Tim, &QLineEdit::textChanged, &K.Hop, TimLai);
@@ -288,7 +288,7 @@ QListWidget#chonHoSo::item:selected { background:#EEE9FA; color:#593AB8; }
                 Patient P=DocHoSo(Registry.TaoMaBenhNhan());
                 Registry.ThemBenhNhan(P); MaChon = P.LayMaDinhDanh();
                 if (!DanhDauThayDoi()) { K.Hop.accept(); return; }
-                // Nếu bước tạo Visit thất bại, hồ sơ vẫn còn và lần thử lại dùng hồ sơ đó.
+
                 CheDo->setCurrentIndex(1);
                 Tim->setText(Chu(MaChon));
                 for (int I = 0; I < DanhSach->count(); ++I)
@@ -327,7 +327,7 @@ void DemoWindow::MoDanhGia(const std::string &MaLanKham) {
             bool HopLe = false; const double S = QString(Spo->text()).replace(',', '.').toDouble(&HopLe);
             if (!HopLe) BaoLoi("SpO2 phai la so hop le");
             const VitalSigns SoDo(DocSo(Mach), DocSo(Ha), DocSo(Tho), S, DocSo(Gcs));
-            // Ghi mã nhân viên đang được chọn trong phiên mô phỏng.
+
             DichVu.DanhGia(MaLanKham, SoDo, std::time(nullptr), MaNguoiDung);
             DanhDauThayDoi();
             K.Hop.accept();
@@ -347,7 +347,7 @@ void DemoWindow::MoLichSuNhanVien(const NhanVienYTe &NhanVien) {
                Chu(NhanVien.LayHoTen()) + " · " + Chu(Ma), true);
     K.Hop.setObjectName("staffHistoryDialog");
 
-    // Cả hai nhóm mở cùng màn hình chi tiết ở chế độ chỉ đọc.
+
     const auto ThemKetQua = [&](const KetQuaTraCuuLanKham &HoSo) {
         const auto MaLanKham = HoSo.LanKham->LayMaLanKham();
         auto *The = ThemThe(K.NoiDung);
@@ -384,7 +384,7 @@ void DemoWindow::MoLichSuNhanVien(const NhanVienYTe &NhanVien) {
 
 void DemoWindow::MoChiTiet(const std::string &MaLanKham, bool ChiDoc) {
     if (VaiTroHienTai == VaiTro::ChuaChon) return;
-    // Sau mỗi thao tác, dựng lại nội dung từ Registry để tránh hiển thị bản cũ.
+
     while (const Visit *V = Registry.TimLanKham(MaLanKham)) {
         const Patient *P = Registry.TimBenhNhan(V->LayMaBenhNhan());
         KhungHop K(this, "Chi tiết lần khám", "Thông tin tiếp nhận và diễn biến lần khám.", true);

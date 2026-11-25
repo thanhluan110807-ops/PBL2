@@ -13,7 +13,7 @@
 #include "model/Visit.h"
 #include "util/My_stdexcept.h"
 
-// Kiểm tra giao diện ngay lúc biên dịch: không phát con trỏ sửa CCCD ngoài Registry.
+
 static_assert(std::is_same<decltype(std::declval<PatientRegistry&>().TimBenhNhan("")),
                            const Patient*>::value, "Patient muon phai chi doc");
 static_assert(std::is_same<decltype(std::declval<const PatientRegistry&>().TimLanKham("")),
@@ -55,7 +55,7 @@ void KiemTraHoSoVaDanhTinh() {
     const Patient* Cu = SoBo.ThemBenhNhan("BN3", "Nguyen Van A", Gender::Nam,
                                          Date{1,1,2000}, "001234567890");
     assert(SoBo.TimBenhNhanTheoCanCuoc("001234567890") == Cu);
-    // CCCD trùng, dù cùng hay khác thông tin, đều yêu cầu kiểm tra và dùng mã cũ.
+
     PhaiLoi([&]{ SoBo.ThemBenhNhan("BN_MOI", "Nguyen Van A", Gender::Nam,
                                   Date{1,1,2000}, "001234567890"); },
             My_stdexcept::LoaiLoi::DoiSoKhongHopLe);
@@ -82,7 +82,7 @@ void KiemTraHoSoVaDanhTinh() {
             My_stdexcept::LoaiLoi::DoiSoKhongHopLe);
     assert(SaoChep->LayHoTen() == "Le B" && SaoChep->LaySoCanCuoc() == "009999999999");
     assert(SoBo.TimBenhNhanTheoCanCuoc("008888888888") == nullptr);
-    // Giữ cùng CCCD trên chính hồ sơ đó là hợp lệ; đổi/xóa CCCD không để chỉ mục cũ.
+
     SoBo.BoSungDanhTinh("BN4", "009999999999", "Le B", Gender::Nu, Date{2,3,1990});
     SoBo.BoSungDanhTinh("BN4", "008888888888", "Le B", Gender::Nu, Date{2,3,1990});
     assert(SoBo.TimBenhNhanTheoCanCuoc("009999999999") == nullptr);
@@ -105,12 +105,12 @@ void KiemTraTimTen() {
     assert(SoBo.TimBenhNhanTheoTen("vAn aN").KichThuoc() == 1);
     assert(SoBo.TimBenhNhanTheoTen("khong co").Rong());
     assert(SoBo.TimBenhNhanTheoTen("").Rong());
-    assert(SoBo.TimBenhNhanTheoTen("nguyen").Rong()); // Không tự bỏ dấu.
+    assert(SoBo.TimBenhNhanTheoTen("nguyen").Rong());
     SoBo.BoSungDanhTinh("C", "", u8"Trần ĐỖ", Gender::Nam, Date{1,1,2000});
     assert(SoBo.TimBenhNhanTheoTen("vAn aN").Rong());
     assert(SoBo.TimBenhNhanTheoTen(u8"đỗ").KichThuoc() == 1);
 
-    // Bao phủ tất cả chữ hoa/thường tiếng Việt dựng sẵn, không dựa vào locale máy.
+
     const std::string ChuHoa = u8"ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐĨŨƠƯẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼẾỀỂỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪỬỮỰỲỴỶỸ";
     const std::string ChuThuong = u8"àáâãèéêìíòóôõùúýăđĩũơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ";
     SoBo.ThemBenhNhan("E", ChuHoa);
@@ -138,30 +138,30 @@ void KiemTraLanKhamVaTaiSuDung() {
                 My_stdexcept::LoaiLoi::TrangThaiKhongHopLe);
         assert(SoBo.TimLanKham("LK_MOI") == nullptr);
     };
-    ChanLanMoi(); // ChoKhamLanDau.
-    SoBo.ThemLanKham("LK2", "BN2", 1767225600, "Khac"); // Người khác vẫn được tiếp nhận.
+    ChanLanMoi();
+    SoBo.ThemLanKham("LK2", "BN2", 1767225600, "Khac");
     PhaiLoi([&]{ SoBo.ThemLanKham("LK1", "BN2", 1767225600, "Ghi de"); },
             My_stdexcept::LoaiLoi::DoiSoKhongHopLe);
     LanDau->DanhGia(*BenhNhan, VitalSigns(75,120,16,98,15), 1767225601, "DD1");
     LanDau->BatDauKham("BS1");
-    ChanLanMoi(); // DangKham.
+    ChanLanMoi();
     LanDau->ChuyenDiCanLamSang("Xet nghiem", "BS1");
-    ChanLanMoi(); // ChoCanLamSang.
+    ChanLanMoi();
     LanDau->GhiNhanKetQua("On");
     LanDau->DanhDauQuayLai();
-    ChanLanMoi(); // ChoKhamQuayLai.
+    ChanLanMoi();
     LanDau->BatDauKham("BS1");
     LanDau->KetThucLanKham();
-    // Sao chép để xem lịch sử không được lấy mất dữ liệu của hồ sơ Registry.
+
     Visit BanChup(*LanDau);
     assert(BanChup.SoDanhGia() == 1 && LanDau->SoDanhGia() == 1);
     assert(BanChup.SoLanCanLamSang() == 1 && LanDau->SoLanCanLamSang() == 1);
     assert(LanDau->LayTrieuChungChinh() == "Dau");
-    // Bên gọi xác nhận đúng người rồi dùng mã Patient tìm theo CCCD, không đề xuất mã mới.
+
     const Patient* TimDuoc = SoBo.TimBenhNhanTheoCanCuoc("001");
     Visit* LanHai = SoBo.ThemLanKham("LK3", TimDuoc->LayMaDinhDanh(), 1767312000, "Tai kham");
     LanHai->HuyLanKham();
-    Visit* LanBa = SoBo.ThemLanKham("BN1", "BN1", 1767398400, "Tai kham"); // Hai không gian mã.
+    Visit* LanBa = SoBo.ThemLanKham("BN1", "BN1", 1767398400, "Tai kham");
     assert(SoBo.SoBenhNhan() == 2 && SoBo.SoLanKham() == 4);
     assert(SoBo.TimBenhNhan("BN1") == BenhNhan && SoBo.TimLanKham("LK1") == LanDau);
     assert(SoBo.LayLichSuLanKham("BN1").KichThuoc() == 3);
@@ -195,18 +195,18 @@ void KiemTraRehashVaVongDoi() {
             assert(SoBo.TimBenhNhanTheoCanCuoc("CCCD" + Ma) == SoBo.TimBenhNhan(Ma));
             assert(SoBo.TimBenhNhanTheoMaLanKham(Ma) == SoBo.TimBenhNhan(Ma));
         }
-    } // ASan/LSan kiểm tra thu hồi toàn bộ Patient, Visit và nút bảng băm.
+    }
 }
 
 void KiemTraTraCuuKetHop() {
     PatientRegistry SoBo;
     assert(SoBo.TraCuuLanKham().Rong());
     const Patient* An = SoBo.ThemBenhNhan("BN1", u8"Nguyễn Văn An");
-    SoBo.ThemBenhNhan("BN2", u8"Nguyễn Văn An"); // Cùng tên, khác người.
+    SoBo.ThemBenhNhan("BN2", u8"Nguyễn Văn An");
     SoBo.ThemBenhNhan("BN3", "Binh");
-    SoBo.ThemBenhNhan("BN4"); // Có lần khám nhưng chưa biết tên.
-    SoBo.ThemBenhNhan("BN5", "An chua kham"); // Chưa khám không có dòng kết quả.
-    // Mốc 00:00 UTC ngày 01/01/2026; Việt Nam sang ngày mới từ 17:00 UTC hôm trước.
+    SoBo.ThemBenhNhan("BN4");
+    SoBo.ThemBenhNhan("BN5", "An chua kham");
+
     const std::time_t Moc = 1767225600;
     Visit* Cu = SoBo.ThemLanKham("LK1", "BN1", Moc - 25201, "Dau");
     Cu->HuyLanKham();
@@ -226,7 +226,7 @@ void KiemTraTraCuuKetHop() {
     Vector<KetQuaTraCuuLanKham> TheoTen = SoBo.TraCuuLanKham(u8"NGUYỄN vĂn");
     assert(TheoTen.KichThuoc() == 3);
     assert(TheoTen[0].BenhNhan == An && TheoTen[0].LanKham == Moi);
-    assert(TheoTen[2].LanKham == Cu); // Giữ cả lần khám đã hủy trong lịch sử.
+    assert(TheoTen[2].LanKham == Cu);
     const Date Ngay{1, 1, 2026}, HomTruoc{31, 12, 2025}, HomSau{2, 1, 2026};
     assert(SoBo.TraCuuLanKham("", &Ngay).KichThuoc() == 3);
     assert(SoBo.TraCuuLanKham("An", &Ngay).KichThuoc() == 2);
@@ -237,11 +237,11 @@ void KiemTraTraCuuKetHop() {
     assert(SoBo.TraCuuLanKham("Binh", &Ngay, "LK2").Rong());
     assert(SoBo.TraCuuLanKham("An", &HomTruoc, "LK2").Rong());
     assert(SoBo.TraCuuLanKham("", nullptr, "LK2")[0].BenhNhan == An);
-    assert(SoBo.TraCuuLanKham("", nullptr, "LK").Rong()); // Mã khớp chính xác.
+    assert(SoBo.TraCuuLanKham("", nullptr, "LK").Rong());
     assert(SoBo.TraCuuLanKham("khong ton tai").Rong());
     const Date NgaySai{29, 2, 2026};
     PhaiLoi([&]{ SoBo.TraCuuLanKham("", &NgaySai); }, My_stdexcept::LoaiLoi::DoiSoKhongHopLe);
-    // Cập nhật tên phải phản ánh ngay trong lần tra cứu tiếp theo.
+
     SoBo.BoSungDanhTinh("BN1", "", "Ten moi", Gender::Nam, Date{1,1,2000});
     assert(SoBo.TraCuuLanKham("An").KichThuoc() == 1);
     assert(SoBo.TraCuuLanKham("Ten moi").KichThuoc() == 2);
@@ -255,7 +255,7 @@ void KiemTraNgayLocChuyenThang() {
         PatientRegistry SoBo;
         SoBo.ThemBenhNhan("BN1");
         SoBo.ThemBenhNhan("BN2");
-        // Hai lần tiếp nhận cách một giây nhưng thuộc hai ngày Việt Nam khác nhau.
+
         SoBo.ThemLanKham("TRUOC", "BN1", CacMoc[I] - 1, "Kham");
         SoBo.ThemLanKham("SAU", "BN2", CacMoc[I], "Kham");
         assert(SoBo.TraCuuLanKham("", &NgaySau[I]).KichThuoc() == 1);
@@ -295,7 +295,7 @@ void KiemTraBoSungThongTinConThieu() {
     assert(Cu->LayNgaySinh().Nam==2000 && Cu->LayTuoiUocLuong()==0);
     assert(Cu->LayNhomMau()==BloodGroup::O && Cu->LayThongTinDiUng()=="Penicillin");
     assert(Cu->LayTienSuBenh()=="Hen");
-    // Nội dung đã có vẫn giữ nguyên, kể cả khi nguồn gửi lại khác đi.
+
     R.BoSungThongTinConThieu("A",Trung);
     assert(Cu->LaySoCanCuoc()=="001");
     PhaiLoi([&] { R.BoSungThongTinConThieu("A",Patient("SAI")); },My_stdexcept::LoaiLoi::DoiSoKhongHopLe);

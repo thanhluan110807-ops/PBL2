@@ -45,7 +45,7 @@ void Patient::CapNhatTienSuBenh(const std::string& ThongTin) { TienSuBenh = Thon
 void Patient::BoSungDanhTinh(const std::string& SoCanCuoc, const std::string& HoTen,
                              Gender GioiTinh, const Date& NgaySinh) {
     if (HoTen.empty()) throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe, "Ho ten khong duoc rong");
-    // Tạo bản sao trước khi thay đổi Person để tránh cập nhật dở dang khi cấp phát lỗi.
+
     std::string CanCuocMoi = SoCanCuoc;
     CapNhatThongTinCaNhan(HoTen, GioiTinh, NgaySinh);
     this->SoCanCuoc.swap(CanCuocMoi);
@@ -55,7 +55,7 @@ void Patient::BoSungDanhTinh(const std::string& SoCanCuoc, const std::string& Ho
 void Patient::BoSungThongTinConThieu(const Patient& ThongTin) {
     if (LayMaDinhDanh()!=ThongTin.LayMaDinhDanh())
         throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe,"Thong tin bo sung khong cung ma benh nhan");
-    // Chuẩn bị toàn bộ trên bản tạm; lỗi kiểm tra/cấp phát không đổi hồ sơ gốc.
+
     Patient Moi(*this);
     const auto& Ten=LayHoTen().empty() ? ThongTin.LayHoTen() : LayHoTen();
     const auto Gioi=LayGioiTinh()==Gender::ChuaXacDinh ? ThongTin.LayGioiTinh() : LayGioiTinh();
@@ -69,7 +69,7 @@ void Patient::BoSungThongTinConThieu(const Patient& ThongTin) {
     if (TienSuBenh.empty()) Moi.TienSuBenh=ThongTin.TienSuBenh;
     Moi.TrangThaiDanhTinh=Moi.LayHoTen().empty() ? IdentityStatus::ChuaXacDinh : IdentityStatus::DaXacDinh;
 
-    // Các phép hoán đổi chuỗi và gán giá trị dưới đây không cấp phát bộ nhớ.
+
     HoanDoiThongTin(Moi);
     SoCanCuoc.swap(Moi.SoCanCuoc); ThongTinDiUng.swap(Moi.ThongTinDiUng); TienSuBenh.swap(Moi.TienSuBenh);
     NhomMau=Moi.NhomMau; TrangThaiDanhTinh=Moi.TrangThaiDanhTinh;

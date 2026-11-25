@@ -14,11 +14,11 @@
 int main() {
     PatientRegistry SoBo;
     SoBo.ThemBenhNhan("BN1", "Nguyen Van An");
-    SoBo.ThemBenhNhan("BN2", "Nguyen Van An"); // Trùng tên nhưng khác mã Patient.
+    SoBo.ThemBenhNhan("BN2", "Nguyen Van An");
     SoBo.ThemBenhNhan("BN3", "Binh");
-    SoBo.ThemBenhNhan("BN4", "Mai"); // Chưa có lần khám.
+    SoBo.ThemBenhNhan("BN4", "Mai");
 
-    const std::time_t Moc = 1767225600; // 01/01/2026 00:00 UTC.
+    const std::time_t Moc = 1767225600;
     SoBo.ThemLanKham("LK1", "BN1", Moc, "Dau bung");
     SoBo.ThemLanKham("LK2", "BN2", Moc + 60, "Sot");
     SoBo.ThemLanKham("LK3", "BN3", Moc + 86400, "Ho");
@@ -46,7 +46,7 @@ int main() {
     assert(TraCuu.TimTheoBenhNhan("An", &NgayKhac, "LK2").Rong());
     assert(TraCuu.TimTheoBenhNhan("Mai").Rong());
 
-    // Chỉ bác sĩ đã khám mới xuất hiện; đánh giá theo đúng mã và lần ghi nhận.
+
     auto* Luot = SoBo.TimLanKham("LK1");
     Patient HoSo("BN1", "Nguyen Van An");
     HoSo.DatTuoiUocLuong(30);

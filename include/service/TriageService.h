@@ -6,7 +6,7 @@
 #include "dsa/Vector.h"
 #include "repository/PatientRegistry.h"
 
-// Một mục chỉ mượn Visit do Registry sở hữu; không sao chép hồ sơ.
+
 struct MucChoKham {
     Visit* LanKham = nullptr;
     int Muc = 5;
@@ -23,7 +23,7 @@ struct SoSanhChoKham {
     }
 };
 
-// Bản lưu chỉ giữ mã, không lưu địa chỉ RAM; dùng để dựng lại hai heap khi mở file.
+
 struct MucChoLuu {
     std::string MaLanKham;
     std::time_t ThoiDiemVaoHang = 0;
@@ -35,7 +35,7 @@ struct TrangThaiHangCho {
     bool UuTienQuayLai = true;
 };
 
-// Registry phải sống lâu hơn service. Mọi chuyển trạng thái phải qua service.
+
 class TriageService {
     using HangCho = PriorityQueue<MucChoKham, SoSanhChoKham>;
     PatientRegistry& Registry;
@@ -53,7 +53,7 @@ public:
     TriageService& operator=(const TriageService&) = delete;
     const Visit& TiepNhan(const std::string& MaLanKham, const std::string& MaBenhNhan,
                           std::time_t ThoiDiem, const std::string& TrieuChung);
-    // Chấp nhận mã điều dưỡng rỗng trong giai đoạn chưa có đăng nhập.
+
     void DanhGia(const std::string& MaLanKham, const VitalSigns& SinhHieu,
                  std::time_t ThoiDiem, const std::string& MaDieuDuong);
     const Visit& GoiTiep(const std::string& MaBacSi);
@@ -64,7 +64,7 @@ public:
     void KetThuc(const std::string& MaLanKham);
     void Huy(const std::string& MaLanKham);
     TrangThaiHangCho LayTrangThaiHangCho() const;
-    // Chỉ công bố heap mới sau khi kiểm tra đủ mọi Visit đang chờ.
+
     void KhoiPhucHangCho(const TrangThaiHangCho& BanLuu);
     int SoDangCho() const { return HangLanDau.KichThuoc() + HangQuayLai.KichThuoc(); }
 };

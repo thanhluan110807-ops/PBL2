@@ -23,7 +23,7 @@ int main(int SoThamSo, char *ThamSo[]) {
     PatientRegistry *Registry = nullptr;
     int MaThoat = 0;
     try {
-        // Khóa một tiến trình để hai cửa sổ không ghi đè bộ dữ liệu của nhau.
+
         const QString ThuMucCauHinh = QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation);
         if (ThuMucCauHinh.isEmpty() || !QDir().mkpath(ThuMucCauHinh))
             throw My_stdexcept(My_stdexcept::LoaiLoi::LoiThucThi,"Khong tao duoc thu muc cau hinh");
@@ -39,7 +39,7 @@ int main(int SoThamSo, char *ThamSo[]) {
             DemoUi::DocBoFileGanNhat(ThuMucCauHinh.toStdString(),TepPatient,TepVisit);
         TrangThaiHangCho HangCho;
         if (DungMau || (!ChonLai && !CoBoFile)) {
-            // Liên kết thẳng bộ CSV cố định. Lần sau đọc lại chính các file đã sửa.
+
             const QDir ThuMucMau(QString::fromUtf8(PBL2_SAMPLE_DATA_DIR));
             TepPatient = ThuMucMau.filePath("patient.csv").toStdString();
             TepVisit = ThuMucMau.filePath("visit.csv").toStdString();
@@ -48,7 +48,7 @@ int main(int SoThamSo, char *ThamSo[]) {
             Registry = DemoUi::KhoiDongTuDong(TepPatient,TepVisit,HangCho);
         else Registry = DemoUi::ChonDuLieu(nullptr, &HangCho, &TepPatient, &TepVisit);
         if (Registry == nullptr) return 0;
-        // Cửa sổ và service hủy trước Registry, kể cả khi phát sinh ngoại lệ.
+
         TriageService Triage(*Registry);
         Triage.KhoiPhucHangCho(HangCho);
         VisitSearchService TraCuu(*Registry);

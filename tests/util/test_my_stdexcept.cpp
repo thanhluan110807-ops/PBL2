@@ -33,7 +33,7 @@ int main() {
     assert(ChuoiBangNhau(Loi.LayThongBao(), "Du lieu sai"));
     assert(Loi.LayLoaiLoi() == LoaiLoi::DoiSoKhongHopLe);
 
-    // Sao chép đối tượng không làm hai thông báo dùng chung vùng nhớ.
+
     My_stdexcept BanSao = Loi;
     Loi = My_stdexcept(LoaiLoi::LoiThucThi, "Thong bao moi");
     assert(ChuoiBangNhau(BanSao.LayThongBao(), "Du lieu sai"));
@@ -50,7 +50,7 @@ int main() {
     for (int ViTri = 0; ViTri < 255; ++ViTri) assert(LoiDai.LayThongBao()[ViTri] == 'A');
     assert(LoiDai.LayThongBao()[255] == '\0');
 
-    // Thông báo vẫn còn sau khi nguồn cục bộ đã hết thời gian sống.
+
     bool DaBat = false;
     try {
         char Tam[] = "Loi tu ham";

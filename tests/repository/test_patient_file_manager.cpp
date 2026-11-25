@@ -28,7 +28,7 @@ void GhiDuLieuThu(const std::string& NoiDung) {
 }
 
 void KiemTraDuLieuHopLe() {
-    // Một dòng Patient có dấu phẩy, nháy kép và xuống dòng trong trường văn bản.
+
     GhiDuLieuThu("\xEF\xBB\xBF" + TieuDe +
         u8"BN001,\"Nguyễn, \"\"An\"\"\",Nam,2000-01-31,001234567890,AB,\"Penicillin,\r\n aspirin\",Hen,\r\n"
         "BN002,,ChuaXacDinh,,,ChuaXacDinh,,,0\n");
@@ -55,9 +55,9 @@ void KiemTraDuLieuHopLe() {
     assert(!VoDanh->CoNgaySinh());
     assert(VoDanh->LaySoCanCuoc().empty());
     assert(VoDanh->CoTuoiUocLuong() && VoDanh->LayTuoiUocLuong() == 0);
-    delete SoBo; // Bên gọi nhận quyền sở hữu Registry trả về.
+    delete SoBo;
 
-    // BOM đứng trước dấu ngoặc kép vẫn phải đọc được ô tiêu đề CSV hợp lệ.
+
     GhiDuLieuThu("\xEF\xBB\xBF\"MaBenhNhan\",HoTen,GioiTinh,NgaySinh,SoCanCuoc,"
                 "NhomMau,ThongTinDiUng,TienSuBenh,TuoiUocLuong\n"
                 "BN003,Binh,Nam,,,O,,,\n");
@@ -104,7 +104,7 @@ void KiemTraFileLoi() {
 }
 
 void KiemTraGhiVaDocLai() {
-    // Bắt lỗi mất dấu phân cách, tuổi 0, số 0 đầu CCCD hoặc ngày chưa đủ chữ số.
+
     PatientRegistry SoBo;
     Patient An("BN001", u8"Nguyễn, \"An\"\r\nHai", Gender::Khac,
                Date{2, 3, 2009}, "001234567890");
@@ -137,7 +137,7 @@ void KiemTraGhiVaDocLai() {
     assert(!DocLai->TimBenhNhan("BN003")->CoTuoiUocLuong());
     delete DocLai;
 
-    // Registry rỗng vẫn phải có tiêu đề để nạp lại được.
+
     const PatientRegistry Rong;
     QuanLy.LuuBenhNhan(Rong, DuongDan);
     DocLai = QuanLy.DocBenhNhan(DuongDan);
@@ -146,7 +146,7 @@ void KiemTraGhiVaDocLai() {
 }
 
 void KiemTraCsvChung() {
-    // Parser chung giữ nguyên bản ghi nhiều dòng và dòng bắt đầu khi báo lỗi.
+
     std::istringstream Tep("\xEF\xBB\xBF\"A\",\"B\r\nC\",\"D\"\"E\",\r\nX,Y\n");
     CsvFile::BoQuaBom(Tep);
     int Dong = 1, Dau = 1;
@@ -175,7 +175,7 @@ void KiemTraCsvChung() {
         DaBaoLoi = NgoaiLe.LayLoaiLoi() == My_stdexcept::LoaiLoi::LoiThucThi;
     }
     assert(DaBaoLoi);
-    // failbit không kèm eofbit là lỗi luồng, không được xem như hết file sạch.
+
     std::istringstream LoiTrangThai("A,B\n");
     LoiTrangThai.setstate(std::ios::failbit);
     DaBaoLoi = false;
@@ -203,7 +203,7 @@ void KiemTraCsvChung() {
 }
 
 void KiemTraGhiAnToan() {
-    // Thay file thành công, giữ file .tmp có sẵn và báo lỗi khi không mở được nơi lưu.
+
     GhiDuLieuThu("du lieu cu");
     { std::ofstream Tep(DuongDan + ".tmp"); Tep << "file cua nguoi khac"; }
     CsvFile::GhiFileAnToan(DuongDan, "du lieu moi");
@@ -231,7 +231,7 @@ void KiemTraGhiAnToan() {
     std::remove((ThuMuc + "/giu-lai").c_str());
     std::filesystem::remove(ThuMuc);
 }
-} // namespace
+}
 
 int main() {
     KiemTraDuLieuHopLe();

@@ -1,4 +1,4 @@
-// Phần B — Chức năng chính: Lập lịch dự kiến, tăng cường và tìm người thay bằng các ràng buộc.
+
 #include "model/BacSi.h"
 #include "repository/ScheduleRegistry.h"
 #include "model/DieuDuong.h"
@@ -35,7 +35,7 @@ bool SchedulerService::CoThePhanCong(const NhanVienYTe& NV, const Shift& Ca,
         const Shift* Cu = TimCa(Lich, P.MaCa);
         if (!Cu || P.MaCa == Ca.LayMaCaTruc()) return false;
         if (Ca.CoChongGio(*Cu)) return false;
-        // Kiểm tra cả hai chiều vì ca đầu vào có thể chưa được sắp xếp theo giờ.
+
         const Shift& Truoc = Cu->LayBatDau() < Ca.LayBatDau() ? *Cu : Ca;
         const Shift& Sau = Cu->LayBatDau() < Ca.LayBatDau() ? Ca : *Cu;
         const int Nghi = Truoc.LaCaDem() ? Luat.NghiSauCaDemPhut : Luat.NghiGiuaCaPhut;
@@ -45,7 +45,7 @@ bool SchedulerService::CoThePhanCong(const NhanVienYTe& NV, const Shift& Ca,
 }
 namespace {
 struct OTrong { int Ca = 0; AssignmentRole VaiTro = AssignmentRole::BacSi; };
-// Trạng thái tìm kiếm nằm cục bộ: không tăng giờ/điểm trên nhân viên thật.
+
 struct TimKiem {
     const StaffRegistry& NhanSu;
     const SchedulerRules& Luat;
@@ -72,7 +72,7 @@ struct TimKiem {
         const Shift& Ca = KQ.Lich.CacCa[CacO[O].Ca];
         Vector<int> UngVien;
         for (int I = 0; I < NhanSu.KichThuoc(); ++I) UngVien.ThemCuoi(I);
-        // Ưu tiên người ít giờ hơn; đây là thứ tự thử, không phải chứng minh tối ưu.
+
         for (int I = 1; I < UngVien.KichThuoc(); ++I) {
             int J = I;
             while (J > 0 && DiemUuTien(NhanSu.Lay(UngVien[J]),Ca) <
@@ -87,7 +87,7 @@ struct TimKiem {
             if (!SchedulerService::CoThePhanCong(NV, Ca, CacO[O].VaiTro, KQ.Lich, Luat)) continue;
             KQ.Lich.PhanCong.ThemCuoi({NV.LayMaDinhDanh(), Ca.LayMaCaTruc(), CacO[O].VaiTro});
             if (Thu(O + 1)) return true;
-            KQ.Lich.PhanCong.XoaCuoi(); // Hoàn tác đúng một lựa chọn trước khi thử người khác.
+            KQ.Lich.PhanCong.XoaCuoi();
             if (HetLuot) return false;
         }
         return false;
@@ -181,7 +181,7 @@ Vector<std::string> SchedulerService::TimNguoiThay(const StaffRegistry& NhanSu, 
 }
 
 namespace {
-// Tận dụng cùng bộ quay lui; giữ các phân công cũ làm điều kiện ban đầu.
+
 Vector<ShiftAssignment> BoSung(const StaffRegistry& N, const ScheduleRegistry& R,
                              const std::string& Ma, int BS, int DD, int GioiHan) {
     if (GioiHan<=0 || N.KichThuoc()>100 || BS<0 || DD<0 || BS>10 || DD>10)
@@ -207,7 +207,7 @@ Vector<ShiftAssignment> BoSung(const StaffRegistry& N, const ScheduleRegistry& R
             else { ++SoBS; if (P.VaiTro==AssignmentRole::TruongCa) ++Truong; }
         }
         if (!Ma.empty() && Ma!=C.LayMaCaTruc()) continue;
-        // Tăng cường là số chỗ BỔ SUNG so với người hiện có, không đổi phân công cũ.
+
         const int CanBS=Ma.empty()?C.SoBacSi:SoBS+BS;
         const int CanDD=Ma.empty()?C.SoDieuDuong:SoDD+DD;
         for (int J=SoBS; J<CanBS; ++J)
@@ -223,7 +223,7 @@ Vector<ShiftAssignment> BoSung(const StaffRegistry& N, const ScheduleRegistry& R
     Vector<ShiftAssignment> KQ;
     for (int I=SoCu; I<T.KQ.Lich.PhanCong.KichThuoc(); ++I) {
         const auto& P=T.KQ.Lich.PhanCong[I];
-        // Tránh dùng lại mã của bản đã hủy; mã còn phải kiểm tra khi chấp nhận đề xuất.
+
         std::string M=P.LayMaPhanCong(); int HauTo=1;
         while (R.TimPhanCong(M)) M=P.LayMaPhanCong()+"-"+std::to_string(HauTo++);
         KQ.ThemCuoi(ShiftAssignment(M,P.MaNhanVien,P.MaCa,P.VaiTro));

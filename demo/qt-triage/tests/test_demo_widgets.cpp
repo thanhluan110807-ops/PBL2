@@ -47,7 +47,7 @@ void Bam(QWidget* H, const char* Ma) { Tim<QPushButton>(H, Ma)->click(); }
 
 int main(int SoThamSo, char** ThamSo) {
     QApplication UngDung(SoThamSo, ThamSo);
-    // Kết quả UTC+7 không phụ thuộc múi giờ máy; kiểm tra cả mốc đổi ngày.
+
     assert(DemoUi::ThoiDiem(0) == "01/01/1970 07:00");
     assert(DemoUi::ThoiDiem(17 * 3600) == "02/01/1970 00:00");
     PatientRegistry R;
@@ -79,7 +79,7 @@ int main(int SoThamSo, char** ThamSo) {
     };
     assert(!W.findChild<QLineEdit*>("timChung"));
     assert(!W.findChild<QPushButton*>("nav0"));
-    // Nhân sự/lịch là trang trong cửa sổ chính, không mở hộp thoại riêng.
+
     Bam(&W,"nav5");
     auto* Trang=W.findChild<QStackedWidget*>("mainPages");
     auto* QuanTri=W.findChild<AdminPanel*>("adminPanel");
@@ -110,7 +110,7 @@ int main(int SoThamSo, char** ThamSo) {
         auto* CuonTrang=qobject_cast<QScrollArea*>(CacMucQuanTri->currentWidget());
         assert(CuonTrang && CuonTrang->verticalScrollBar()->maximum()==0);
     }
-    // Danh sách mở trước; người dùng chủ động mở và hủy biểu mẫu.
+
     Bam(&W,"nav5");
     auto* MaNhanVien=Tim<QLineEdit>(QuanTri,"staffId");
     auto* BangNhanVien=Tim<QTableWidget>(QuanTri,"staffTable");
@@ -166,7 +166,7 @@ int main(int SoThamSo, char** ThamSo) {
     assert(Trang->currentWidget()!=QuanTri);
     Bam(&W,"nav5");
     assert(Tim<QTableWidget>(QuanTri,"staffTable")->rowCount()==2);
-    // Bỏ qua lưu khi đổi vai trò phải giữ phiên quản lý và thay đổi chưa lưu.
+
     QTimer::singleShot(0, [] {
         auto* H = Hop();
         Bam(H, "vaiTroDieuDuong");
@@ -307,7 +307,7 @@ int main(int SoThamSo, char** ThamSo) {
     W.LamMoi();
     UngDung.processEvents();
     assert(W.grab().save("demo-core-workflow.png"));
-    // Lọc không tiêu thụ lượt hòa: lần đầu vẫn nhường quay lại ở lần hòa đầu tiên.
+
     Bam(&W, "nav2"); Bam(&W, "locLuong1"); Bam(&W, "goiTiep");
     assert(R.TimLanKham("LK001")->LayTrangThai() == VisitStatus::DangKham);
     assert(R.TimLanKham("LK2")->LayTrangThai() == VisitStatus::ChoKhamLanDau);
@@ -320,7 +320,7 @@ int main(int SoThamSo, char** ThamSo) {
     assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 0);
     Nhap(&W, "maLanKhamLoc", "LK001");
     assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 1);
-    // Đổi trang tra cứu phải xóa bộ lọc cũ.
+
     Nhap(&W, "ngayLoc", "01/01/2000"); Bam(&W, "nav2");
     assert(Tim<QLineEdit>(&W, "timHang")->text().isEmpty());
     assert(Tim<QLineEdit>(&W, "maLanKhamLoc")->text().isEmpty());
@@ -329,7 +329,7 @@ int main(int SoThamSo, char** ThamSo) {
     R.ThemBenhNhan("BN3", "Chưa khám"); Bam(&W, "nav4");
     assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 3);
     DoiVaiTro("vaiTroDieuDuong", "DD01");
-    // Trùng mã Visit phải bị chặn trước khi tạo Patient mới.
+
     bool TrungMa = false;
     try { R.ThemLanKham("LK001", "BN001", std::time(nullptr), "Khám"); }
     catch (const My_stdexcept&) { TrungMa = true; }
@@ -341,7 +341,7 @@ int main(int SoThamSo, char** ThamSo) {
         assert(R.TimBenhNhan("BN_KHONG_TAO") == nullptr); Bam(H, "dongHop");
     });
     W.MoTiepNhan();
-    // Chọn hồ sơ đã có và đang khám: không mở thêm Visit.
+
     QTimer::singleShot(0, [&] {
         auto *H = Hop(); Tim<QComboBox>(H, "cheDo")->setCurrentIndex(1);
         Nhap(H, "timHoSo", "BN001"); auto *L = Tim<QListWidget>(H, "chonHoSo");
@@ -351,7 +351,7 @@ int main(int SoThamSo, char** ThamSo) {
         assert(!Tim<QLabel>(H, "loiTong")->text().isEmpty()); Bam(H, "dongHop");
     });
     W.MoTiepNhan();
-    // Đổi danh tính qua Registry giữ nguyên địa chỉ hồ sơ và lịch sử.
+
     const Patient *Cu = R.TimBenhNhan("BN001");
     QTimer::singleShot(0, [&] {
         auto *H = Hop(); Bam(H,"suaThongTin"); Nhap(H, "HoTen", "Nguyễn An mới");
@@ -367,7 +367,7 @@ int main(int SoThamSo, char** ThamSo) {
     Nhap(&W, "ngayLoc", "31/02/2026"); assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 0);
     assert(Tim<QLabel>(&W, "soKetQua")->text().contains("không hợp lệ"));
     Nhap(&W, "ngayLoc", "01/01/2000"); assert(Tim<QTableWidget>(&W, "hangCho")->rowCount() == 0);
-    // Hộp chi tiết của Visit đang khám không cho đánh giá lại.
+
     DoiVaiTro("vaiTroBacSi", "BS01");
     QTimer::singleShot(0, [&] {
         assert(!Hop()->findChild<QPushButton*>("danhGia"));
@@ -385,7 +385,7 @@ int main(int SoThamSo, char** ThamSo) {
     QTimer::singleShot(0, [] { Bam(Hop(), "xacNhanDong"); }); W.XacNhanDong("LK2", true);
     assert(R.TimLanKham("LK2")->LayTrangThai() == VisitStatus::DaHuy && T.SoDangCho() == 0);
     DoiVaiTro("vaiTroQuanLy", "QL01");
-    // Một bác sĩ khám lại cùng Visit chỉ có một dòng; điều dưỡng thấy đúng đánh giá của mình.
+
     Bam(&W,"nav5");
     BangNhanVien->selectRow(0);
     QTimer::singleShot(0, [] {

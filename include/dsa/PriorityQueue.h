@@ -2,16 +2,16 @@
 
 #include "dsa/Vector.h"
 
-// Mặc định phần tử lớn hơn có ưu tiên cao hơn; có thể truyền comparator riêng.
+
 template <typename T>
 struct SoSanhMacDinh {
     bool operator()(const T& Trai, const T& Phai) const { return Trai < Phai; }
 };
 
-// Max-heap: SoSanh(A, B) true nghĩa là A có ưu tiên thấp hơn B.
-// T phải dựng mặc định, sao chép và gán được như Vector. Comparator và các phép
-// sao chép/gán của T khi vun heap không được ném lỗi; xem docs/dsa/README.md.
-// Nếu T là con trỏ, heap chỉ giữ địa chỉ và không sở hữu đối tượng được trỏ tới.
+
+
+
+
 template <typename T, typename SoSanh = SoSanhMacDinh<T>>
 class PriorityQueue {
 private:
@@ -29,7 +29,7 @@ private:
         DuLieu[Phai] = Tam;
     }
 
-    // Đưa phần tử lên khi nó ưu tiên hơn nút cha.
+
     void VunLen(int ChiSo) {
         while (ChiSo > 0) {
             int Cha = (ChiSo - 1) / 2;
@@ -39,7 +39,7 @@ private:
         } 
     }
 
-    // Chọn con ưu tiên nhất rồi đưa phần tử xuống đến khi đúng thứ tự.
+
     void VunXuong(int ChiSo) {
         int SoPhanTu = DuLieu.KichThuoc();
         while (SoPhanTu >= 2 && ChiSo <= (SoPhanTu - 2) / 2) {
@@ -68,7 +68,7 @@ public:
     bool Rong() const { return DuLieu.Rong(); }
     int KichThuoc() const { return DuLieu.KichThuoc(); }
 
-    // Thứ tự trong mảng heap không phải thứ tự lấy ra; chỉ cho đọc.
+
     const T& LayTai(int ChiSo) const { KiemTraChiSo(ChiSo); return DuLieu[ChiSo]; }
     const T& LayDinh() const { return LayTai(0); }
 
@@ -77,7 +77,7 @@ public:
         VunLen(DuLieu.KichThuoc() - 1);
     }
 
-    // Chỉ số là vị trí hiện tại trong heap; mọi thao tác sửa có thể đổi vị trí.
+
     void SuaTai(int ChiSo, const T& GiaTri) {
         KiemTraChiSo(ChiSo);
         DuLieu[ChiSo] = GiaTri;
@@ -94,7 +94,7 @@ public:
 
     void XoaDinh() { XoaTai(0); }
     void XoaHet() { DuLieu.XoaHet(); }
-    // Không cấp phát khi công bố heap đã dựng xong; comparator theo hợp đồng không ném lỗi.
+
     void HoanDoi(PriorityQueue& Khac) noexcept {
         DuLieu.HoanDoi(Khac.DuLieu);
         SoSanh Tam = BoSoSanh; BoSoSanh = Khac.BoSoSanh; Khac.BoSoSanh = Tam;

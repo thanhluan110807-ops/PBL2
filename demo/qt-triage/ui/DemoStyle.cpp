@@ -19,7 +19,7 @@
 
 namespace DemoUi {
 QString ThoiDiem(std::time_t Luc) {
-    // Múi giờ cố định 0 là UTC; overload QTimeZone dùng được trên Qt 5 và Qt 6 mới.
+
     return QDateTime::fromSecsSinceEpoch(static_cast<qint64>(Luc), QTimeZone(0))
         .addSecs(7 * 3600).toString("dd/MM/yyyy HH:mm");
 }
@@ -183,4 +183,4 @@ QIcon BieuTuong(const QString &Ten, const QColor &Mau) {
     }
     return QIcon(Anh);
 }
-} // namespace DemoUi
+}

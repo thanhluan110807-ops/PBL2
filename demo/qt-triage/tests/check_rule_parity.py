@@ -11,7 +11,7 @@ SOURCE = subprocess.check_output(['git', 'show', SHA+':src/model/Patient.cpp'], 
 START = SOURCE.index('void Patient::evaluateTriageLevel() {')
 END = SOURCE.index('\n// =========================================================', START)
 FUNCTION = SOURCE[START:END]
-# Chỉ thay kiểu ngoại lệ cũ, giữ nguyên mọi điều kiện/nhánh của nguồn gốc.
+
 FUNCTION = re.sub(r'throw std::domain_error\([^;]+;', 'throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe, "Tuoi khong hop le");', FUNCTION)
 PREAMBLE = '''#include <iostream>
 #include "model/DemoTriageService.h"

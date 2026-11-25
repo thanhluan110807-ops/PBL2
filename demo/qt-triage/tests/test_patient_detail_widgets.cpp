@@ -71,7 +71,7 @@ int main(int argc, char** argv) {
         assert(Cuon->horizontalScrollBar()->maximum()==0);
         Chup(H,"PBL2_PROFILE_NARROW");
 
-        // Chỉ bấm sửa mới hiện ô nhập; hủy phải giữ nguyên hồ sơ.
+
         Bam(H,"suaThongTin");
         assert(Tim<QLineEdit>(H,"HoTen")->isVisible() && !Ten->isVisible());
         Chup(H,"PBL2_PROFILE_EDIT");

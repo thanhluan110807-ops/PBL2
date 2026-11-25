@@ -2,8 +2,8 @@
 #include "model/Date.h"
 #include <string>
 
-// Mô phỏng độc lập Qt. Mảng cố định có kiểm tra sức chứa: không thay Vector/Heap của đồ án.
-// Mọi dữ liệu sở hữu theo giá trị; UI chỉ được đọc const và gọi lệnh qua service.
+
+
 namespace Demo {
 constexpr int GioiHanHoSo = 64;
 constexpr int GioiHanLuot = 96;
@@ -16,7 +16,7 @@ struct HoSo {
     std::string Ma, HoTen, GioiTinh = "Chưa xác định", CanCuoc, DiUng, TienSu;
     bool ChuaRo = false, CoNgaySinh = false;
     Date NgaySinh{1, 1, 2000};
-    int TuoiUocLuong = -1; // -1 là chưa biết; 0 là tuổi thực dưới một năm.
+    int TuoiUocLuong = -1;
 };
 struct SinhHieu {
     int Mach = -1, HuyetAp = -1, NhipTho = -1, GCS = -1;
@@ -72,7 +72,7 @@ class DemoTriageService {
     LuotKham CacLuot[GioiHanLuot];
     int SoHoSo = 0, SoLuot = 0, ThuTu = 0;
     int BoDem[6]{};
-    long long BayGio = 570; // Phút tính từ 00:00 ngày 30/10/2026, UTC+7.
+    long long BayGio = 570;
     void GhiMoc(LuotKham &Luot, const std::string &NoiDung);
     void VaoHang(LuotKham &Luot, TrangThai Loai);
     void DongBoBoDem();
@@ -115,4 +115,4 @@ class DemoTriageService {
     static bool DaDong(const LuotKham &Luot);
     static const char *TenTrangThai(TrangThai Loai);
 };
-} // namespace Demo
+}

@@ -1,10 +1,10 @@
-// Phần B — Chức năng chính: Lớp trừu tượng chứa thông tin và trạng thái nhân viên y tế.
+
 #pragma once
 #include "model/Person.h"
 #include "model/CapBac.h"
 #include "model/CaTrucMongMuon.h"
 
-// Dữ liệu phục hồi từ file; không phải một loại nhân viên mới.
+
 struct TrangThaiNhanVien {
     double DiemMetMoi = 0;
     double GioLamTuan = 0;
@@ -13,7 +13,7 @@ struct TrangThaiNhanVien {
     bool VuaTrucDem = false;
 };
 
-// Dữ liệu nhân viên chung; Person đã giữ mã và họ tên nên không khai báo lặp.
+
 class NhanVienYTe : public Person {
     CapBac Bac;
     int KinhNghiem;
@@ -30,10 +30,10 @@ protected:
     NhanVienYTe(const std::string& Ma, const std::string& Ten, CapBac Bac,
                int KinhNghiem, double DiemNen, const CaTrucMongMuon& MongMuon);
 public:
-    // Không tự cấp phát bộ nhớ: compiler sao chép các trường giá trị đúng cách.
+
     NhanVienYTe(const NhanVienYTe&) = default;
     virtual ~NhanVienYTe() = default;
-    // Mã Person bất biến: cập nhật bằng các hàm nghiệp vụ, không gán đè danh tính.
+
     NhanVienYTe& operator=(const NhanVienYTe&) = delete;
     virtual StaffType LayLoaiNhanVien() const = 0;
     virtual bool CoTheLamTruongCa() const = 0;
@@ -56,7 +56,7 @@ public:
     void DatLaiTuanMoi();
     bool CanNghiNgoiBatBuoc() const;
     bool VuotNguongMetMoi(double Nguong) const;
-    // Chỉ nhận điểm do service tính; model không chứa công thức chính sách.
+
     void GhiNhanDiemMetMoi(double Diem);
     void CapNhatTu(const NhanVienYTe& Nguon);
     void KhoiPhucTrangThai(const TrangThaiNhanVien& TrangThai);

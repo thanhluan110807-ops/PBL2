@@ -1,4 +1,4 @@
-// Phần B — Chức năng chính: Đọc/ghi snapshot chung nhân sự, lịch và dự phòng cho GUI.
+
 #include "model/BacSi.h"
 #include "model/DieuDuong.h"
 #include "repository/AdminFileManager.h"
@@ -35,7 +35,7 @@ bool TuanHopLe(const std::string& Tuan) {
     for (int I = 0; I < 10; ++I) if (I != 4 && I != 7 && (Tuan[I] < '0' || Tuan[I] > '9')) return false;
     const int Nam = std::stoi(Tuan.substr(0, 4)), Thang = std::stoi(Tuan.substr(5, 2)), Ngay = std::stoi(Tuan.substr(8, 2));
     if (!Date{Ngay, Thang, Nam}.HopLe()) return false;
-    // Công thức thứ trong tuần Gregorian (0 = Chủ nhật), không phụ thuộc timezone.
+
     const int Bu[] = {0,3,2,5,0,3,5,1,4,6,2,4};
     const int Y = Nam - (Thang < 3 ? 1 : 0);
     return (Y + Y/4 - Y/100 + Y/400 + Bu[Thang-1] + Ngay) % 7 == 1;
@@ -70,7 +70,7 @@ bool LaTepCsv(const std::string& DuongDan) {
     return std::filesystem::path(DuongDan).extension() == ".csv";
 }
 
-// CSV dùng các cột riêng; tận dụng bộ đọc nghiệp vụ cũ để không lặp luật kiểm tra.
+
 bool LaCotChuoi(const std::string& Loai, int Cot) {
     if (Loai == "NV") return Cot == 2 || Cot == 3 || Cot == 7;
     if (Loai == "QL") return true;
@@ -96,7 +96,7 @@ std::string ChuyenDongCsv(const Vector<std::string>& CacO, int PhienBan) {
         Dong << ' ';
         if (LaCotChuoi(Loai,I)) Dong << std::quoted(CacO[I]);
         else {
-            // Một ô số chỉ được tạo một giá trị, không chen thêm cột vào bộ đọc cũ.
+
             if (CacO[I].empty() || CacO[I].find_first_not_of("0123456789+-.eE") != std::string::npos)
                 Loi("Cot so CSV nhan su/lich khong hop le");
             Dong << CacO[I];
@@ -112,7 +112,7 @@ void GhiCsv(std::ostream& Tep, const std::string& NoiDung) {
         std::istringstream CacTu(Dong);
         Vector<std::string> CacO;
         std::string Tu;
-        // std::quoted đọc nguyên tên/lý do có khoảng trắng, dấu phẩy và ngoặc kép.
+
         while (CacTu >> std::quoted(Tu)) CacO.ThemCuoi(Tu);
         if (CacO[0] == "PBL2_ADMIN") { CacO[0] = "PBL2_ADMIN_CSV"; CacO[1] = "2"; }
         CsvFile::GhiBanGhi(Tep,CacO);
@@ -121,7 +121,7 @@ void GhiCsv(std::ostream& Tep, const std::string& NoiDung) {
 }
 
 AdminData::AdminData() {
-    // Dữ liệu cũ hoặc bộ rỗng vẫn vào được bằng một quản lý mẫu.
+
     DanhSachQuanLy.ThemCuoi(QuanLy("QL01", "Quản lý mẫu"));
 }
 
@@ -134,7 +134,7 @@ const QuanLy* AdminData::TimQuanLy(const std::string& Ma) const {
 void AdminFileManager::Luu(const std::string& DuongDan, const AdminData& D) {
     KiemTra(D);
     const std::filesystem::path Dich(DuongDan);
-    // Ghi xong file tạm cùng thư mục mới đổi tên: lỗi ghi không phá file gốc.
+
     const auto Tam = Dich.string() + ".tmp-" + std::to_string(std::chrono::steady_clock::now().time_since_epoch().count());
     try {
         std::ofstream Tep(Tam, std::ios::binary | std::ios::trunc);
@@ -158,7 +158,7 @@ void AdminFileManager::Luu(const std::string& DuongDan, const AdminData& D) {
         Tep.close();
         if (Tep.fail()) Loi("Khong dong duoc file");
 #ifdef _WIN32
-        // Windows rename không thay file hiện có; dùng API thay thế cùng ổ đĩa.
+
         if (!MoveFileExW(std::filesystem::path(Tam).c_str(), Dich.c_str(), MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH))
             Loi("Khong thay the duoc file dich; file goc duoc giu nguyen");
 #else
@@ -196,7 +196,7 @@ AdminData AdminFileManager::Doc(const std::string& DuongDan) {
     int SoDong = 0;
     while (DocDong()) {
         if (!Csv) ++DongHienTai;
-        // Bản mới chứa tối đa 100 dòng quản lý và thêm một cột trong mỗi phân công.
+
         if (++SoDong > (PhienBan == 5 ? 900 : 800) || Dong.size() > (PhienBan == 5 ? 12000u : 8192u))
             Loi("File vuot gioi han");
         if (!Dong.empty() && Dong.back() == '\r') Dong.pop_back();
@@ -241,7 +241,7 @@ AdminData AdminFileManager::Doc(const std::string& DuongDan) {
     if (Tep.bad() || !DaKetThuc) Loi("File doc loi hoac bi cat ngang");
     if (PhienBan<4 && !SchedulerService::LichHopLe(*D.NhanSu,D.Lich)) Loi("Lich cu khong day du hoac sai rang buoc");
     if (PhienBan<4) {
-        // Tính số ngày từ 01/01/1970; chỉ chạy một lần khi nâng định dạng cũ.
+
         if (!TuanHopLe(D.TuanBatDau)) Loi("Ngay tuan cu khong hop le");
         const int Nam=std::stoi(D.TuanBatDau.substr(0,4));
         const int Thang=std::stoi(D.TuanBatDau.substr(5,2)), Ngay=std::stoi(D.TuanBatDau.substr(8,2));
@@ -258,7 +258,7 @@ AdminData AdminFileManager::Doc(const std::string& DuongDan) {
         }
     }
     KiemTra(D);
-    return D; // Chỉ giao dữ liệu mới sau khi toàn bộ file đã hợp lệ.
+    return D;
     } catch (const My_stdexcept& E) {
         const std::string ThongBao="Dong " + std::to_string(DongHienTai) + ": " + E.LayThongBao() + " | File: " + DuongDan;
         throw My_stdexcept(E.LayLoaiLoi(),ThongBao.c_str());

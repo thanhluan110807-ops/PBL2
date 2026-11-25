@@ -3,7 +3,7 @@
 #include <iostream>
 #include "util/My_stdexcept.h"
 
-// Hàm kiểm tra phải nhận đúng loại lỗi, không chấp nhận thành công giả.
+
 template <typename HamKiemTra>
 void PhaiBaoLoi(My_stdexcept::LoaiLoi LoaiMongDoi, HamKiemTra Ham) {
     bool DaBaoLoi = false;
@@ -77,7 +77,7 @@ int main() {
     assert(!VoDanh.CoNgaySinh());
     PhaiBaoLoi(My_stdexcept::LoaiLoi::TrangThaiKhongHopLe, [&] { VoDanh.LayNgaySinh(); });
 
-    // Cấp phát/xóa ở đây chỉ để kiểm tra destructor ảo qua con trỏ lớp cha.
+
     bool DaHuy = false;
     Person* ConTro = new PersonThu(DaHuy);
     delete ConTro;

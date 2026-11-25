@@ -161,7 +161,7 @@ void SucChua(DemoTriageService &D) {
     assert(!D.TiepNhan(HoSoThu(), "Tràn").ThanhCong);
     assert(D.LaySoHoSo() == GioiHanHoSo);
 }
-} // namespace
+}
 int main() {
     auto *D = new DemoTriageService;
     D->NapMau();

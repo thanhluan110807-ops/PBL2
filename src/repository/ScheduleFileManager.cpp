@@ -1,4 +1,4 @@
-// Phần B — Chức năng chính: Đọc/ghi file ca trực và phân công, giữ lịch sử trạng thái.
+
 #include "repository/ScheduleFileManager.h"
 #include "util/My_stdexcept.h"
 #include <fstream>
@@ -54,7 +54,7 @@ ShiftAssignment ScheduleFileManager::DocPhanCong(std::istream& S, std::optional<
     ShiftAssignment P(M,N,C,static_cast<AssignmentRole>(Vai));
     if (TrangThai==3) {
         if (Dau!=0) Loi("Ban huy khong duoc co gio bat dau");
-        // Bản hủy có thể đã được xác nhận trước đó; giữ nguyên người xác nhận.
+
         if (!MaQuanLy.empty()) P.XacNhan(MaQuanLy);
         P.Huy(LyDo);
     } else {
@@ -94,7 +94,7 @@ std::unique_ptr<ScheduleRegistry> ScheduleFileManager::DocLichTruc(const std::st
     Vector<ShiftAssignment> CacP; Vector<int> DongPhanCong; bool Xong=false; int SoDong=0;
     while (std::getline(Tep,Dong)) {
         ++DongHienTai;
-        // Bản mới có thêm một trường tối đa 1000 byte, có thể gấp đôi khi thoát dấu ngoặc.
+
         if (++SoDong>550 || Dong.size()>(PhienBan==2 ? 12000u : 8192u)) Loi("File lich vuot gioi han");
         std::istringstream S(Dong); if (!(S>>Loai)) continue;
         if (Xong) Loi("Du lieu sau END");
@@ -108,7 +108,7 @@ std::unique_ptr<ScheduleRegistry> ScheduleFileManager::DocLichTruc(const std::st
         else Loi("Loai dong lich khong ho tro");
     }
     if (Tep.bad() || !Xong) Loi("File lich bi cat ngang");
-    // Đọc hết ca trước rồi liên kết mã; PC có thể xuất hiện trước CA trong file.
+
     for (int I=0; I<CacP.KichThuoc(); ++I) {
         DongHienTai=DongPhanCong[I]; R->ThemPhanCong(CacP[I],N);
     }

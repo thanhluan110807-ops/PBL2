@@ -1,4 +1,4 @@
-// Phần B — Chức năng chính: Quản lý chuyên khoa, nội trú và khả năng làm trưởng ca.
+
 #pragma once
 #include "model/NhanVienYTe.h"
 
@@ -10,7 +10,7 @@ public:
     BacSi(const std::string& Ma, const std::string& Ten, CapBac Bac,
           int KinhNghiem, const std::string& ChuyenKhoa,
           double DiemNen = 0, const CaTrucMongMuon& MongMuon = {});
-    // Bản có cờ nội trú bảo toàn thông tin riêng trong Staff.cpp gốc.
+
     BacSi(const std::string& Ma, const std::string& Ten, CapBac Bac,
           int KinhNghiem, const std::string& ChuyenKhoa, bool NoiTru,
           double DiemNen, const CaTrucMongMuon& MongMuon = {});

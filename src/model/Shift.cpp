@@ -1,4 +1,4 @@
-// Phần B — Chức năng chính: Lưu ca trực và kiểm tra thời gian, ca đêm, cuối tuần.
+
 #include "model/Shift.h"
 #include "util/My_stdexcept.h"
 namespace {
@@ -31,7 +31,7 @@ bool Shift::CoChongGio(const Shift& CaKhac) const {
 }
 
 Shift Shift::TuThoiDiem(const std::string& Ma, std::time_t Dau, std::time_t Cuoi, int BS, int DD, bool Truong) {
-    // UTC+7 cố định: không phụ thuộc timezone máy chạy. Giới hạn đến năm 2100.
+
     if (Dau < 320400 || Cuoi > 4102444800LL || Cuoi <= Dau || Dau % 60 || Cuoi % 60 || Cuoi - Dau > 86400)
         throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe, "Ca can moc phut hop le, dai toi da 24 gio");
     const std::time_t Moc = 320400 + ((Dau - 320400) / 604800) * 604800;

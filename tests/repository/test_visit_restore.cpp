@@ -76,17 +76,17 @@ void KiemTraVongDoi() {
         delete KhoiPhuc;
     };
     LanKham.PhanCongBacSi("BS1");
-    KiemTra(); // Có thể phân công trước khi đánh giá hoặc bắt đầu khám.
+    KiemTra();
     LanKham.DanhGia(BenhNhan, VitalSigns(75, 120, 16, 98.125, 15), 101, "DD1");
     LanKham.BatDauKham("BS1");
     KiemTra();
     LanKham.ChuyenDiCanLamSang("Xet nghiem", "BS1");
     KiemTra();
     LanKham.GhiNhanKetQua("On");
-    KiemTra(); // Kết quả có thể đã ghi trong khi chưa bấm quay lại.
+    KiemTra();
     LanKham.DanhDauQuayLai();
     KiemTra();
-    // Danh tính được sửa sau lần đầu: giữ nguyên tuổi ước lượng đã lưu trước đó.
+
     BenhNhan.BoSungDanhTinh("", "An", Gender::Nam, Date{1, 1, 1970});
     LanKham.DanhGia(BenhNhan, VitalSigns(80, 125, 18, 97, 15), 102, "DD2");
     LanKham.BatDauKham("BS1");
@@ -141,7 +141,7 @@ void KiemTraBanChupSai() {
     PhaiLoi([] { BanGhiCanLamSang("CT", "BS", false, "Ket qua le"); });
 }
 
-// Mất vai trò/thời điểm khi nối hai nhánh sẽ làm các kiểm tra này thất bại.
+
 void KiemTraLichSuThamGiaChiTiet() {
     Patient BenhNhan("BN", "An", Gender::Nam);
     BenhNhan.DatTuoiUocLuong(28);
@@ -162,7 +162,7 @@ void KiemTraLichSuThamGiaChiTiet() {
         assert(Truoc.LayMaBacSiDuocThay() == Sau.LayMaBacSiDuocThay());
     }
     delete Moi;
-    // Không được để danh sách mã và bản ghi chi tiết chỉ hai lịch sử khác nhau.
+
     BanChup.BacSiThamGia[0] = "KHAC";
     PhaiLoi([&] { Visit* Sai = Visit::TuBanChup(BanChup); delete Sai; });
     BanChup = LanKham.LayBanChup();
@@ -174,7 +174,7 @@ void KiemTraLichSuThamGiaChiTiet() {
     BanChup = LanKham.LayBanChup();
     BanChup.BacSiThamGiaChiTiet[2] = DoctorParticipation("BS3", 104, DoctorRole::ThayThe, "THIEU");
     PhaiLoi([&] { Visit* Sai = Visit::TuBanChup(BanChup); delete Sai; });
-    // Bản chụp v1 chỉ có mã: 0 biểu diễn thời điểm không biết, không lấy giờ hiện tại.
+
     BanChup.BacSiThamGiaChiTiet = Vector<DoctorParticipation>();
     Moi = Visit::TuBanChup(BanChup);
     assert(Moi->LayThamGiaTai(0).LayThoiDiemThamGia() == 0);
@@ -187,7 +187,7 @@ void KiemTraRegistryKhongNapDo() {
     Vector<BanChupLanKham> DanhSach;
     DanhSach.ThemCuoi(TaoBanChup("LK1"));
     DanhSach.ThemCuoi(TaoBanChup("LK2"));
-    PhaiLoi([&] { SoBo.KhoiPhucLanKham(DanhSach); }); // Hai lần mở cùng người.
+    PhaiLoi([&] { SoBo.KhoiPhucLanKham(DanhSach); });
     assert(SoBo.SoLanKham() == 0 && SoBo.TimBenhNhan("BN") == BenhNhan);
     DanhSach[1].MaLanKham = "LK1";
     PhaiLoi([&] { SoBo.KhoiPhucLanKham(DanhSach); });
@@ -198,7 +198,7 @@ void KiemTraRegistryKhongNapDo() {
     DanhSach[1] = TaoBanChup("LK2"); DanhSach[1].TrangThai = VisitStatus::DaKetThuc;
     PhaiLoi([&] { SoBo.KhoiPhucLanKham(DanhSach); });
     assert(SoBo.SoLanKham() == 0);
-    // Tuổi đã lưu không cần khớp danh tính mới được bổ sung của Patient.
+
     ThemDanhGia(DanhSach[1]); DanhSach[1].BacSiThamGia.ThemCuoi("BS");
     SoBo.KhoiPhucLanKham(DanhSach);
     assert(SoBo.SoLanKham() == 2 && SoBo.TimBenhNhan("BN") == BenhNhan);
@@ -207,7 +207,7 @@ void KiemTraRegistryKhongNapDo() {
     Vector<BanChupLanKham> Rong;
     PhaiLoi([&] { SoBo.KhoiPhucLanKham(Rong); });
     assert(SoBo.SoLanKham() == 2 && SoBo.TimLanKham("LK1") == LanDau);
-    // Bản chụp độc lập: sửa nó không ảnh hưởng đối tượng đã công bố.
+
     DanhSach[0].TrieuChungChinh = "Da sua";
     assert(LanDau->LayTrieuChungChinh() != "Da sua");
 }
@@ -222,7 +222,7 @@ void KiemTraThuHoiSauRehash() {
         DanhSach.ThemCuoi(BanChup);
     }
     BanChupLanKham Sai = TaoBanChup("SAI");
-    Sai.TrangThai = VisitStatus::DaKetThuc; // Lỗi sau khi bảng tạm đã rehash nhiều lần.
+    Sai.TrangThai = VisitStatus::DaKetThuc;
     DanhSach.ThemCuoi(Sai);
     PhaiLoi([&] { SoBo.KhoiPhucLanKham(DanhSach); });
     assert(SoBo.SoLanKham() == 0 && SoBo.TimBenhNhan("BN") == BenhNhan);
@@ -230,7 +230,7 @@ void KiemTraThuHoiSauRehash() {
     SoBo.KhoiPhucLanKham(DanhSach);
     assert(SoBo.SoLanKham() == 80 && SoBo.TimBenhNhan("BN") == BenhNhan);
 }
-} // namespace
+}
 
 int main() {
     KiemTraVongDoi();

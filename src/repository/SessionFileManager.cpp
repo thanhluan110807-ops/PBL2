@@ -18,8 +18,8 @@ void BaoLoiTuDong(const char* NoiDung) {
     throw My_stdexcept(My_stdexcept::LoaiLoi::LoiThucThi, NoiDung);
 }
 
-// Nhật ký chỉ nhận tên con do ứng dụng tạo, không nhận đường dẫn tùy ý.
-// Giới hạn ký tự cũng chặn ổ đĩa Windows, byte NUL và ký hiệu đường dẫn đặc biệt.
+
+
 bool LaTenPhien(const std::string& Ten) {
     if (Ten.size() <= 6 || Ten.compare(0, 6, "phien-") != 0) return false;
     for (std::string::size_type I = 6; I < Ten.size(); ++I) {
@@ -38,8 +38,8 @@ void TaoGocTuDong(const std::filesystem::path& Goc) {
     if (Loi || !LaThuMuc)
         BaoLoiTuDong("Khong tao/mo duoc thu muc luu tu dong");
     if (!DaTao) return;
-    // Tên root mới cũng cần bền. Đi từ thư mục con lên cha để đồng bộ các entry
-    // vừa tạo, kể cả khi create_directories đã tạo nhiều cấp cùng lúc.
+
+
     std::filesystem::path HienTai = std::filesystem::absolute(Goc, Loi).lexically_normal();
     if (Loi) BaoLoiTuDong("Khong xac dinh duoc thu muc luu tu dong");
     while (true) {
@@ -49,7 +49,7 @@ void TaoGocTuDong(const std::filesystem::path& Goc) {
         HienTai = Cha;
     }
 }
-} // namespace
+}
 
 PatientRegistry* SessionFileManager::DocPhien(const std::string& TepPatient, const std::string& TepVisit,
                                              TrangThaiHangCho& HangCho) const {
@@ -57,7 +57,7 @@ PatientRegistry* SessionFileManager::DocPhien(const std::string& TepPatient, con
     try {
         TrangThaiHangCho Tam;
         if (!TepVisit.empty()) Tam = VisitFileManager().DocLanKham(*R,TepVisit);
-        // Chép output có thể cấp phát; nếu lỗi thì thu hồi Registry vừa đọc.
+
         HangCho = Tam;
     } catch (...) { delete R; throw; }
     return R;
@@ -79,7 +79,7 @@ std::string SessionFileManager::LuuPhien(const PatientRegistry& R,const TriageSe
         if (Loi) throw My_stdexcept(My_stdexcept::LoaiLoi::LoiThucThi,"Khong tao duoc thu muc phien moi");
     }
     if (!DaTao) throw My_stdexcept(My_stdexcept::LoaiLoi::LoiThucThi,"Khong cap duoc thu muc phien moi");
-    // Chỉ xóa các file do lần lưu này tạo nếu thất bại; bản lưu cũ giữ nguyên.
+
     try {
         PatientFileManager().LuuBenhNhan(R,(Dich/"patient.csv").u8string());
         VisitFileManager().LuuLanKham(R,T,(Dich/"visit.csv").u8string());
@@ -106,8 +106,8 @@ Fs::path ChuanHoaDuongDan(const std::string& DuongDan) {
     return KetQua;
 }
 
-// Chỉ coi là chưa có file khi hệ điều hành thực sự báo không tồn tại.
-// File không đọc được hoặc bị thay bằng thư mục phải báo lỗi để giữ dữ liệu.
+
+
 bool CoTep(const Fs::path& Tep) {
     std::error_code Loi;
     const Fs::file_status TrangThai = Fs::symlink_status(Tep, Loi);
@@ -167,8 +167,8 @@ Fs::path TaoThuMucRaw(const Fs::path& Kho) {
     return {};
 }
 
-// Sao lưu đúng byte file gốc, kể cả BOM, CRLF và việc chưa có file nào.
-// Mỗi lần lưu có bản raw riêng; backup-original giữ nguyên lần đầu tiên.
+
+
 void SaoLuuFileGoc(const BoFileDaChon& Bo) {
     const bool CoPatient = CoTep(Bo.Patient), CoVisit = CoTep(Bo.Visit);
     const Fs::path Raw = TaoThuMucRaw(Bo.Kho);
@@ -209,14 +209,14 @@ Fs::path DocNhatKy(const BoFileDaChon& Bo) {
 }
 
 void GhiCaBo(const BoFileDaChon& Bo, const Fs::path& BanLuu) {
-    // Đọc đủ hai nội dung trước khi thay file chính. Journal còn nguyên khi lỗi,
-    // nên lần mở/thử lại sẽ hoàn tất cả hai thay vì dùng cặp file lệch phiên.
+
+
     const std::string Patient = DocNoiDung(BanLuu / "patient.csv");
     const std::string Visit = DocNoiDung(BanLuu / "visit.csv");
     CsvFile::GhiFileAnToan(Bo.Patient.u8string(), Patient);
     CsvFile::GhiFileAnToan(Bo.Visit.u8string(), Visit);
-    // Chỉ dấu này chứng minh cặp file đã từng được ghi đủ. Backup ban đầu chưa
-    // phải commit: có thể bị dừng ngay sau backup khi Visit còn chưa tồn tại.
+
+
     CsvFile::GhiFileAnToan((Bo.Kho / "committed.csv").u8string(),
         TaoBanGhi("PBL2_COMMITTED",BanLuu.filename().u8string(),Bo));
     CsvFile::XoaFileDaDongBo((Bo.Kho / "pending.csv").u8string());
@@ -238,19 +238,19 @@ bool DaTungCoVisit(const BoFileDaChon& Bo) {
     if (D[0]!="PBL2_BACKUP" || D[2]!=Bo.Patient.u8string() || D[3]!=Bo.Visit.u8string() ||
         (D[4]!="0" && D[4]!="1") || (D[5]!="0" && D[5]!="1"))
         BaoLoiTuDong("Metadata du phong khong khop bo file");
-    return D[5]=="1"; // Trước lần lưu đầu, Visit có thể thật sự chưa từng tồn tại.
+    return D[5]=="1";
 }
 
 void HoanTatNhatKy(const SessionFileManager& QuanLy, const BoFileDaChon& Bo) {
     if (!CoTep(Bo.Kho / "pending.csv")) return;
     const Fs::path BanLuu = DocNhatKy(Bo);
     TrangThaiHangCho HangTam;
-    // Kiểm tra toàn bộ quan hệ Patient/Visit/hàng chờ trước khi sửa file chính.
+
     delete QuanLy.DocPhien((BanLuu / "patient.csv").u8string(),
                            (BanLuu / "visit.csv").u8string(), HangTam);
     GhiCaBo(Bo, BanLuu);
 }
-} // namespace
+}
 
 std::string SessionFileManager::LuuVaoBoFile(const PatientRegistry& Registry,
                                              const TriageService& Triage,

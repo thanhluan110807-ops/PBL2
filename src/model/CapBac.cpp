@@ -1,4 +1,4 @@
-// Phần B — Chức năng chính: Định nghĩa cấp bậc và loại nhân viên.
+
 #include "model/CapBac.h"
 #include "util/My_stdexcept.h"
 std::string CapBacThanhChuoi(CapBac Bac) {
@@ -17,6 +17,6 @@ CapBac ChuoiThanhCapBac(const std::string& Chuoi) {
     if (Chuoi == "Bac_si_noi_tru") return CapBac::BacSiNoiTru;
     if (Chuoi == "Bac_si_chinh") return CapBac::BacSiChinh;
     if (Chuoi == "Truong_khoa") return CapBac::TruongKhoa;
-    // Không âm thầm biến dữ liệu sai thành một điều dưỡng trẻ.
+
     throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe, "Chuoi cap bac khong hop le");
 }

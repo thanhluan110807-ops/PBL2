@@ -1,4 +1,4 @@
-// Phần B — Chức năng chính: Lập lịch dự kiến, tăng cường và tìm người thay bằng các ràng buộc.
+
 #pragma once
 #include "service/FatigueService.h"
 #include "repository/StaffRegistry.h"
@@ -25,7 +25,7 @@ class SchedulerService {
 public:
     SchedulerService() = default;
     SchedulerService(const StaffRegistry& N, const ScheduleRegistry& L) : NhanSu(&N), Lich(&L) {}
-    // Chỉ đề xuất; người dùng thêm/xác nhận qua Registry sau khi xem kết quả.
+
     Vector<ShiftAssignment> LapLichDuKien(int GioiHanLuot = 200000) const;
     Vector<ShiftAssignment> DeXuatTangCuong(const std::string& MaCa, int ThemBacSi, int ThemDieuDuong,
                                           int GioiHanLuot = 200000) const;
@@ -36,7 +36,7 @@ public:
     static ScheduleResult LapLich(const StaffRegistry& NhanSu, const Vector<Shift>& CacCa,
                                   const SchedulerRules& Luat = {}, int GioiHanLuot = 200000);
     static bool LichHopLe(const StaffRegistry& NhanSu, const Schedule& Lich, const SchedulerRules& Luat = {});
-    // Chỉ trả ứng viên đủ điều kiện; không tự đổi lịch đã xác nhận.
+
     static Vector<std::string> TimNguoiThay(const StaffRegistry& NhanSu, const Schedule& Lich,
                                           int ViTriPhanCong, const SchedulerRules& Luat = {},
                                           const StandbyPool* DuPhong = nullptr);

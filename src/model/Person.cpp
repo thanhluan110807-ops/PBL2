@@ -1,7 +1,7 @@
 #include "model/Person.h"
 #include <utility>
 
-// Ngoại lệ giúp GUI nhận biết dữ liệu sai mà model không tự in thông báo.
+
 #include "util/My_stdexcept.h"
 
 Person::Person(const std::string& MaDinhDanh, const std::string& HoTen,
@@ -37,7 +37,7 @@ void Person::KiemTraMaDinhDanh(const std::string& MaDinhDanh) {
 }
 
 void Person::KiemTraThongTinCaNhan(const std::string& HoTen, Gender GioiTinh) {
-    // Tên rỗng nghĩa là chưa biết; tên chỉ gồm khoảng trắng là lỗi nhập.
+
     bool ChiCoKhoangTrang = !HoTen.empty();
     for (char KyTu : HoTen) {
         if (!LaKhoangTrang(KyTu)) {
@@ -60,7 +60,7 @@ void Person::KiemTraThongTinCaNhan(const std::string& HoTen, Gender GioiTinh) {
 
 int Person::TinhTuoiTheoNgay(const Date& NgaySinh, const Date& NgayXet) {
     int Tuoi = NgayXet.Nam - NgaySinh.Nam;
-    // Chưa tới sinh nhật trong năm đang xét thì chưa tăng tuổi.
+
     if (NgayXet.Thang < NgaySinh.Thang ||
         (NgayXet.Thang == NgaySinh.Thang && NgayXet.Ngay < NgaySinh.Ngay)) {
         --Tuoi;
@@ -76,7 +76,7 @@ void Person::KiemTraNgaySinh(const Date& NgaySinh) {
     if (NgayHienTai.Truoc(NgaySinh)) {
         throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe, "Ngay sinh khong duoc nam trong tuong lai");
     }
-    // Giới hạn dữ liệu mô phỏng đã chọn cho đồ án, không phải ngưỡng lâm sàng.
+
     if (TinhTuoiTheoNgay(NgaySinh, NgayHienTai) > 150) {
         throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe, "Tuoi nhap vao khong duoc vuot qua 150");
     }
@@ -91,7 +91,7 @@ Date Person::LayNgaySinh() const {
     if (!DaBietNgaySinh) {
         throw My_stdexcept(My_stdexcept::LoaiLoi::TrangThaiKhongHopLe, "Chua biet ngay sinh");
     }
-    // Trả bản sao để bên gọi không sửa trực tiếp ngày sinh bên trong đối tượng.
+
     return NgaySinh;
 }
 
@@ -114,7 +114,7 @@ void Person::CapNhatThongTinCaNhan(const std::string& HoTen, Gender GioiTinh) {
 
 void Person::CapNhatThongTinCaNhan(const std::string& HoTen, Gender GioiTinh,
                                   const Date& NgaySinh) {
-    // Kiểm tra tất cả trước khi cập nhật để dữ liệu sai không đổi một phần hồ sơ.
+
     KiemTraThongTinCaNhan(HoTen, GioiTinh);
     KiemTraNgaySinh(NgaySinh);
     this->HoTen = HoTen;
@@ -125,7 +125,7 @@ void Person::CapNhatThongTinCaNhan(const std::string& HoTen, Gender GioiTinh,
 
 void Person::XoaNgaySinh() {
     DaBietNgaySinh = false;
-    NgaySinh = {0, 0, 0}; // Giá trị nội bộ; không trả ra khi chưa có ngày sinh.
+    NgaySinh = {0, 0, 0};
 }
 
 void Person::HoanDoiThongTin(Person& Khac) noexcept {

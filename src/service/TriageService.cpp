@@ -78,7 +78,7 @@ void TriageService::DanhGia(const std::string& Ma, const VitalSigns& SinhHieu,
         throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe, "Thoi diem danh gia khong phu hop");
     const Patient* BenhNhan = Registry.TimBenhNhan(LanKham.LayMaBenhNhan());
     if (BenhNhan == nullptr) SaiTrangThai();
-    // Cấp phát mục chờ trước khi lưu đánh giá; nếu đánh giá thất bại thì gỡ mục.
+
     if (Moi) HangLanDau.Them(TaoMuc(LanKham, ThoiDiem));
     try {
         LanKham.DanhGia(*BenhNhan, SinhHieu, ThoiDiem, MaDieuDuong);
@@ -102,7 +102,7 @@ const Visit& TriageService::GoiTiep(const std::string& MaBacSi) {
     bool ChonLai = ChonHangQuayLai(HangLanDau, HangQuayLai, UuTienQuayLai);
     HangCho& Hang = ChonLai ? HangQuayLai : HangLanDau;
     Visit* LanKham = Hang.LayDinh().LanKham;
-    // Ghi nhận bác sĩ có thể lỗi; chỉ bỏ mục và đổi lượt sau khi thành công.
+
     LanKham->BatDauKham(MaBacSi);
     Hang.XoaDinh();
     if (TranhChap) UuTienQuayLai = !UuTienQuayLai;
@@ -111,7 +111,7 @@ const Visit& TriageService::GoiTiep(const std::string& MaBacSi) {
 
 Vector<const Visit*> TriageService::LayDanhSachCho() const {
     KiemTraHang();
-    // Dùng bản sao hai heap và lượt ưu tiên để xem mà không tiêu thụ lượt gọi.
+
     HangCho Dau = HangLanDau, Lai = HangQuayLai;
     bool Luot = UuTienQuayLai;
     Vector<const Visit*> KetQua;
@@ -197,7 +197,7 @@ void TriageService::KhoiPhucHangCho(const TrangThaiHangCho& BanLuu) {
             (V->LayTrangThai() == VisitStatus::ChoKhamLanDau || V->LayTrangThai() == VisitStatus::ChoKhamQuayLai);
         if (DangCho && TimTrongHang(Dau,V) < 0 && TimTrongHang(Lai,V) < 0) SaiTrangThai();
     }
-    // Hai phép hoán đổi không cấp phát: thất bại trước đây không làm mất heap cũ.
+
     HangLanDau.HoanDoi(Dau); HangQuayLai.HoanDoi(Lai);
     ThuTu = BanLuu.ThuTu; UuTienQuayLai = BanLuu.UuTienQuayLai;
 }

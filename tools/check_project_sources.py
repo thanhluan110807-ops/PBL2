@@ -14,7 +14,7 @@ DuoiMaNguon = DuoiHeader | {".c", ".cc", ".cpp", ".cxx", ".inl", ".ipp", ".tpp"}
 TenBoQua = {"third_party", "third-party", "thirdparty", "vendor", "external",
             "build", "_deps", "cmakefiles", ".git"}
 
-# Nhận biết literal trước khi tìm ký hiệu Qt để không báo lỗi trên nội dung văn bản.
+
 MauToken = re.compile(
     r'(?P<ChuThich>//[^\n]*|/\*.*?\*/)'
     r'|(?P<Raw>(?:u8|u|U|L)?R"(?P<DauRaw>[^\s()\\]{0,16})\(.*?\)(?P=DauRaw)")'
@@ -88,7 +88,7 @@ def CheVanBan(VanBan):
 
 
 def LaIncludeQt(Ten):
-    # Gồm kiểu QtCore/..., QObject và header Qt dạng cũ như qobject.h.
+
     for ThanhPhan in Ten.replace("\\", "/").split("/"):
         if re.fullmatch(r'Qt[A-Za-z0-9_]*|qt[56]?|Q[A-Z][A-Za-z0-9_]*(?:\.h)?|q[a-z0-9_]+\.h', ThanhPhan):
             return True
@@ -109,7 +109,7 @@ def KiemTraTep(Tep, NoiDung):
         Loi.add((Tep.as_posix(), SoDong, ThongBao))
 
     for Include in MauInclude.finditer(KhongChuThich):
-        # Dòng giống #include bên trong raw string chỉ là dữ liệu, không phải chỉ thị.
+
         ViTriDauThang = KhongChuThich.index("#", Include.start(), Include.end())
         if MaThuan[ViTriDauThang] != "#":
             continue
@@ -118,7 +118,7 @@ def KiemTraTep(Tep, NoiDung):
             ThemLoi(Include.start(), "Include truc tiep stdexcept; dung util/My_stdexcept.h")
         if LaMaLoi(Tep) and LaIncludeQt(Ten):
             ThemLoi(Include.start(), "Include Qt trong phan loi: " + Ten)
-        # Header đã kiểm tra riêng, không xét lại tên header như một token C++.
+
         MaThuan = MaThuan[:Include.start()] + CheVanBan(MaThuan[Include.start():Include.end()]) + MaThuan[Include.end():]
 
     if LaMaLoi(Tep):

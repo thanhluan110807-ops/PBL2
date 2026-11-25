@@ -84,11 +84,11 @@ int main(int So,char** Args) {
     assert(W.findChild<QScrollArea*>("trangCaNhan")->horizontalScrollBar()->maximum()==0);
     W.resize(1440,980); A.processEvents();
     Bam("nav1");
-    // Cùng bộ Patient/Visit: tự liên kết CSV nhân sự cạnh đó, không nạp nguồn khác.
+
     auto* QuanTri=W.findChild<AdminPanel*>("adminPanel"); assert(QuanTri);
     assert(QuanTri->LayDuLieu().NhanSu->KichThuoc()==2);
     assert(!W.findChild<QPushButton*>("luuDuLieu"));
-    // Tiếp nhận thật qua GUI, không bấm bất kỳ nút lưu nào.
+
     QTimer::singleShot(0,[] {
         Nhap("HoTen","Nguyễn An"); Nhap("Tuoi","30");
         Nhap("TrieuChung","Khám");
@@ -107,7 +107,7 @@ int main(int So,char** Args) {
         assert(!H->isVisible());
     });
     W.MoDanhGia("LK001"); assert(!W.isWindowModified());
-    // Mở lại không cần tự tìm bản lưu hoặc chọn file.
+
     Moi=DemoUi::KhoiDongTuDong(TepPatient,TepVisit,Hang);
     assert(Moi && Moi->TimLanKham("LK001")->SoDanhGia()==1);
     assert(Moi->TimLanKham("LK001")->LayDanhGiaGanNhat().LayMaDieuDuong()=="DD01");
@@ -119,7 +119,7 @@ int main(int So,char** Args) {
     Moi=SessionFileManager().DocBoFile(TepPatient,TepVisit,Hang);
     assert(Moi->TimLanKham("LK001")->LayTrangThai()==VisitStatus::DangKham); delete Moi;
     HenChonVaiTro("vaiTroDieuDuong","DD01"); Bam("doiVaiTro");
-    // Chặn I/O sau thao tác: không báo đã lưu, không nhận thêm thay đổi, không cho đóng mất dữ liệu.
+
     namespace Fs=std::filesystem;
     Fs::rename(Fs::u8path(Goc),Fs::u8path(Goc+"-giu"));
     { std::ofstream Chan(Fs::u8path(Goc)); Chan<<"chan ghi"; }
@@ -127,7 +127,7 @@ int main(int So,char** Args) {
     assert(!W.close() && W.isVisible());
     W.MoTiepNhan(); assert(QApplication::activeModalWidget()==nullptr);
     Fs::remove(Fs::u8path(Goc)); Fs::rename(Fs::u8path(Goc+"-giu"),Fs::u8path(Goc));
-    // Timer tự thử lại, không có thao tác lưu thủ công.
+
     auto* ThuLai=W.findChild<QTimer*>("thuLuuTuDong"); assert(ThuLai);
     assert(QMetaObject::invokeMethod(ThuLai,"timeout",Qt::DirectConnection));
     assert(!W.isWindowModified());

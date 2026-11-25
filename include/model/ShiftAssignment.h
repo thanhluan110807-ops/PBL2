@@ -1,11 +1,11 @@
-// Phần B — Chức năng chính: Quản lý mã, vai trò và trạng thái một phân công.
+
 #pragma once
 #include <string>
 #include <ctime>
 
 enum class AssignmentRole { BacSi, TruongCa, DieuDuong };
 enum class AssignmentStatus { DuKien, DaXacNhan, DangTruc, DaHuy };
-// Mỗi phân công có mã riêng; hủy vẫn giữ lại để xem lịch sử.
+
 class ShiftAssignment {
     std::string MaPhanCong;
     AssignmentStatus TrangThai = AssignmentStatus::DuKien;
@@ -13,7 +13,7 @@ class ShiftAssignment {
     std::string MaQuanLyXacNhan;
     std::time_t ThoiDiemBatDau = 0;
 public:
-    // Ba trường này giữ API tương thích bộ lập lịch cũ; Registry chỉ trả const.
+
     std::string MaNhanVien, MaCa;
     AssignmentRole VaiTro = AssignmentRole::BacSi;
     ShiftAssignment() = default;
@@ -26,7 +26,7 @@ public:
     const std::string& LayMaQuanLyXacNhan() const { return MaQuanLyXacNhan; }
     std::time_t LayThoiDiemBatDau() const { return ThoiDiemBatDau; }
     bool DangHieuLuc() const { return TrangThai != AssignmentStatus::DaHuy; }
-    // Mã rỗng cho các bản ghi cũ không có thông tin người xác nhận.
+
     void XacNhan(const std::string& MaQuanLy = {});
     void Huy(const std::string& LyDo);
     void GhiNhanBatDau(std::time_t ThoiDiem);

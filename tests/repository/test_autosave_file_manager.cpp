@@ -58,7 +58,7 @@ void KiemTraLuuTrucTiep(const Fs::path& Patient, const Fs::path& Visit) {
     delete R;
     R = F.DocBoFile(Patient.u8string(), Visit.u8string(), Hang);
     { TriageService Tai(*R); Tai.KhoiPhucHangCho(Hang); assert(Tai.GoiTiep("BS").LayMaLanKham() == "V"); }
-    // Sửa file chính từ bên ngoài phải được tôn trọng khi không có journal.
+
     R->ThemBenhNhan("EXTERNAL"); PatientFileManager().LuuBenhNhan(*R, Patient.u8string());
     delete R;
     R = F.DocBoFile(Patient.u8string(), Visit.u8string(), Hang);
@@ -138,7 +138,7 @@ void KiemTraLoiGhiGiuFile(const Fs::path& Patient, const Fs::path& Visit) {
 }
 #ifdef __linux__
 void KiemTraLoiDongBoThuMuc() {
-    // procfs từ chối fsync: lỗi đồng bộ thật phải được báo cho bên gọi.
+
     if (!Fs::is_directory("/proc")) return;
     bool Loi = false;
     try { CsvFile::DongBoThuMuc("/proc"); }
@@ -167,12 +167,12 @@ void KiemTraDungDotNgot(const Fs::path& Patient, const Fs::path& Visit) {
         assert(R->SoBenhNhan() == (GiaiDoan ? 2 : 1));
         assert(R->TimLanKham(GiaiDoan ? "V2" : "V") != nullptr); delete R;
         assert(!Fs::exists(LayKho(Patient) / "pending.csv"));
-        // Trả baseline cho điểm dừng kế tiếp.
+
         F.LuuVaoBoFile(Cu, TCu, Patient.u8string(), Visit.u8string());
     }
 }
 #endif
-} // namespace
+}
 int main() {
     const Fs::path Goc = Fs::absolute(Fs::u8path(u8"test_autosave_owned-ử"));
     assert(Fs::create_directory(Goc));

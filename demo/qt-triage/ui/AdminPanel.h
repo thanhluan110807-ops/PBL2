@@ -1,4 +1,4 @@
-// Phần B — Chức năng chính: Giao diện Qt quản lý nhân sự, ca trực và lưu dữ liệu liên kết.
+
 #pragma once
 #include "repository/AdminFileManager.h"
 #include <string>
@@ -23,7 +23,7 @@ class QTabWidget;
 class QTabBar;
 class QBoxLayout;
 
-// Widget chỉ thu thập đầu vào và hiển thị; mọi quyết định lịch nằm trong service.
+
 class AdminPanel : public QDialog {
     bool TrongTrangChinh = false;
     AdminData DuLieu;

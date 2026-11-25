@@ -13,8 +13,8 @@
 #include "util/My_stdexcept.h"
 
 namespace {
-// Hai chuỗi có cùng thứ tự và cùng số byte cho từng cặp chữ tiếng Việt UTF-8.
-// Tự đổi hoa/thường để kết quả không phụ thuộc locale và không cần Qt/ICU.
+
+
 std::string ChuyenVeChuThuong(const std::string& VanBan) {
     const std::string ChuHoa = u8"ÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐĨŨƠƯẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼẾỀỂỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪỬỮỰỲỴỶỸ";
     const std::string ChuThuong = u8"àáâãèéêìíòóôõùúýăđĩũơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ";
@@ -25,7 +25,7 @@ std::string ChuyenVeChuThuong(const std::string& VanBan) {
             KetQua[I++] = static_cast<char>(KyTu + ('a' - 'A'));
             continue;
         }
-        // Các chữ tiếng Việt dựng sẵn chiếm 2 hoặc 3 byte; byte khác giữ nguyên.
+
         const std::string::size_type DoDai = (KyTu & 0xE0) == 0xC0 ? 2 : (KyTu & 0xF0) == 0xE0 ? 3 : 1;
         if (DoDai > 1 && I + DoDai <= KetQua.size()) {
             const std::string::size_type ViTri = ChuHoa.find(KetQua.substr(I, DoDai));
@@ -37,13 +37,13 @@ std::string ChuyenVeChuThuong(const std::string& VanBan) {
     return KetQua;
 }
 
-// Đổi ngày UTC sang ngày Việt Nam bằng lịch, tránh cộng giây làm tràn time_t.
+
 bool KhopNgayTiepNhan(std::time_t ThoiDiem, const Date& NgayCanTim) {
     const std::tm* Lich = std::gmtime(&ThoiDiem);
     if (Lich == nullptr)
         throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe,
                           "Khong doi duoc thoi diem tiep nhan sang ngay");
-    // Date chỉ biểu diễn năm 1..9999; kiểm tra trước khi chuyển về int.
+
     const long long Nam = static_cast<long long>(Lich->tm_year) + 1900;
     if (Nam < 1 || Nam > 9999) return false;
     Date Ngay{Lich->tm_mday, Lich->tm_mon + 1, static_cast<int>(Nam)};
@@ -62,8 +62,8 @@ bool KhopNgayTiepNhan(std::time_t ThoiDiem, const Date& NgayCanTim) {
            Ngay.Nam == NgayCanTim.Nam;
 }
 
-// Sắp xếp chèn: giữ dòng hiện tại rồi dịch các dòng đứng sai thứ tự sang phải.
-// Mã là điều kiện phụ để kết quả ổn định dù thứ tự duyệt bảng băm thay đổi.
+
+
 void SapXepLanKhamMoiNhat(Vector<KetQuaTraCuuLanKham>& DanhSach) {
     for (int I = 1; I < DanhSach.KichThuoc(); ++I) {
         const KetQuaTraCuuLanKham Dong = DanhSach[I];
@@ -80,10 +80,10 @@ void SapXepLanKhamMoiNhat(Vector<KetQuaTraCuuLanKham>& DanhSach) {
         DanhSach[J] = Dong;
     }
 }
-} // namespace
+}
 
 PatientRegistry::~PatientRegistry() {
-    // Bảng băm chỉ sở hữu nút chứa địa chỉ; Registry phải thu hồi các đối tượng.
+
     DanhSachLanKham.Duyet([](const std::string&, Visit* LanKham) { delete LanKham; });
     DanhSachBenhNhan.Duyet([](const std::string&, Patient* BenhNhan) { delete BenhNhan; });
 }
@@ -96,7 +96,7 @@ Patient* PatientRegistry::LayBenhNhanBatBuoc(const std::string& MaBenhNhan) cons
 }
 
 void PatientRegistry::KiemTraCanCuoc(const std::string& SoCanCuoc, const Patient* BoQua) const {
-    if (SoCanCuoc.empty()) return; // Nhiều người chưa có CCCD vẫn là những hồ sơ riêng.
+    if (SoCanCuoc.empty()) return;
     const Patient* DaCo = TimBenhNhanTheoCanCuoc(SoCanCuoc);
     if (DaCo != nullptr && DaCo != BoQua)
         throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe,
@@ -109,7 +109,7 @@ const Patient* PatientRegistry::ThemBenhNhan(const Patient& HoSo) {
     KiemTraCanCuoc(HoSo.LaySoCanCuoc());
     Patient* Moi = new Patient(HoSo);
     try {
-        // Kiểm tra trùng trước vì HashTable::Them sẽ ghi đè nếu khóa đã có.
+
         DanhSachBenhNhan.Them(Moi->LayMaDinhDanh(), Moi);
     } catch (...) {
         delete Moi;
@@ -166,7 +166,7 @@ Vector<KetQuaTraCuuLanKham> PatientRegistry::TraCuuLanKham(
         throw My_stdexcept(My_stdexcept::LoaiLoi::DoiSoKhongHopLe, "Ngay loc khong hop le");
     Vector<KetQuaTraCuuLanKham> KetQua;
     const std::string TenThuong = ChuyenVeChuThuong(TenCanTim);
-    // Tách việc kiểm tra từng dòng khỏi thao tác duyệt bảng để dễ theo dõi.
+
     auto XetLanKham = [&](const std::string&, const Visit* LanKham) {
         if (NgayTiepNhan != nullptr &&
             !KhopNgayTiepNhan(LanKham->LayThoiDiemTiepNhan(), *NgayTiepNhan)) return;
@@ -175,7 +175,7 @@ Vector<KetQuaTraCuuLanKham> PatientRegistry::TraCuuLanKham(
             ChuyenVeChuThuong(BenhNhan->LayHoTen()).find(TenThuong) == std::string::npos) return;
         KetQua.ThemCuoi({BenhNhan, LanKham});
     };
-    // Có mã thì tra thẳng bảng băm, sau đó vẫn kiểm tra các bộ lọc còn lại.
+
     if (!MaLanKham.empty()) {
         const Visit* LanKham = TimLanKham(MaLanKham);
         if (LanKham != nullptr) XetLanKham(MaLanKham, LanKham);
@@ -190,7 +190,7 @@ void PatientRegistry::BoSungDanhTinh(const std::string& MaBenhNhan, const std::s
                                     const std::string& HoTen, Gender GioiTinh, const Date& NgaySinh) {
     Patient* BenhNhan = LayBenhNhanBatBuoc(MaBenhNhan);
     KiemTraCanCuoc(SoCanCuoc, BenhNhan);
-    // Sửa đúng đối tượng đang có: địa chỉ, mã nội bộ và dữ liệu y tế giữ nguyên.
+
     BenhNhan->BoSungDanhTinh(SoCanCuoc, HoTen, GioiTinh, NgaySinh);
 }
 
@@ -255,11 +255,11 @@ void PatientRegistry::KhoiPhucLanKham(const Vector<BanChupLanKham>& DanhSach) {
             catch (...) { delete Moi; throw; }
         }
     } catch (...) {
-        // Bảng băm không xóa đối tượng đích: thu hồi mọi Visit chưa công bố.
+
         Tam.Duyet([](const std::string&, Visit* LanKham) { delete LanKham; });
         throw;
     }
-    DanhSachLanKham.Hoandoi(Tam); // Không cấp phát; Patient và các địa chỉ cũ giữ nguyên.
+    DanhSachLanKham.Hoandoi(Tam);
 }
 
 Visit* PatientRegistry::TimLanKham(const std::string& MaLanKham) {
@@ -302,7 +302,7 @@ Vector<const Patient*> PatientRegistry::LayDanhSachBenhNhan() const {
 }
 
 namespace {
-// Quet ma da luu, bo qua ma cu khac dinh dang va khong dung so luong ho so.
+
 template<class T> std::string MaTiepTheo(const HashTable<std::string, T*>& Bang, const std::string& TienTo) {
     unsigned long long LonNhat = 0;
     const auto GioiHan = std::numeric_limits<unsigned long long>::max();

@@ -20,4 +20,4 @@ QLabel *HuyHieu(int Muc);
 QString Gio(long long Phut);
 QString Chu(const std::string &VanBan);
 QString ChuanHoa(const QString &VanBan);
-} // namespace DemoUi
+}

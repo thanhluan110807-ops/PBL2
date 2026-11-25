@@ -1,11 +1,11 @@
-// Phần B — Chức năng chính: Quản lý ca và phân công trong RAM, kiểm tra liên kết và trạng thái.
+
 #pragma once
 #include "model/Shift.h"
 #include "dsa/HashTable.h"
 #include "repository/StaffRegistry.h"
 
-// Registry sở hữu các đối tượng; con trỏ trả ra chỉ được mượn để đọc.
-// Không copy: tránh hai registry giải phóng cùng một địa chỉ.
+
+
 class ScheduleRegistry {
     HashTable<std::string, Shift*> CacCaTruc;
     HashTable<std::string, ShiftAssignment*> CacPhanCong;

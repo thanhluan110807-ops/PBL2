@@ -30,7 +30,7 @@ int main() {
     assert(DS[0]->LayNgaySinh().Nam==1990);
     PhaiLoi([&] { R.CapNhat(DieuDuong("A","Sai loai",CapBac::DieuDuongChinh,5)); });
     assert(R.Tim("A")==DiaChiCu && R.Tim("A")->LayHoTen()=="Tên mới");
-    R.CapNhat(*R.Tim("A")); assert(R.Tim("A")==DiaChiCu); // Tự cập nhật.
+    R.CapNhat(*R.Tim("A")); assert(R.Tim("A")==DiaChiCu);
     assert(R.TimBacSiTheoTen("Nguyễn An").KichThuoc()==1);
 
     DieuDuong DD("D0","Lan",CapBac::DieuDuongChinh,4);
@@ -68,8 +68,8 @@ int main() {
     DD.KetThucTrucSangLoc(Dau+14400);
     assert(!DD.DangSangLoc() && DD.TinhThoiGianSangLocLienTuc(Dau+15000)==0);
     DD.BatDauTrucSangLoc(); DD.CongDonGioSangLoc(4); assert(DD.CanXoayTuaSangLoc());
-    PhaiLoi([&] { DD.BatDauTrucSangLoc(Dau); }); // Không trộn hai chế độ.
-    // V2 không có mốc đồng hồ: vẫn khôi phục giờ cộng tay.
+    PhaiLoi([&] { DD.BatDauTrucSangLoc(Dau); });
+
     std::istringstream V2("1 \"V2\" \"Lan\" 1 4 0 \"\" 7 15 0 0 8 0 0 0 0 1 4 3 0 0 0 0");
     StaffRegistry Cu; StaffFileManager::DocDong(V2,Cu,2);
     assert(static_cast<const DieuDuong*>(Cu.Tim("V2"))->CanXoayTuaSangLoc());
@@ -78,9 +78,9 @@ int main() {
     assert(!Ca.CoChongGio(Ke)); Ke=Shift("Ke",899,Ke.LayPhutKetThuc(),Ke.SoBacSi,Ke.SoDieuDuong,Ke.CanTruongCa); assert(Ca.CoChongGio(Ke));
     Schedule Trong;
     A.KhoiPhucTrangThai({98,40,0,0,false});
-    assert(!SchedulerService::CoThePhanCong(A,Ca,AssignmentRole::TruongCa,Trong,{})); // Điểm hiện tại.
+    assert(!SchedulerService::CoThePhanCong(A,Ca,AssignmentRole::TruongCa,Trong,{}));
     A.KhoiPhucTrangThai({0,41,0,0,false});
-    assert(!SchedulerService::CoThePhanCong(A,Ca,AssignmentRole::TruongCa,Trong,{})); // Giờ đã làm.
+    assert(!SchedulerService::CoThePhanCong(A,Ca,AssignmentRole::TruongCa,Trong,{}));
     A.KhoiPhucTrangThai({0,40,0,0,false});
     assert(SchedulerService::CoThePhanCong(A,Ca,AssignmentRole::TruongCa,Trong,{}));
     std::filesystem::remove_all(ThuMuc);

@@ -30,8 +30,8 @@ int main() {
     bool Loi=false;
     try { delete F.DocPhien((Fs::u8path(Lan1)/"patient.csv").u8string(),"khong_co.csv",Hang); }
     catch(const My_stdexcept&) { Loi=true; } assert(Loi);
-    // Lưu thất bại không làm mất hai bản đã lưu.
+
     Loi=false; try { F.LuuPhien(R,T,(Goc/"khong-co").u8string()); } catch(const My_stdexcept&) { Loi=true; }
     assert(Loi && Fs::exists(Fs::u8path(Lan1)/"visit.csv") && Fs::exists(Fs::u8path(Lan2)/"patient.csv"));
-    Fs::remove_all(Goc); // Chỉ thư mục riêng do test tự tạo.
+    Fs::remove_all(Goc);
 }

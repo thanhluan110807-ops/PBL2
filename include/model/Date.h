@@ -2,7 +2,7 @@
 #include <ctime>
 #include "util/My_stdexcept.h"
 
-// Một ngày lịch; không chứa giờ và không phụ thuộc Qt.
+
 struct Date {
     int Ngay;
     int Thang;

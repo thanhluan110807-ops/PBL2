@@ -136,7 +136,7 @@ std::string GhiNhomMau(BloodGroup NhomMau) {
 std::string GhiNgay(const Patient& BenhNhan) {
     if (!BenhNhan.CoNgaySinh()) return "";
     const Date Ngay = BenhNhan.LayNgaySinh();
-    // Đệm đủ YYYY-MM-DD, kể cả năm nhỏ hơn 1000, để parser đọc lại đúng lược đồ v1.
+
     std::ostringstream Tep;
     Tep << std::setfill('0') << std::setw(4) << Ngay.Nam << '-'
         << std::setw(2) << Ngay.Thang << '-' << std::setw(2) << Ngay.Ngay;
@@ -159,7 +159,7 @@ Vector<std::string> TaoTruongBenhNhan(const Patient& BenhNhan) {
 }
 
 void SapXepTheoMa(Vector<const Patient*>& DanhSach) {
-    // Sắp xếp chèn đơn giản giúp bản lưu ổn định dù bảng băm đổi thứ tự duyệt.
+
     for (int I = 1; I < DanhSach.KichThuoc(); ++I) {
         const Patient* BenhNhan = DanhSach[I];
         int J = I;
@@ -170,13 +170,13 @@ void SapXepTheoMa(Vector<const Patient*>& DanhSach) {
         DanhSach[J] = BenhNhan;
     }
 }
-} // namespace
+}
 
 PatientRegistry* PatientFileManager::DocBenhNhan(const std::string& DuongDan) const {
     std::ifstream Tep(std::filesystem::u8path(DuongDan), std::ios::binary);
     if (!Tep.is_open())
         throw My_stdexcept(My_stdexcept::LoaiLoi::LoiThucThi, "Khong mo duoc file benh nhan");
-    CsvFile::BoQuaBom(Tep); // BOM thuộc file, không thuộc ô đầu tiên của bản ghi CSV.
+    CsvFile::BoQuaBom(Tep);
     int DongHienTai = 1, DongBatDau = 1;
     Vector<std::string> CacTruong;
     if (!CsvFile::DocBanGhi(Tep, CacTruong, DongHienTai, DongBatDau))
@@ -194,7 +194,7 @@ PatientRegistry* PatientFileManager::DocBenhNhan(const std::string& DuongDan) co
             }
         }
     } catch (...) {
-        // Đọc lỗi giữa file: thu hồi cả Patient đã nạp, không trả dữ liệu dở dang.
+
         delete SoBo;
         throw;
     }

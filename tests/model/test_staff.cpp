@@ -77,6 +77,6 @@ int main() {
     assert(TuBanCu.Tim("B0")->LayGioLamTuan()==0);
     { std::ofstream F(Tep); F<<"PBL2_STAFF 2\nNV hong\nEND\n"; }
     PhaiLoi([&] { StaffFileManager::DocNhanVien(Tep); });
-    assert(Doc->KichThuoc()==3); // File lỗi không thay registry đã đọc tốt.
+    assert(Doc->KichThuoc()==3);
     std::filesystem::remove_all(ThuMuc);
 }

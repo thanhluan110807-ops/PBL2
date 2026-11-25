@@ -15,8 +15,8 @@ Date LayNgayVietNam(std::time_t ThoiDiemDanhGia) {
     const std::tm* LichUtc = std::gmtime(&ThoiDiemDanhGia);
     if (LichUtc == nullptr) BaoLoi("Thoi diem danh gia khong hop le");
     Date Ngay{LichUtc->tm_mday, LichUtc->tm_mon + 1, LichUtc->tm_year + 1900};
-    // Sau 17:00 UTC đã sang ngày mới ở Việt Nam. Tăng ngày lịch để tránh
-    // cộng giây trực tiếp vào time_t (có thể tràn ở biên giá trị).
+
+
     if (LichUtc->tm_hour >= 17) {
         ++Ngay.Ngay;
         if (!Ngay.HopLe()) {
@@ -32,7 +32,7 @@ Date LayNgayVietNam(std::time_t ThoiDiemDanhGia) {
     return Ngay;
 }
 
-// Giữ nguyên thứ tự và các ngưỡng của evaluateTriageLevel trong patient-class.
+
 int TinhMuc(const VitalSigns& S, int Tuoi) {
     int Tim = S.LayNhipTim(), Ap = S.LayHuyetApTamThu(), Tho = S.LayNhipTho();
     if (S.LayDiemGcs() <= 8 || S.LaySpo2() < 90) return 1;
@@ -72,11 +72,11 @@ void KiemTraLichSuDanhGia(const BanChupLanKham& BanChup) {
     std::time_t ThoiDiemTruoc = BanChup.ThoiDiemTiepNhan;
     for (int I = 0; I < BanChup.DanhGia.KichThuoc(); ++I) {
         const TriageAssessment& DanhGia = BanChup.DanhGia[I];
-        // Ô mặc định của Vector không phải đánh giá thật và không được nạp.
+
         if (DanhGia.LayMuc() < 1 ||
             DanhGia.LayMuc() > 5 || DanhGia.LayThoiDiemDanhGia() < ThoiDiemTruoc)
             BaoLoi("Lich su danh gia khong hop le");
-        // Tuổi và nguồn tuổi thuộc thời điểm đánh giá, không tính lại từ Patient.
+
         ThoiDiemTruoc = DanhGia.LayThoiDiemDanhGia();
     }
 }
@@ -88,7 +88,7 @@ void KiemTraLichSuBacSi(const BanChupLanKham& BanChup) {
             if (BanChup.BacSiPhanCong[I] == BanChup.BacSiPhanCong[J])
                 BaoLoi("Ma bac si phan cong bi trung");
     }
-    // Bác sĩ tham gia có thể lặp: mỗi phần tử là một lượt khám thực tế.
+
     for (int I = 0; I < BanChup.BacSiThamGia.KichThuoc(); ++I)
         if (BanChup.BacSiThamGia[I].empty()) BaoLoi("Ma bac si tham gia bi rong");
     if (!BanChup.BacSiThamGia.Rong() && BanChup.DanhGia.Rong())
@@ -97,7 +97,7 @@ void KiemTraLichSuBacSi(const BanChupLanKham& BanChup) {
 
 void KiemTraThamGiaChiTiet(const BanChupLanKham& BanChup) {
     const auto& ChiTiet = BanChup.BacSiThamGiaChiTiet;
-    if (ChiTiet.Rong()) return; // Định dạng cũ chỉ lưu mã bác sĩ.
+    if (ChiTiet.Rong()) return;
     if (ChiTiet.KichThuoc() != BanChup.BacSiThamGia.KichThuoc())
         BaoLoi("So ban ghi bac si tham gia khong khop");
     std::time_t ThoiDiemTruoc = BanChup.ThoiDiemTiepNhan;
@@ -105,10 +105,10 @@ void KiemTraThamGiaChiTiet(const BanChupLanKham& BanChup) {
         const auto& P = ChiTiet[I];
         if (P.LayMaBacSi() != BanChup.BacSiThamGia[I])
             BaoLoi("Ma bac si tham gia khong khop chi tiet");
-        // Dựng lại để loại ô mặc định và kiểm tra vai trò/mã người được thay.
+
         DoctorParticipation HopLe(P.LayMaBacSi(), P.LayThoiDiemThamGia(),
                                   P.LayVaiTro(), P.LayMaBacSiDuocThay());
-        // 0 là thời điểm chưa biết của v1; không bịa giờ khám khi nâng lên v2.
+
         if (P.LayThoiDiemThamGia() != 0) {
             if (P.LayThoiDiemThamGia() < ThoiDiemTruoc)
                 BaoLoi("Thoi diem tham gia khong hop le");
@@ -130,7 +130,7 @@ void KiemTraLichSuCanLamSang(const BanChupLanKham& BanChup) {
             !CoMaBacSi(BanChup.BacSiThamGia, BanGhi.LayMaBacSiChiDinh()) ||
             BanGhi.DaCoKetQua() != !BanGhi.LayKetQua().empty())
             BaoLoi("Lich su can lam sang khong hop le");
-        // Muốn có chỉ định tiếp theo thì chỉ định trước đã phải có kết quả.
+
         if (!BanGhi.DaCoKetQua() && I + 1 < BanChup.CanLamSang.KichThuoc())
             BaoLoi("Chi dinh truoc chua co ket qua");
     }
@@ -150,14 +150,14 @@ void KiemTraTrangThaiBanChup(const BanChupLanKham& BanChup) {
         if (!DaKham || (CoCls && !CoKetQuaCuoi)) SaiTrangThai();
         break;
     case VisitStatus::ChoCanLamSang:
-        // Có thể đã ghi kết quả nhưng chưa thực hiện DanhDauQuayLai.
+
         if (!DaKham || !CoCls) SaiTrangThai();
         break;
     case VisitStatus::ChoKhamQuayLai:
         if (!DaKham || !CoKetQuaCuoi) SaiTrangThai();
         break;
     case VisitStatus::DaHuy:
-        break; // Có thể hủy trước đánh giá, khi khám hoặc khi đang chờ CLS.
+        break;
     default:
         SaiTrangThai();
     }
@@ -166,7 +166,7 @@ void KiemTraTrangThaiBanChup(const BanChupLanKham& BanChup) {
 
 VitalSigns::VitalSigns(int Tim, int Ap, int Tho, double Oxy, int Gcs)
     : NhipTim(Tim), HuyetApTamThu(Ap), NhipTho(Tho), DiemGcs(Gcs), Spo2(Oxy) {
-    // Viết dạng phủ định để NaN cũng bị từ chối vì mọi so sánh với NaN đều sai.
+
     if (Tim < 0 || Tim > 300 || Ap < 0 || Ap > 300 || Tho < 0 || Tho > 120 ||
         !(Oxy >= 0 && Oxy <= 100) || Gcs < 3 || Gcs > 15) BaoLoi("Sinh hieu khong hop le");
 }
@@ -174,7 +174,7 @@ TriageAssessment::TriageAssessment() : SinhHieu(0,0,0,0,3), Muc(0), Tuoi(0), Tuo
 TriageAssessment::TriageAssessment(const VitalSigns& SinhHieu, int Tuoi, bool TuoiUocLuong,
                                    std::time_t ThoiDiemDanhGia, const std::string& MaDieuDuong)
     : SinhHieu(SinhHieu), Muc(0), Tuoi(Tuoi), TuoiUocLuong(TuoiUocLuong), ThoiDiemDanhGia(ThoiDiemDanhGia), MaDieuDuong(MaDieuDuong) {
-    // Mã rỗng nghĩa là chưa xác định người đánh giá khi chưa có đăng nhập.
+
     if (Tuoi < 0 || Tuoi > 150) BaoLoi("Du lieu danh gia khong hop le");
     Muc = TinhMuc(SinhHieu, Tuoi);
 }
@@ -222,14 +222,14 @@ Visit* Visit::TuBanChup(const BanChupLanKham& BanChup) {
     Visit* Moi = new Visit(BanChup.MaLanKham, BanChup.MaBenhNhan,
                            BanChup.ThoiDiemTiepNhan, BanChup.TrieuChungChinh);
     try {
-        // Chép trực tiếp để giữ tuổi, nguồn tuổi và thứ tự lịch sử nguyên gốc.
+
         Moi->LichSuDanhGia = BanChup.DanhGia;
         Moi->LichSuCanLamSang = BanChup.CanLamSang;
         Moi->DanhSachBacSiDuocPhanCong = BanChup.BacSiPhanCong;
         if (!BanChup.BacSiThamGiaChiTiet.Rong())
             Moi->LichSuBacSiThamGiaKham = BanChup.BacSiThamGiaChiTiet;
         else {
-            // v1 không có giờ/vai trò: 0 và KhamChinh chỉ là giá trị tương thích.
+
             for (int I = 0; I < BanChup.BacSiThamGia.KichThuoc(); ++I)
                 Moi->LichSuBacSiThamGiaKham.ThemCuoi(DoctorParticipation(BanChup.BacSiThamGia[I], 0));
         }
@@ -288,7 +288,7 @@ void Visit::KiemTraThamGia(const DoctorParticipation& P) const {
 void Visit::GhiNhanBacSiThamGiaKham(const DoctorParticipation& P) {
     if (TrangThaiLanKham != VisitStatus::DangKham) SaiTrangThai();
     KiemTraThamGia(P);
-    // Mỗi lời gọi tương ứng một lượt khám thực tế, kể cả khi cùng bác sĩ quay lại.
+
     LichSuBacSiThamGiaKham.ThemCuoi(P);
 }
 bool Visit::DaThamGiaKham(const std::string& MaBacSi) const {
@@ -304,7 +304,7 @@ void Visit::BatDauKham(const DoctorParticipation& P) {
     if (LichSuDanhGia.Rong()) SaiTrangThai();
     if (TrangThaiLanKham != VisitStatus::ChoKhamLanDau && TrangThaiLanKham != VisitStatus::ChoKhamQuayLai) SaiTrangThai();
     KiemTraThamGia(P);
-    // Ghi nhận bác sĩ trước; nếu Vector cấp phát thất bại thì trạng thái vẫn là chờ khám.
+
     LichSuBacSiThamGiaKham.ThemCuoi(P);
     TrangThaiLanKham = VisitStatus::DangKham;
 }
@@ -312,7 +312,7 @@ void Visit::ChuyenDiCanLamSang(const std::string& ChiDinh, const std::string& Ma
     if (TrangThaiLanKham != VisitStatus::DangKham) SaiTrangThai();
     if (ChiDinh.empty() || MaBacSiChiDinh.empty()) BaoLoi("Chi dinh va ma bac si khong duoc rong");
     if (!DaThamGiaKham(MaBacSiChiDinh)) SaiTrangThai();
-    // Lưu mã ngay khi chỉ định; thay đổi phân công sau đó không sửa bản ghi cũ.
+
     LichSuCanLamSang.ThemCuoi(BanGhiCanLamSang(ChiDinh, MaBacSiChiDinh));
     TrangThaiLanKham = VisitStatus::ChoCanLamSang;
 }

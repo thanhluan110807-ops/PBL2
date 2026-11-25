@@ -19,7 +19,7 @@ std::string Ma(const char *TienTo, int So) {
         SoChu = "0" + SoChu;
     return TienTo + SoChu;
 }
-} // namespace
+}
 const HoSo &DemoTriageService::LayHoSo(int ChiSo) const {
     if (ChiSo < 0 || ChiSo >= SoHoSo)
         throw My_stdexcept(My_stdexcept::LoaiLoi::NgoaiPhamVi, "Ho so khong ton tai");
@@ -31,7 +31,7 @@ const LuotKham &DemoTriageService::LayLuot(int ChiSo) const {
     return CacLuot[ChiSo];
 }
 Date DemoTriageService::LayNgay() const {
-    // Mốc UTC tương ứng 00:00 ngày 30/10; dịch theo ngày mô phỏng, độc lập múi giờ máy.
+
     const std::time_t MocNgay = 1793318400LL + (BayGio / 1440) * 86400;
     const std::tm *Lich = std::gmtime(&MocNgay);
     if (!Lich)
@@ -154,7 +154,7 @@ DeXuat DemoTriageService::DeXuatMuc(const SinhHieu &SoDo, int Tuoi) {
     const KetQua KiemTra = KiemTraSinhHieu(SoDo);
     if (!KiemTra.ThanhCong || Tuoi < -1 || Tuoi > 150)
         return {};
-    // Giữ nguyên thứ tự điều kiện evaluateTriageLevel @95e145f trên patient-class.
+
     const int Mach = SoDo.Mach, HuyetAp = SoDo.HuyetAp, NhipTho = SoDo.NhipTho;
     int Muc = 0;
     if (SoDo.GCS <= 8 || SoDo.SpO2 < 90)
@@ -162,7 +162,7 @@ DeXuat DemoTriageService::DeXuatMuc(const SinhHieu &SoDo, int Tuoi) {
     else if (SoDo.GCS <= 12 || SoDo.SpO2 < 95)
         Muc = 2;
     else if (Tuoi == -1)
-        return {}; // Không dùng nhóm dưới 1 tuổi khi chưa biết tuổi.
+        return {};
     else if (Tuoi < 1) {
         if (Mach < 60 || Mach > 200 || NhipTho < 20 || NhipTho > 70 || HuyetAp < 60)
             Muc = 1;
@@ -232,8 +232,8 @@ KetQua DemoTriageService::XacNhan(int ChiSo, const SinhHieu &SoDo, int Muc) {
     DongBoBoDem();
     return {};
 }
-// Hai đầu hàng của từng mức được tìm bằng vòng lặp, xếp theo thời điểm rồi STT.
-// Chỉ tăng bộ đếm khi thực sự có hai luồng cùng mức cạnh tranh.
+
+
 int DemoTriageService::ChonLuot(const bool *DaLay, int *Dem) const {
     int Dau[6][2];
     for (int Muc = 0; Muc <= 5; ++Muc)
@@ -285,7 +285,7 @@ HangCho DemoTriageService::LayHangCho() const {
     int Dem[6];
     for (int Muc = 0; Muc <= 5; ++Muc)
         Dem[Muc] = BoDem[Muc];
-    // Xem và lọc chỉ dùng bản sao bộ đếm; không tiêu thụ lần gọi 3:1.
+
     for (int ViTri = ChonLuot(DaLay, Dem); ViTri >= 0; ViTri = ChonLuot(DaLay, Dem)) {
         Hang.CacLuot[Hang.SoLuong++] = ViTri;
         DaLay[ViTri] = true;
@@ -394,4 +394,4 @@ void DemoTriageService::XoaDuLieu() {
     for (int &Dem : BoDem)
         Dem = 0;
 }
-} // namespace Demo
+}

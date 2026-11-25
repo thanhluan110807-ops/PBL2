@@ -3,7 +3,7 @@
 #include <string>
 #include <utility>
 
-// Đếm đối tượng sống và chủ động ném lỗi để kiểm tra việc dọn mảng tạm.
+
 struct GiaTriThu {
     static int DangSong;
     static int SoLanGanConLai;
@@ -42,7 +42,7 @@ int main() {
     PhaiBaoLoi([&] { Mang.XoaCuoi(); }, NgoaiPhamVi);
     PhaiBaoLoi([&] { Mang.Lay(0); }, NgoaiPhamVi);
     Mang.ThemCuoi(42);
-    Mang.ThemCuoi(Mang[0]); // Tham chiếu vào chính mảng đang tăng dung lượng.
+    Mang.ThemCuoi(Mang[0]);
     assert(Mang[1] == 42);
     for (int I = 0; I < 100; ++I) Mang.ThemCuoi(I);
     assert(Mang.KichThuoc() == 102 && Mang[101] == 99);
@@ -57,7 +57,7 @@ int main() {
     Vector<int> Dich;
     Dich = BanSao;
     assert(Dich[0] == 7);
-    Vector<int> Chuyen(std::move(Dich)); // std::move chỉ dùng để gọi API move trong test.
+    Vector<int> Chuyen(std::move(Dich));
     assert(Dich.Rong() && Chuyen[0] == 7);
     Dich.ThemCuoi(8);
     Dich = std::move(Chuyen);
@@ -80,7 +80,7 @@ int main() {
     Chuoi.ThuGon();
     assert(Chuoi.KichThuoc() == 1 && Chuoi.DungLuong() == 1 && Chuoi[0] == "benh nhan");
     std::string* DiaChi = &Chuoi[0];
-    Chuoi.ThuGon(); // Đã gọn thì không cấp phát lại.
+    Chuoi.ThuGon();
     assert(&Chuoi[0] == DiaChi);
     Chuoi.XoaCuoi(); Chuoi.ThuGon();
     assert(Chuoi.Rong() && Chuoi.DungLuong() == 0);

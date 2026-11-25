@@ -1,4 +1,4 @@
-// Phần B — Chức năng chính: Quản lý điều dưỡng và thời gian trực sàng lọc.
+
 #pragma once
 #include "model/NhanVienYTe.h"
 #include <ctime>
@@ -21,12 +21,12 @@ public:
     bool DangTheoDongHo() const { return TheoDongHo; }
     std::time_t LayBatDauSangLoc() const { return BatDauSangLoc; }
     std::time_t LayMocDongHo() const { return MocDongHo; }
-    // Các API cũ dành cho mô phỏng cộng giờ thủ công.
+
     void BatDauTrucSangLoc();
     void KetThucTrucSangLoc();
     void CongDonGioSangLoc(double SoGio);
     bool CanXoayTuaSangLoc() const;
-    // Truyền thời điểm vào để dễ kiểm thử; đơn vị time_t là thời điểm hệ thống.
+
     void BatDauTrucSangLoc(std::time_t ThoiDiem);
     void CapNhatThoiGianSangLoc(std::time_t ThoiDiem);
     double TinhThoiGianSangLocLienTuc(std::time_t ThoiDiem) const;

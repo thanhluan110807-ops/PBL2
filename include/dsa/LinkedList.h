@@ -1,40 +1,40 @@
 #ifndef LinkedList_h
 #define LinkedList_h
 
-// nullptr là từ khóa C++, không cần include thư viện.
-#include "util/My_stdexcept.h"
-#include <utility>     // std::move
 
-/* ============================================================
- *  LINKEDLIST.H - Danh sách liên kết đơn tự viết (Custom DSA)
- *  Thành viên B - Giai đoạn 1
- *
- *  - Template: dùng được cho int, string, Nhanvienyte*, ...
- *  - Rule of Five + Deep Copy: sao chép TOÀN BỘ các nút
- *  - Copy assignment dùng copy-and-swap -> an toàn ngoại lệ
- *  - Là nền cho HashTable (Chaining) và Standby Pool (Stack)
- *
- *  LƯU Ý: nếu T là con trỏ (vd Nhanvienyte*), danh sách chỉ giữ
- *  ĐỊA CHỈ, KHÔNG sở hữu đối tượng được trỏ tới -> không tự delete
- *  chúng. Người tạo đối tượng chịu trách nhiệm delete.
- * ============================================================ */
+#include "util/My_stdexcept.h"
+#include <utility>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 template <typename T>
 class LinkedList {
 private:
-    // Nút của danh sách (ẩn hoàn toàn với bên ngoài - Đóng gói)
+
     struct Node {
         T data;
         Node* next;
         explicit Node(const T& value) : data(value), next(nullptr) {}
     };
 
-    Node* head;   // nút đầu
-    Node* tail;   // nút cuối (để Themcuoi chạy O(1))
-    int size;     // số phần tử
+    Node* head;
+    Node* tail;
+    int size;
 
 public:
-    // ---------------- Iterator (cho phép duyệt và dùng range-for) ----------------
+
     class Iterator {
     private:
         Node* cur;
@@ -66,30 +66,30 @@ public:
     ConstIterator begin() const { return ConstIterator(head); }
     ConstIterator end() const { return ConstIterator(nullptr); }
 
-    // ---------------- Rule of Five ----------------
+
     LinkedList() : head(nullptr), tail(nullptr), size(0) {}
 
-    // Copy constructor - DEEP COPY: tạo nút mới cho từng phần tử
+
     LinkedList(const LinkedList& other) : head(nullptr), tail(nullptr), size(0) {
         try {
             for (Node* p = other.head; p != nullptr; p = p->next)
                 Themcuoi(p->data);
         } catch (...) {
-            Xoahet();   // lỗi giữa chừng (vd hết RAM) -> dọn phần đã tạo, không rò rỉ
+            Xoahet();
             throw;
         }
     }
 
-    // Copy assignment - copy-and-swap:
-    // tạo bản sao tạm TRƯỚC; nếu bản sao thất bại thì *this vẫn nguyên vẹn
+
+
     LinkedList& operator=(const LinkedList& other) {
-        if (this == &other) return *this;   // chống tự gán
+        if (this == &other) return *this;
         LinkedList tmp(other);
         Hoandoi(tmp);
-        return *this;                       // tmp chứa dữ liệu cũ, tự hủy khi ra khỏi hàm
+        return *this;
     }
 
-    // Move constructor - "cướp" các nút của other, không sao chép gì cả
+
     LinkedList(LinkedList&& other) noexcept
         : head(other.head), tail(other.tail), size(other.size) {
         other.head = nullptr;
@@ -97,10 +97,10 @@ public:
         other.size = 0;
     }
 
-    // Move assignment
+
     LinkedList& operator=(LinkedList&& other) noexcept {
         if (this == &other) return *this;
-        Xoahet();                           // giải phóng dữ liệu cũ của mình
+        Xoahet();
         head = other.head;
         tail = other.tail;
         size = other.size;
@@ -110,19 +110,19 @@ public:
         return *this;
     }
 
-    // Destructor - delete TỪNG nút để không rò rỉ bộ nhớ
+
     ~LinkedList() { Xoahet(); }
 
-    // ---------------- Thêm ----------------
-    void Themdau(const T& value) {          // O(1)
-        Node* n = new Node(value);          // nếu new ném ngoại lệ, danh sách chưa bị đổi
+
+    void Themdau(const T& value) {
+        Node* n = new Node(value);
         n->next = head;
         head = n;
         if (tail == nullptr) tail = n;
         size++;
     }
 
-    void Themcuoi(const T& value) {         // O(1) nhờ có con trỏ tail
+    void Themcuoi(const T& value) {
         Node* n = new Node(value);
         if (tail == nullptr) {
             head = tail = n;
@@ -133,8 +133,8 @@ public:
         size++;
     }
 
-    // ---------------- Xóa ----------------
-    bool Xoadau() {                         // O(1) - thao tác Pop của Stack
+
+    bool Xoadau() {
         if (head == nullptr) return false;
         Node* t = head;
         head = head->next;
@@ -144,7 +144,7 @@ public:
         return true;
     }
 
-    // Xóa phần tử ĐẦU TIÊN thỏa điều kiện pred (pred(const T&) -> bool). O(n)
+
     template <typename Pred>
     bool Xoatheo(Pred pred) {
         Node* prev = nullptr;
@@ -161,7 +161,7 @@ public:
         return false;
     }
 
-    // Xóa phần tử đầu tiên bằng value (cần operator== của T). O(n)
+
     bool Xoagiatri(const T& value) {
         return Xoatheo([&value](const T& x) { return x == value; });
     }
@@ -177,8 +177,8 @@ public:
         size = 0;
     }
 
-    // ---------------- Tìm kiếm ----------------
-    // Trả về CON TRỎ tới phần tử trong danh sách (sửa trực tiếp được), hoặc nullptr nếu không có.
+
+
     T* Timkiem(const T& value) {
         return Timtheo([&value](const T& x) { return x == value; });
     }
@@ -186,7 +186,7 @@ public:
         return Timtheo([&value](const T& x) { return x == value; });
     }
 
-    // Tìm theo điều kiện - HashTable dùng hàm này để tìm theo KEY. O(n)
+
     template <typename Pred>
     T* Timtheo(Pred pred) {
         for (Node* cur = head; cur != nullptr; cur = cur->next)
@@ -200,7 +200,7 @@ public:
         return nullptr;
     }
 
-    // ---------------- Truy cập ----------------
+
     T& Dau() {
         if (head == nullptr) throw My_stdexcept(My_stdexcept::LoaiLoi::NgoaiPhamVi, "LinkedList::Dau - danh sach rong");
         return head->data;
@@ -218,7 +218,7 @@ public:
         return tail->data;
     }
 
-    // Lấy phần tử thứ index (bắt đầu từ 0). O(n)
+
     T& Lay(int index) {
         if (index < 0 || index >= size) throw My_stdexcept(My_stdexcept::LoaiLoi::NgoaiPhamVi, "LinkedList::Lay - chi so ngoai pham vi");
         Node* cur = head;
@@ -232,11 +232,11 @@ public:
         return cur->data;
     }
 
-    // ---------------- Thông tin ----------------
+
     int Kichthuoc() const { return size; }
     bool Rong() const { return size == 0; }
 
-    // Hoán đổi nội dung 2 danh sách (chỉ đổi con trỏ, O(1), không ném ngoại lệ)
+
     void Hoandoi(LinkedList& other) noexcept {
         Node* h = head;  head = other.head;  other.head = h;
         Node* t = tail;  tail = other.tail;  other.tail = t;
@@ -244,8 +244,8 @@ public:
     }
 };
 
-// Ghi chu tu ban header cu, giu lai de doi chieu; khong phai dependency hien tai.
-// nullptr
-// std::out_of_range (chỉ là lớp ngoại lệ, không phải container STL)
 
-#endif // LinkedList_h
+
+
+
+#endif

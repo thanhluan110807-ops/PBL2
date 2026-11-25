@@ -52,16 +52,16 @@ void KiemTraLuanPhien() {
     assert(DuKien[0]->LayMaLanKham() == "R");
     assert(DuKien[1]->LayMaLanKham() == "A");
     assert(Service.LayDanhSachCho()[0]->LayMaLanKham() == "R");
-    // Gọi sai không được tiêu thụ lượt ưu tiên.
+
     PhaiLoi([&] { Service.GoiTiep(""); });
     assert(Service.GoiTiep("BS").LayMaLanKham() == "R");
     DuaQuayLai(Service, "R", 1767225604);
     ThemLuot(Registry, Service, "Khan", 1767225605, 89);
     assert(Service.GoiTiep("BS").LayMaLanKham() == "Khan");
-    // Cùng chuyển hai lượt lên mức 2: lượt luân phiên dùng chung cho mọi mức.
+
     Service.DanhGia("R", VitalSigns(75,120,16,94,15), 1767225606, "DD");
     Service.DanhGia("A", VitalSigns(75,120,16,94,15), 1767225606, "DD");
-    // Lần gọi khẩn cấp không đổi lượt: lần trùng tiếp phải chọn lần đầu.
+
     assert(Service.GoiTiep("BS").LayMaLanKham() == "A");
     Service.DanhGia("R", VitalSigns(75,120,16,98,15), 1767225607, "DD");
     ThemLuot(Registry, Service, "B", 1767225608);
@@ -74,7 +74,7 @@ void KiemTraDanhGiaVaHuy() {
     TriageService Service(Registry);
     ThemLuot(Registry, Service, "A", 1767225601);
     ThemLuot(Registry, Service, "B", 1767225602);
-    // Đánh giá lại không đưa A ra sau B khi hai lượt có cùng mức.
+
     Service.DanhGia("A", VitalSigns(75,120,16,98,15), 1767225603, "DD");
     assert(Service.GoiTiep("BS").LayMaLanKham() == "A");
     Service.Huy("B");
@@ -93,7 +93,7 @@ void KiemTraDoiMucVaGiuLuotKhiMotHangRong() {
     DuaQuayLai(Service, "R", 1767225602);
     ThemLuot(Registry, Service, "A", 1767225603);
     assert(Service.GoiTiep("BS").LayMaLanKham() == "R");
-    // Chỉ còn hàng lần đầu; gọi A không thay đổi lượt chờ lần trùng tiếp.
+
     assert(Service.GoiTiep("BS").LayMaLanKham() == "A");
     DuaQuayLai(Service, "R", 1767225604);
     ThemLuot(Registry, Service, "B", 1767225605);
@@ -111,11 +111,11 @@ void KiemTraLoiKhongMatHang() {
     TriageService Service(Registry);
     Registry.ThemBenhNhan("BN", "A", Gender::Nam);
     Service.TiepNhan("LK", "BN", 1767225600, "Dau");
-    // Thiếu tuổi vẫn phải gỡ mục chờ đã cấp phát khi đánh giá thất bại.
+
     PhaiLoi([&] { Service.DanhGia("LK", VitalSigns(75,120,16,98,15), 1767225601, ""); });
     assert(Service.SoDangCho() == 0);
     Registry.BoSungDanhTinh("BN", "", "A", Gender::Nam, Date{1,1,2000});
-    // Có tuổi thì được đánh giá khi chưa xác định điều dưỡng đăng nhập.
+
     Service.DanhGia("LK", VitalSigns(75,120,16,98,15), 1767225601, "");
     assert(Registry.TimLanKham("LK")->LayDanhGiaGanNhat().LayMaDieuDuong().empty());
     assert(Service.GoiTiep("BS").LayMaLanKham() == "LK");
@@ -130,7 +130,7 @@ void KiemTraThoiGianVaThayDoiBenNgoai() {
     PatientRegistry Registry;
     TriageService Service(Registry);
     ThemLuot(Registry, Service, "A", 1767225610);
-    // Không ghi nhận đánh giá mới có thời gian trước đánh giá gần nhất.
+
     PhaiLoi([&] { Service.DanhGia("A", VitalSigns(75,120,16,89,15), 1767225609, "DD"); });
     assert(Registry.TimLanKham("A")->SoDanhGia() == 1);
     assert(Service.GoiTiep("BS").LayMaLanKham() == "A");
@@ -138,7 +138,7 @@ void KiemTraThoiGianVaThayDoiBenNgoai() {
     PhaiLoi([&] { Service.QuayLai("A", "Ket qua", 1767225609); });
     assert(Service.SoDangCho() == 0);
     Service.QuayLai("A", "Ket qua", 1767225611);
-    // Nếu mã khác sửa Visit trực tiếp, báo lỗi thay vì gọi sai mức ưu tiên.
+
     Registry.TimLanKham("A")->DanhGia(*Registry.TimBenhNhan("BNA"),
         VitalSigns(75,120,16,89,15), 1767225612, "DD");
     PhaiLoi([&] { Service.GoiTiep("BS"); });

@@ -1,4 +1,4 @@
-# Chỉ được gọi khi PBL2_BUILD_QT_DEMO=ON. Qt không đi vào pbl2_core.
+
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 message(STATUS "Native demo: Qt ${QT_VERSION_MAJOR}, Widgets only")
@@ -11,7 +11,7 @@ if(MSVC)
 endif()
 add_executable(pbl2_qt_demo main.cpp)
 target_link_libraries(pbl2_qt_demo PRIVATE pbl2_demo_ui)
-# CSV là nguồn cố định, không sao chép/đặt lại khi build hoặc mở chương trình.
+
 target_compile_definitions(pbl2_qt_demo PRIVATE
     PBL2_SAMPLE_DATA_DIR="${PROJECT_SOURCE_DIR}/data")
 

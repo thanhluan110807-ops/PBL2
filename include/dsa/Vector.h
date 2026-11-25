@@ -1,10 +1,10 @@
 #pragma once
 
-#include <climits> // Giới hạn của int, để kiểm tra trước khi tăng dung lượng.
+#include <climits>
 #include "util/My_stdexcept.h"
 
-// Mảng động sở hữu các ô T; nếu T là con trỏ thì không sở hữu đối tượng đích.
-// T cần dựng mặc định, sao chép và gán được; destructor không được ném lỗi.
+
+
 template <typename T>
 class Vector {
 private:
@@ -67,7 +67,7 @@ public:
         SoTam = SoPhanTu; SoPhanTu = Khac.SoPhanTu; Khac.SoPhanTu = SoTam;
     }
 
-    // Chỉ công bố mảng mới sau khi chép xong, kể cả khi GiaTri là một ô trong mảng cũ.
+
     void ThemCuoi(const T& GiaTri) {
         if (SoPhanTu < SucChua) {
             DuLieu[SoPhanTu] = GiaTri;
@@ -91,20 +91,20 @@ public:
         ++SoPhanTu;
     }
 
-    // Xóa logic O(1); ô bị loại còn sống đến khi ghi đè, tăng dung lượng hoặc XoaHet.
+
     void XoaCuoi() {
         KiemTraChiSo(SoPhanTu - 1);
         --SoPhanTu;
     }
 
-    // Giải phóng toàn bộ các ô, kể cả những ô đã XoaCuoi; có thể thêm lại sau đó.
+
     void XoaHet() noexcept {
         delete[] DuLieu;
         DuLieu = nullptr;
         SucChua = SoPhanTu = 0;
     }
 
-    // Thu sức chứa về đúng số phần tử; giữ nguyên dữ liệu nếu sao chép thất bại.
+
     void ThuGon() {
         if (SucChua == SoPhanTu) return;
         if (SoPhanTu == 0) {

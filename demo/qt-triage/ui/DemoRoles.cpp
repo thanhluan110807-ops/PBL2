@@ -62,7 +62,7 @@ int TimNhanVienDaNhap(const QComboBox& DanhSach) {
     const int DongGoiY = DanhSach.findText(TuKhoa);
     if (DongGoiY >= 0) return DongGoiY;
 
-    // Cho phép nhập thường hoặc hoa nếu chỉ có một mã khớp trong vai trò này.
+
     int DongKhop = -1;
     for (int I = 0; I < DanhSach.count(); ++I) {
         if (DanhSach.itemData(I).toString().compare(TuKhoa, Qt::CaseInsensitive) != 0) continue;
@@ -138,7 +138,7 @@ bool DemoWindow::ChonVaiTro() {
         HuongDan->setText(ThongBao);
         HuongDan->setVisible(!ThongBao.isEmpty());
     };
-    // Chỉ dùng mã nhân viên thật trong dữ liệu hiện tại để gắn đúng lịch và lượt khám.
+
     const auto NapNhanVien = [&] {
         const QSignalBlocker ChanTinHieu(ChonNhanVien);
         const int MaVaiTro = NhomVaiTro.checkedId();
@@ -224,7 +224,7 @@ bool DemoWindow::DuocMoTrang(int ChiSo) const {
 }
 
 bool DemoWindow::LaDieuDuongThaoTac() const {
-    // Từ Hàng chờ, kể cả các cửa sổ chi tiết liên kết cũng chỉ để xem.
+
     return VaiTroHienTai == VaiTro::DieuDuong && Trang != TrangHangCho;
 }
 
@@ -248,7 +248,7 @@ const Visit* DemoWindow::TimLuotDangKham() const {
     for (int I = 0; I < CacLuot.KichThuoc(); ++I) {
         const Visit* Luot = CacLuot[I].LanKham;
         if (Luot->LayTrangThai() != VisitStatus::DangKham || !LaBacSiPhuTrach(*Luot)) continue;
-        // Các lần gọi được lưu cùng lượt khám, nên đổi vai trò hoặc mở lại vẫn tìm được.
+
         if (!KetQua || Luot->LayThamGiaTai(Luot->SoLanBacSiThamGiaKham() - 1).LayThoiDiemThamGia() >
                       KetQua->LayThamGiaTai(KetQua->SoLanBacSiThamGiaKham() - 1).LayThoiDiemThamGia())
             KetQua = Luot;

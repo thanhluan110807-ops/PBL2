@@ -1,4 +1,4 @@
-// Phần B — Chức năng chính: Quản lý điều dưỡng và thời gian trực sàng lọc.
+
 #include "model/DieuDuong.h"
 #include "util/My_stdexcept.h"
 #include <cmath>
@@ -28,7 +28,7 @@ void DieuDuong::BatDauTrucSangLoc(std::time_t ThoiDiem) {
     YeuCau(ThoiDiem>=0,"Thoi diem khong hop le");
     if (DangTrucSangLoc) {
         YeuCau(TheoDongHo,"Dang cong gio thu cong; ket thuc dot cu truoc");
-        CapNhatThoiGianSangLoc(ThoiDiem); return; // Không reset mốc ban đầu.
+        CapNhatThoiGianSangLoc(ThoiDiem); return;
     }
     DangTrucSangLoc=true; TheoDongHo=true; GioSangLocLienTuc=0;
     BatDauSangLoc=MocDongHo=ThoiDiem;

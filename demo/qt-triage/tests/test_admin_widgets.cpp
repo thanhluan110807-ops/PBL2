@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
     assert(NutLuu && !NutLuu->isEnabled());
     for (const auto* Ma : {"adminLoad","staffImport","staffExport","scheduleImport","scheduleExport"})
         assert(!W.findChild<QPushButton*>(Ma));
-    // Số liệu và hướng dẫn phải đọc được ngay, kể cả khi chưa có dữ liệu.
+
     assert(W.findChild<QLabel*>("adminStaffCount")->text()=="0");
     assert(W.findChild<QLabel*>("adminShiftCount")->text()=="0");
     assert(W.findChild<QLabel*>("adminAssignmentCount")->text()=="0");
@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
     { QFile F(Hong); assert(F.open(QIODevice::WriteOnly)); F.write("khong hop le"); }
     assert(!W.NapTep(Hong));
     assert(W.findChild<QTableWidget*>("scheduleTable")->rowCount()==4);
-    // Kiểm tra thay người qua chính widget: thêm người dự phòng rồi chọn lại lịch.
+
     W.findChild<QLineEdit*>("staffId")->setText("BS03");
     W.findChild<QLineEdit*>("staffName")->setText("Du phong");
     W.findChild<QLineEdit*>("staffSpecialty")->setText(QString::fromUtf8("Cấp cứu"));
@@ -126,7 +126,7 @@ int main(int argc, char** argv) {
         assert(W.grab().save(qEnvironmentVariable("PBL2_ADMIN_CAPTURE_NARROW")));
     }
     W.close(); Doc.close();
-    // Cập nhật tên trên GUI không được làm mất số liệu sàng lọc/giờ tuần.
+
     AdminData Mau;
     DieuDuong DD("D","Lan",CapBac::DieuDuongChinh,4);
     DD.BatDauTrucSangLoc(); DD.CongDonGioSangLoc(4); DD.CongDonGioLam(8);
@@ -151,7 +151,7 @@ int main(int argc, char** argv) {
     TimTenSua->setText("dang lan");
     assert(Sua.findChild<QTableWidget*>("staffTable")->rowCount()==1);
     assert(Sua.LuuTep(TepSua)); Sua.close();
-    // Kiểm tra luồng đồng hồ thật và tìm tên trên các nút mới.
+
     AdminPanel DongHo;
     DongHo.findChild<QPushButton*>("adminSeed")->click();
     auto* BangNV=DongHo.findChild<QTableWidget*>("staffTable");
@@ -185,7 +185,7 @@ int main(int argc, char** argv) {
     DongHo.findChild<QPushButton*>("staffTriageEnd")->click();
     assert(!static_cast<const DieuDuong*>(DiaChi)->DangSangLoc());
     assert(DongHo.LuuTep(TepDongHo)); DongHo.close(); NapDongHo.close();
-    // GUI phải đi qua trạng thái xác nhận trước khi ghi nhận bắt đầu.
+
     AdminData CaDangDienRa;
     CaDangDienRa.NhanSu->Them(BacSi("B","An",CapBac::BacSiChinh,5,"Cap cuu"));
     const auto BayGio=QDateTime::currentSecsSinceEpoch();
@@ -210,7 +210,7 @@ int main(int argc, char** argv) {
     assert(MoLai.LayDuLieu().Lich.PhanCong[0].LayTrangThai()==AssignmentStatus::DangTruc);
     MoLai.close();
 
-    // Nạp nhân viên riêng phải cập nhật GUI, giữ lịch và từ chối file thiếu mã.
+
     const QString TepNV=Tmp.path()+"/nhan-vien.pbl2";
     assert(MoLai.LuuNhanSu(TepNV));
     const auto* DiaChiCu=MoLai.LayDuLieu().NhanSu->Tim("B");
@@ -229,7 +229,7 @@ int main(int argc, char** argv) {
     assert(!MoLai.findChild<QPushButton*>("staffExport"));
     assert(MoLai.LuuTep(TepCa)); MoLai.close();
 
-    // Lỗi ghi giữ thay đổi trong RAM để bấm lưu lại, không mở hộp chọn file.
+
     const QString TepLoiGhi=Tmp.path()+"/loi-ghi.pbl2";
     AdminPanel LoiGhi(nullptr,TepLoiGhi);
     LoiGhi.findChild<QPushButton*>("adminSeed")->click();
@@ -244,7 +244,7 @@ int main(int argc, char** argv) {
     AdminPanel MoSauLoi(nullptr,TepLoiGhi);
     assert(MoSauLoi.LayDuLieu().NhanSu->KichThuoc()==4);
 
-    // Nguồn liên kết không đọc được phải giữ nguyên, không lưu đè dữ liệu rỗng.
+
     AdminPanel LoiDoc(nullptr,Hong);
     assert(!LoiDoc.findChild<QPushButton*>("adminSave")->isEnabled());
     LoiDoc.findChild<QPushButton*>("adminSave")->click();

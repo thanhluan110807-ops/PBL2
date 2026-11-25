@@ -44,7 +44,7 @@ int main() {
     D.Lich = KQ.Lich;
     assert(D.Lich.PhanCong.KichThuoc() == 4);
     const double Diem = FatigueService::TinhDiem(B, D.Lich);
-    assert(Diem == FatigueService::TinhDiem(B, D.Lich)); // Đọc lại không cộng lặp.
+    assert(Diem == FatigueService::TinhDiem(B, D.Lich));
     assert(B.LayDiemMetMoiNen() == 0);
     auto Het = SchedulerService::LapLich(*D.NhanSu, Ca, {}, 1);
     assert(Het.TrangThai == ScheduleStatus::HetLuotTim && Het.Lich.PhanCong.Rong());
@@ -74,7 +74,7 @@ int main() {
     Schedule Sai = D.Lich; Sai.PhanCong.ThemCuoi(Sai.PhanCong[0]);
     assert(!SchedulerService::LichHopLe(*D.NhanSu, Sai));
     PhaiLoi([&] { Vector<Shift> C; C.ThemCuoi({"X",0,1,1,0,true}); C.ThemCuoi(C[0]); SchedulerService::LapLich(*D.NhanSu,C); });
-    // Buộc quay lui: nội trú chỉ làm ca A; bác sĩ chính phải được giữ cho ca B trùng giờ.
+
     StaffRegistry N;
     N.Them(BacSi("CH", "Chinh", CapBac::BacSiChinh, 5, "Noi"));
     N.Them(BacSi("NT", "Noi tru", CapBac::BacSiNoiTru, 1, "Noi"));
@@ -87,12 +87,12 @@ int main() {
     std::filesystem::create_directory(ThuMuc);
     const auto Tep = (ThuMuc / "du-lieu.txt").string();
     AdminFileManager::Luu(Tep,D);
-    AdminFileManager::Luu(Tep,D); // Lưu lại trên file hiện có.
+    AdminFileManager::Luu(Tep,D);
     auto Doc = AdminFileManager::Doc(Tep);
     assert(Doc.NhanSu->KichThuoc() == 4 && Doc.NhanSu->Tim("B1")->LayHoTen() == B.LayHoTen());
     assert(SchedulerService::LichHopLe(*Doc.NhanSu, Doc.Lich));
     assert(Doc.Lich.PhanCong.KichThuoc() == 4 && Doc.DuPhong.Co("B2"));
-    // CSV phải có cột thật, đọc lại được dấu phẩy/ngoặc kép và lưu đúng nguồn cũ.
+
     const auto TepCsv = (ThuMuc / "nhan-su-lich.csv").string();
     AdminFileManager::Luu(TepCsv,D);
     { std::ifstream Vao(TepCsv); std::string Dau; std::getline(Vao,Dau);
@@ -119,9 +119,9 @@ int main() {
     assert(AdminFileManager::Doc(Tep).TuanBatDau == "2026-11-02");
     const auto Hong = (ThuMuc / "hong.txt").string();
     { std::ofstream F(Hong); F << "PBL2_ADMIN 1 2026-11-02\nCA \"X\" 420 900 1 0 1\nEND\n"; }
-    PhaiLoi([&] { AdminFileManager::Doc(Hong); }); // Thiếu phân công.
+    PhaiLoi([&] { AdminFileManager::Doc(Hong); });
     { std::ofstream F(Hong); F << "PBL2_ADMIN 1 2026-11-02\n"; }
-    PhaiLoi([&] { AdminFileManager::Doc(Hong); }); // File bị cắt ngang.
+    PhaiLoi([&] { AdminFileManager::Doc(Hong); });
     { std::ofstream F(Hong); F << "PBL2_ADMIN 99 2026-11-02\nEND\n"; }
     PhaiLoi([&] { AdminFileManager::Doc(Hong); });
     std::filesystem::remove_all(ThuMuc);

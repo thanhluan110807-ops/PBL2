@@ -37,8 +37,8 @@ void BaoLoiGhi(const char* NoiDung) {
     throw My_stdexcept(My_stdexcept::LoaiLoi::LoiThucThi, NoiDung);
 }
 
-// Tạo thư mục riêng bằng thao tác nguyên tử để không ghi đè file tạm của nơi khác.
-// Thư mục nằm cạnh file đích, nên đổi tên file không vượt sang ổ đĩa khác.
+
+
 std::filesystem::path TaoThuMucTam(const std::filesystem::path& DuongDan) {
     const auto Moc = std::chrono::high_resolution_clock::now().time_since_epoch().count();
     for (int LanThu = 0; LanThu < 100; ++LanThu) {
@@ -49,18 +49,18 @@ std::filesystem::path TaoThuMucTam(const std::filesystem::path& DuongDan) {
         if (Loi) BaoLoiGhi("Khong tao duoc thu muc tam de luu CSV");
     }
     BaoLoiGhi("Khong tim duoc ten thu muc tam de luu CSV");
-    return {}; // BaoLoiGhi luôn ném ngoại lệ.
+    return {};
 }
 
-// Chỉ thu hồi đúng hai đường dẫn do lần ghi này tạo, không quét/xóa file tạm cũ.
+
 void XoaTepTam(const std::filesystem::path& TepTam, const std::filesystem::path& ThuMucTam) {
     std::error_code Loi;
     std::filesystem::remove(TepTam, Loi);
     std::filesystem::remove(ThuMucTam, Loi);
 }
 
-// flush/close của C++ mới chuyển dữ liệu sang hệ điều hành. API nền tảng yêu cầu
-// hệ điều hành đồng bộ thật trước khi tên file chính thức trỏ tới nội dung mới.
+
+
 void DongBoTep(const std::filesystem::path& Tep) {
 #ifdef _WIN32
     HANDLE Mo = CreateFileW(Tep.c_str(), GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ,
@@ -90,10 +90,10 @@ void CongBoTep(const std::filesystem::path& TepTam, const std::filesystem::path&
     if (Loi) BaoLoiGhi("Khong thay duoc file dich khi luu CSV");
 #endif
 }
-} // namespace
+}
 
 namespace CsvFile {
-// Đọc một bản ghi, không phải một dòng vật lý: trường trong ngoặc có thể xuống dòng.
+
 bool DocBanGhi(std::istream& Tep, Vector<std::string>& CacTruong,
                int& DongHienTai, int& DongBatDau) {
     CacTruong = Vector<std::string>();
@@ -158,7 +158,7 @@ void BoQuaBom(std::istream& Tep) {
         DauTep[1] == static_cast<char>(0xBB) &&
         DauTep[2] == static_cast<char>(0xBF);
     if (!CoBom) {
-        // Không phải BOM thì đọc lại cả ba byte vì chúng thuộc tiêu đề CSV.
+
         Tep.clear();
         Tep.seekg(0);
         if (!Tep)
@@ -173,7 +173,7 @@ void GhiBanGhi(std::ostream& Tep, const Vector<std::string>& CacTruong) {
         const bool CanNgoac = Truong.find_first_of(",\"\r\n") != std::string::npos;
         if (CanNgoac) Tep.put('"');
         for (char KyTu : Truong) {
-            if (KyTu == '"') Tep.put('"'); // CSV biểu diễn một dấu nháy bằng hai dấu nháy.
+            if (KyTu == '"') Tep.put('"');
             Tep.put(KyTu);
         }
         if (CanNgoac) Tep.put('"');
@@ -192,7 +192,7 @@ void DongBoThuMuc(const std::string& DuongDan) {
     const bool DaDong = close(Mo) == 0;
     if (KetQua != 0 || !DaDong) BaoLoiGhi("Khong dong bo duoc thu muc luu xuong o dia");
 #else
-    (void)DuongDan; // MoveFileExW WRITE_THROUGH xử lý công bố trên Windows.
+    (void)DuongDan;
 #endif
 }
 
@@ -210,11 +210,11 @@ void GhiFileAnToan(const std::string& DuongDan, const std::string& NoiDung) {
         Tep.close();
         if (!Tep) BaoLoiGhi("Loi khi dong file CSV");
         DongBoTep(TepTam);
-        // Không xóa đích trước: nếu đổi tên thất bại, bản cũ vẫn còn nguyên.
+
         CongBoTep(TepTam, Dich);
         XoaTepTam(TepTam, ThuMucTam);
         const std::filesystem::path Cha = Dich.has_parent_path() ? Dich.parent_path() : ".";
-        // Lỗi đồng bộ tại đây phải báo lại dù file mới có thể đã được công bố.
+
         DongBoThuMuc(Cha.u8string());
     } catch (...) {
         XoaTepTam(TepTam, ThuMucTam);
@@ -226,8 +226,8 @@ void GhiFileAnToan(const std::string& DuongDan, const std::string& NoiDung) {
 void XoaFileDaDongBo(const std::string& DuongDan) {
     const std::filesystem::path Tep = std::filesystem::u8path(DuongDan);
 #ifdef _WIN32
-    // Windows không cung cấp fsync thư mục như POSIX. Đổi tên dấu pending bằng
-    // WRITE_THROUGH trước; file rác riêng có thể còn sau mất điện nhưng bị bỏ qua.
+
+
     std::error_code Loi;
     if (!std::filesystem::exists(Tep, Loi) && !Loi) return;
     if (Loi) BaoLoiGhi("Khong kiem tra duoc nhat ky da ghi xong");
@@ -246,4 +246,4 @@ void XoaFileDaDongBo(const std::string& DuongDan) {
     DongBoThuMuc(Cha.u8string());
 #endif
 }
-} // namespace CsvFile
+}

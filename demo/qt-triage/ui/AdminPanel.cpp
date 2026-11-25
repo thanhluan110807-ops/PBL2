@@ -1,5 +1,5 @@
 #include <QtGlobal>
-// Phần B — Chức năng chính: Giao diện Qt quản lý nhân sự, ca trực và lưu dữ liệu liên kết.
+
 #include "model/BacSi.h"
 #include "model/DieuDuong.h"
 #include "model/ShiftAssignment.h"
@@ -51,7 +51,7 @@ const Shift* TimCa(const Schedule& Lich, const std::string& Ma) {
         if (Lich.CacCa[I].LayMaCaTruc()==Ma) return &Lich.CacCa[I];
     return nullptr;
 }
-// Adapter: GUI cũ dùng Schedule; mọi thao tác mới đi qua Registry kiểm tra nghiệp vụ.
+
 std::unique_ptr<ScheduleRegistry> TaoRegistry(const AdminData& D) {
     auto R=std::make_unique<ScheduleRegistry>();
     for (int I=0; I<D.Lich.CacCa.KichThuoc(); ++I) R->ThemCaTruc(D.Lich.CacCa[I]);
@@ -103,7 +103,7 @@ QString NguoiXacNhan(const ShiftAssignment& PhanCong) {
     const auto& Ma = PhanCong.LayMaQuanLyXacNhan();
     return Ma.empty() ? QString("Chưa ghi nhận") : QString::fromStdString(Ma);
 }
-// Form chỉ sửa thông tin hành chính; giữ các số liệu đã ghi nhận khi tạo bản cập nhật.
+
 void GiuTrangThai(const NhanVienYTe* Cu, NhanVienYTe& Moi) {
     if (!Cu) return;
     Moi.KhoiPhucTrangThai({Cu->LayDiemMetMoi(),Cu->LayGioLamTuan(),Cu->LaySoCaDemThang(),Cu->LaySoCaCuoiTuanThang(),Cu->DaVuaTrucDem()});
@@ -216,13 +216,13 @@ QDateEdit:focus, QTimeEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QCheckBo
     connect(Dong,&QPushButton::clicked,this,&AdminPanel::close);
     LamMoi();
     if (QFileInfo::exists(DuongDan) && !NapTep(DuongDan)) {
-        // Không cho dữ liệu rỗng ghi đè nguồn đã tồn tại nhưng đọc thất bại.
+
         LoiTepLienKet=true; LamMoi();
         ThongBao->setText("Không tải được dữ liệu đã liên kết. Kiểm tra file dữ liệu rồi mở lại ứng dụng.\n" + ThongBao->text());
     }
 }
 void AdminPanel::ThemTrang(QWidget* NoiDung, const QString& Ten) {
-    // Chỉ cần cuộn cả trang khi cửa sổ quá nhỏ để chứa đủ các thao tác.
+
     auto* Cuon = new QScrollArea;
     Cuon->setWidgetResizable(true);
     Cuon->setWidget(NoiDung);
@@ -324,7 +324,7 @@ void AdminPanel::TaoNhanSu() {
             MaNV->setFocus();
             return;
         }
-        // Khi mở biểu mẫu mới, đưa các ô về giá trị mặc định.
+
         MaNV->clear();
         MaNV->setReadOnly(false);
         TenNV->clear();
@@ -524,7 +524,7 @@ void AdminPanel::TaoLich() {
     connect(Tim,&QPushButton::clicked,this,[this] { TimThay(); });
     connect(Thay,&QPushButton::clicked,this,[this] { ThayNguoi(); });
     connect(BangLich,&QTableWidget::itemSelectionChanged,this,[this] { ChonNguoiThay->clear(); });
-    // Hai hàng giữ đủ chỗ cho nút khi hộp thoại thu hẹp.
+
     auto* TrangThai = new QGridLayout; Cot->addLayout(TrangThai);
     const QString TenNut[]={"Xác nhận phân công","Hủy phân công…","Ghi nhận bắt đầu","Đề xuất tăng cường…"};
     const char* MaNut[]={"assignmentConfirm","assignmentCancel","assignmentStart","scheduleReinforce"};
@@ -588,7 +588,7 @@ void AdminPanel::LamMoi() {
                          QFileInfo::exists(DuongDan) ? "Đã lưu thay đổi" : "Chưa có thay đổi");
 }
 const NhanVienYTe* AdminPanel::NhanVienDangChon() const {
-    // Sau khi lọc, số dòng hiển thị không còn trùng vị trí trong Registry.
+
     const auto* Ma = BangNhanSu->item(BangNhanSu->currentRow(),0);
     return Ma ? DuLieu.NhanSu->Tim(Ma->text().toStdString()) : nullptr;
 }
@@ -760,7 +760,7 @@ bool AdminPanel::LuuTruocKhiDoiVaiTro() {
 }
 void AdminPanel::resizeEvent(QResizeEvent* E) {
     QDialog::resizeEvent(E);
-    // Đặt biểu mẫu cạnh danh sách khi đủ rộng; cửa sổ hẹp xếp chúng theo chiều dọc.
+
     const auto Huong = width() < 850 ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight;
     if (TrongTrangChinh && BoCucTieuDe)
         BoCucTieuDe->setDirection(width() < 600 ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight);
@@ -772,7 +772,7 @@ void AdminPanel::resizeEvent(QResizeEvent* E) {
 }
 void AdminPanel::closeEvent(QCloseEvent* E) { if (ChoPhepBoThayDoi()) E->accept(); else E->ignore(); }
 void AdminPanel::reject() {
-    if (TrongTrangChinh) return; // Esc không được đóng trang đang gắn trong cửa sổ chính.
+    if (TrongTrangChinh) return;
     if (ChoPhepBoThayDoi()) QDialog::reject();
 }
 
@@ -823,7 +823,7 @@ void AdminPanel::ThaoTacPhanCong(int Lenh) {
 bool AdminPanel::LuuNhanSu(const QString& Tep) {
     try {
         StaffFileManager::LuuNhanVien(Tep.toStdString(),*DuLieu.NhanSu);
-        // Xuất riêng không đồng nghĩa snapshot lịch/dự phòng đã được lưu.
+
         ThongBao->setText("Đã xuất file nhân viên. Lưu file chung để giữ cả lịch và danh sách dự phòng.");
         return true;
     } catch (const My_stdexcept& E) { BaoLoi(E.LayThongBao()); }
@@ -833,7 +833,7 @@ bool AdminPanel::LuuNhanSu(const QString& Tep) {
 bool AdminPanel::NapNhanSu(const QString& Tep) {
     try {
         auto Moi=StaffFileManager::DocNhanVien(Tep.toStdString());
-        // Kiểm tra trước khi thay nguồn dữ liệu: không xóa lịch để lách lỗi tham chiếu.
+
         ScheduleRegistry KiemTra;
         for (int I=0; I<DuLieu.Lich.CacCa.KichThuoc(); ++I) KiemTra.ThemCaTruc(DuLieu.Lich.CacCa[I]);
         for (int I=0; I<DuLieu.Lich.PhanCong.KichThuoc(); ++I) KiemTra.ThemPhanCong(DuLieu.Lich.PhanCong[I],*Moi);

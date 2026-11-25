@@ -1,4 +1,4 @@
-// Phần B — Chức năng chính: Quản lý nhân viên trong RAM, tra cứu theo mã và tên bác sĩ.
+
 #include "repository/StaffRegistry.h"
 #include "model/BacSi.h"
 #include "util/My_stdexcept.h"
@@ -24,7 +24,7 @@ const NhanVienYTe* StaffRegistry::Tim(const std::string& Ma) const {
 void StaffRegistry::CapNhat(const NhanVienYTe& NhanVien) {
     NhanVienYTe** O = ChiMuc.Timkiem(NhanVien.LayMaDinhDanh());
     if (!O) throw My_stdexcept(My_stdexcept::LoaiLoi::NgoaiPhamVi, "Khong tim thay nhan vien");
-    (*O)->CapNhatTu(NhanVien); // Giữ địa chỉ cho các kết quả tra cứu đang mượn.
+    (*O)->CapNhatTu(NhanVien);
 
 }
 bool StaffRegistry::Xoa(const std::string& Ma) {
@@ -42,7 +42,7 @@ bool StaffRegistry::Xoa(const std::string& Ma) {
 Vector<const BacSi*> StaffRegistry::TimBacSiTheoTen(const std::string& Ten) const {
     Vector<const BacSi*> KetQua;
     if (Ten.find_first_not_of(" \t\r\n")==std::string::npos) return KetQua;
-    // Tìm chuỗi con UTF-8, phân biệt hoa/thường và dấu; không tự đoán chuẩn hóa tên.
+
     for (int I=0;I<DanhSach.KichThuoc();++I) {
         const auto* NV=DanhSach[I];
         if (NV->LayLoaiNhanVien()==StaffType::BacSi && NV->LayHoTen().find(Ten)!=std::string::npos)

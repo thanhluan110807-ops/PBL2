@@ -11,7 +11,7 @@
 #include "model/Visit.h"
 
 namespace {
-// Chỉ binary test này thay new/delete; mã nghiệp vụ không có điểm tiêm lỗi giả.
+
 int SoLanCapPhatConLai = -1;
 int SoKhoiDangSong = 0;
 
@@ -26,7 +26,7 @@ void* CapPhatThu(std::size_t SoByte) {
 void GiaiPhongThu(void* DiaChi) noexcept {
     if (DiaChi != nullptr) { --SoKhoiDangSong; std::free(DiaChi); }
 }
-} // namespace
+}
 
 void* operator new(std::size_t SoByte) { return CapPhatThu(SoByte); }
 void* operator new[](std::size_t SoByte) { return CapPhatThu(SoByte); }
@@ -38,8 +38,8 @@ void operator delete[](void* DiaChi, std::size_t) noexcept { GiaiPhongThu(DiaChi
 void KiemTraLoiThem(bool LaThemVisit, int SoHoSoCu) {
     bool DaThanhCong = false;
     int SoLanDaLoi = 0;
-    // Chạy lại từ đầu, làm hỏng lần cấp phát thứ 0, 1, ... đến khi thêm thành công.
-    // 12 hồ sơ làm lần thêm thứ 13 phải rehash bảng có dung lượng ban đầu 16.
+
+
     for (int Buoc = 0; Buoc < 200 && !DaThanhCong; ++Buoc) {
         const int SoKhoiBanDau = SoKhoiDangSong;
         {
@@ -77,7 +77,7 @@ void KiemTraLoiThem(bool LaThemVisit, int SoHoSoCu) {
                 assert((SoBo.TimBenhNhanTheoCanCuoc(CanCuocMoi) != nullptr) == DaThanhCong);
             }
         }
-        // So sánh sau khi Registry hủy: dung lượng bảng có thể tăng trước khi lỗi.
+
         assert(SoKhoiDangSong == SoKhoiBanDau);
     }
     assert(DaThanhCong && SoLanDaLoi > 0);
@@ -146,7 +146,7 @@ void KiemTraLoiBoSungThongTinConThieu() {
 int main() {
     KiemTraLoiBoSungThongTinConThieu();
     KiemTraLoiThem(false, 0);
-    KiemTraLoiThem(false, 11); // Cộng NguoiMoi = 12 Patient trước lần thêm.
+    KiemTraLoiThem(false, 11);
     KiemTraLoiThem(true, 0);
     KiemTraLoiThem(true, 12);
     KiemTraLoiBoSungDanhTinh();

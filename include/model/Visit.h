@@ -6,7 +6,7 @@
 #include "model/Patient.h"
 #include "model/DoctorParticipation.h"
 
-// Một bộ sinh hiệu hợp lệ, lưu giá trị gốc để đánh giá và xem lại.
+
 class VitalSigns {
     int NhipTim, HuyetApTamThu, NhipTho, DiemGcs;
     double Spo2;
@@ -21,13 +21,13 @@ public:
 
 enum class VisitStatus { ChoKhamLanDau, DangKham, ChoCanLamSang, ChoKhamQuayLai, DaKetThuc, DaHuy };
 
-// Vector cần kiểu có constructor mặc định; bản mặc định chỉ dùng cho ô trống.
+
 class TriageAssessment {
     VitalSigns SinhHieu;
     int Muc, Tuoi;
     bool TuoiUocLuong;
     std::time_t ThoiDiemDanhGia;
-    // Có thể rỗng với đánh giá cũ chưa ghi nhận điều dưỡng thực hiện.
+
     std::string MaDieuDuong;
 public:
     TriageAssessment();
@@ -41,7 +41,7 @@ public:
     const std::string& LayMaDieuDuong() const { return MaDieuDuong; }
 };
 
-// Một chỉ định và kết quả trong cùng lần khám; Vector cần constructor mặc định.
+
 class BanGhiCanLamSang {
     std::string ChiDinh, KetQua, MaBacSiChiDinh;
     bool CoKetQua = false;
@@ -51,7 +51,7 @@ public:
     BanGhiCanLamSang() = default;
     BanGhiCanLamSang(const std::string& ChiDinh, const std::string& MaBacSiChiDinh)
         : ChiDinh(ChiDinh), MaBacSiChiDinh(MaBacSiChiDinh) {}
-    // Dựng bản ghi từ file, kiểm tra chỉ định và cờ kết quả khớp nội dung.
+
     BanGhiCanLamSang(const std::string& ChiDinh, const std::string& MaBacSiChiDinh,
                     bool CoKetQua, const std::string& KetQua);
     const std::string& LayChiDinh() const { return ChiDinh; }
@@ -60,7 +60,7 @@ public:
     bool DaCoKetQua() const { return CoKetQua; }
 };
 
-// Dữ liệu sao chép độc lập dùng để lưu/khôi phục, không giữ con trỏ Patient.
+
 struct BanChupLanKham {
     std::string MaLanKham, MaBenhNhan, TrieuChungChinh;
     std::time_t ThoiDiemTiepNhan = 0;
@@ -68,8 +68,8 @@ struct BanChupLanKham {
     Vector<TriageAssessment> DanhGia;
     Vector<BanGhiCanLamSang> CanLamSang;
     Vector<std::string> BacSiPhanCong, BacSiThamGia;
-    // Giữ danh sách mã cho bên gọi cũ; lịch sử mới lưu đầy đủ sự kiện khám.
-    // Nếu chi tiết rỗng, đây là bản cũ chỉ biết mã, thời điểm được khôi phục là 0.
+
+
     Vector<DoctorParticipation> BacSiThamGiaChiTiet;
 };
 
@@ -87,12 +87,12 @@ class Visit {
 public:
     Visit(const std::string& MaLanKham, const std::string& MaBenhNhan,
           std::time_t ThoiDiemTiepNhan, const std::string& TrieuChungChinh);
-    // Có thể chép lịch sử để xem, nhưng không được move lấy mất dữ liệu
-    // của một Visit đang được Registry giữ và cho thành phần khác mượn.
+
+
     Visit(const Visit&) = default;
     Visit(Visit&&) = delete;
     BanChupLanKham LayBanChup() const;
-    // Trả đối tượng mới do bên gọi sở hữu; chỉ công bố khi toàn bộ lịch sử hợp lệ.
+
     static Visit* TuBanChup(const BanChupLanKham& BanChup);
     const std::string& LayMaLanKham() const { return MaLanKham; }
     const std::string& LayMaBenhNhan() const { return MaBenhNhan; }
@@ -109,7 +109,7 @@ public:
     const std::string& LayBacSiDuocPhanCongTai(int ChiSo) const { return DanhSachBacSiDuocPhanCong.Lay(ChiSo); }
     int SoLanBacSiThamGiaKham() const { return LichSuBacSiThamGiaKham.KichThuoc(); }
     const std::string& LayBacSiThamGiaKhamTai(int ChiSo) const { return LichSuBacSiThamGiaKham.Lay(ChiSo).LayMaBacSi(); }
-    // Tự xác định ngày Việt Nam (UTC+7) từ thời điểm đánh giá để tính tuổi.
+
     void DanhGia(const Patient& BenhNhan, const VitalSigns& SinhHieu,
                  std::time_t ThoiDiemDanhGia, const std::string& MaDieuDuong);
     void PhanCongBacSi(const std::string& MaBacSi);

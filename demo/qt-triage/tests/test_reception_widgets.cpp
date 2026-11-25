@@ -91,7 +91,7 @@ int main(int argc,char** argv) {
         TimHoSo->setText(" 999 ");
         assert(DanhSach->isVisible() && DanhSach->count()==1);
         assert(DanhSach->item(0)->data(Qt::UserRole).toString()=="BN002");
-        // Đổi chế độ/người không được mang dữ liệu hồ sơ trước sang hồ sơ mới.
+
         Nhap(H,"MaLanKham","LK001"); CheDo->setCurrentIndex(0);
         assert(!Tim<QListWidget>(H,"chonHoSo")->isVisible());
         assert(Tim<QLineEdit>(H,"MaBenhNhan")->text().isEmpty());
@@ -156,7 +156,7 @@ int main(int argc,char** argv) {
     assert(TaiNap->TimLanKham("LK003")->LayMaBenhNhan()=="A");
     assert(TaiNap->TaoMaLanKham()=="LK004"); delete TaiNap;
 
-    // Lượt mới hơn đã hủy không chiếm số thứ tự ở danh sách chờ sàng lọc.
+
     T.TiepNhan("V-HUY", "BN002", std::time(nullptr) + 1, "Đã hủy");
     T.Huy("V-HUY");
     W.LamMoi();

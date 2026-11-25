@@ -8,7 +8,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(PBL2_ENABLE_SANITIZERS "Bat AddressSanitizer va UndefinedBehaviorSanitizer" OFF)
 
-# Cấu hình dùng chung cho phần lõi và test; không phụ thuộc Qt.
+
 add_library(pbl2_build_options INTERFACE)
 target_compile_features(pbl2_build_options INTERFACE cxx_std_17)
 if(MSVC)
@@ -26,7 +26,7 @@ if(PBL2_ENABLE_SANITIZERS)
     target_link_options(pbl2_build_options INTERFACE -fsanitize=address,undefined)
 endif()
 
-# GUI liên kết phần lõi chung; giữ cả nghiệp vụ bệnh nhân và lịch trực.
+
 add_library(pbl2_core STATIC
     src/model/Person.cpp
     src/model/Patient.cpp
@@ -57,10 +57,10 @@ add_library(pbl2_core STATIC
 target_include_directories(pbl2_core PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/include")
 target_link_libraries(pbl2_core PUBLIC pbl2_build_options)
 
-# BUILD_TESTING mặc định ON; OFF cho phép chỉ biên dịch thư viện lõi.
+
 include(CTest)
 if(BUILD_TESTING)
-    # Python chỉ phục vụ kiểm tra nguồn, không phải dependency của thư viện lõi.
+
     find_package(Python3 3.8 REQUIRED COMPONENTS Interpreter)
     set(CongCuKiemTra "${CMAKE_CURRENT_SOURCE_DIR}/tools/check_project_sources.py")
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CongCuKiemTra}")
@@ -70,7 +70,7 @@ if(BUILD_TESTING)
         COMMENT "Kiem tra stdexcept va phu thuoc Qt trong ma du an"
         VERBATIM)
 
-    # Công cụ dùng cùng quy tắc phạm vi cho quét nguồn và chọn header lõi.
+
     execute_process(
         COMMAND "${Python3_EXECUTABLE}" "${CongCuKiemTra}"
                 --root "${CMAKE_CURRENT_SOURCE_DIR}" --list-core-headers
@@ -91,7 +91,7 @@ if(BUILD_TESTING)
         set(TenTarget "pbl2_header_${MaHeader}")
         set(TepKiemTra "${CMAKE_CURRENT_BINARY_DIR}/header_checks/${TenTepHeader}_${MaHeader}.cpp")
         file(WRITE "${TepKiemTra}" "#include \"${TenInclude}\"\n")
-        # Mỗi target chỉ có một TU, không include trước header khác hoặc liên kết GUI.
+
         add_library(${TenTarget} OBJECT "${TepKiemTra}")
         target_include_directories(${TenTarget} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
         target_link_libraries(${TenTarget} PRIVATE pbl2_build_options)
@@ -126,11 +126,11 @@ if(BUILD_TESTING)
     add_executable(test_visit_search_service tests/service/test_visit_search_service.cpp)
     target_link_libraries(test_visit_search_service PRIVATE pbl2_core)
 
-    # Registry sở hữu Patient/Visit; test riêng quyền sở hữu và quy tắc tiếp nhận.
+
     add_executable(test_patient_registry tests/repository/test_patient_registry.cpp)
     target_link_libraries(test_patient_registry PRIVATE pbl2_core)
 
-    # Tách binary vì test này thay new/delete để thử lỗi cấp phát và rehash.
+
     add_executable(test_patient_registry_allocation tests/repository/test_patient_registry_allocation.cpp)
     target_link_libraries(test_patient_registry_allocation PRIVATE pbl2_core)
 
@@ -146,17 +146,17 @@ if(BUILD_TESTING)
     add_executable(test_session_file_manager tests/repository/test_session_file_manager.cpp)
     target_link_libraries(test_session_file_manager PRIVATE pbl2_core)
 
-    # Ngoại lệ và DSA là header-only, không cần liên kết với model Person.
+
     add_executable(test_my_stdexcept tests/util/test_my_stdexcept.cpp)
     target_include_directories(test_my_stdexcept PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
     target_link_libraries(test_my_stdexcept PRIVATE pbl2_build_options)
 
-    # Vector là template header-only, kiểm thử độc lập với model.
+
     add_executable(test_vector tests/dsa/test_vector.cpp)
     target_include_directories(test_vector PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
     target_link_libraries(test_vector PRIVATE pbl2_build_options)
 
-    # PriorityQueue là template header-only, kiểm thử độc lập với model.
+
     add_executable(test_priority_queue tests/dsa/test_priority_queue.cpp)
     target_include_directories(test_priority_queue PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
     target_link_libraries(test_priority_queue PRIVATE pbl2_build_options)
@@ -178,7 +178,7 @@ if(BUILD_TESTING)
             test_visit_search_service
             test_patient_registry test_patient_registry_allocation test_patient_file_manager test_visit_file_manager test_visit_restore test_session_file_manager test_autosave_file_manager
             test_my_stdexcept test_vector test_priority_queue)
-        # Release thường đặt NDEBUG; bỏ macro này để assert vẫn thực sự được chạy.
+
         if(MSVC)
             target_compile_options(${TenKiemThu} PRIVATE /UNDEBUG)
         else()
@@ -187,14 +187,14 @@ if(BUILD_TESTING)
         add_test(NAME ${TenKiemThu} COMMAND ${TenKiemThu})
         set_tests_properties(${TenKiemThu} PROPERTIES TIMEOUT 30)
         if(PBL2_ENABLE_SANITIZERS)
-            # UBSan phải trả lỗi ngay, không chỉ in cảnh báo rồi cho test tiếp tục.
+
             set_tests_properties(${TenKiemThu} PROPERTIES
                 ENVIRONMENT "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1")
         endif()
     endforeach()
 endif()
 
-# Demo Qt tách biệt; cấu hình mặc định của lõi/CI không dò hay liên kết Qt.
+
 option(PBL2_BUILD_QT_DEMO "Build demo dieu phoi cap cuu bang Qt Widgets" OFF)
 if(PBL2_BUILD_QT_DEMO)
     add_subdirectory(demo/qt-triage)
